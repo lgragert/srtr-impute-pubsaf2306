@@ -16,6 +16,22 @@ DONOR_LIVE - living donor data (including HLA)
 REC_HISTO - recipient HLA data (including more HLA loci than in TX_KI)
 ```
 
+DQA1 and DPA1 HLA typing were provided separately.
+
+Decoding for DQA1 and DPA1 HLA data formats came from using UNOS APIs - example JSON API query:
+
+```
+python3 dqa1_dpa1_code_api.py
+```
+
+Requires the following app and UNOS API key information (not checked included in code / repo):
+
+```
+tulane_app_id.key
+unos_api_public.key
+unos_api_secret.key
+```
+
 SAS files were pre-converted to tab-delimited text files by Nick Brown using R Haven.
 
 An example R Haven SAS extract script is here `haven_sas_experiments.R` - tested on pubsaf1812
