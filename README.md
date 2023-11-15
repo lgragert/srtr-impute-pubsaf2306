@@ -14,9 +14,23 @@ TX_KI - kidney transplant data
 DONOR_DECEASED - deceased donor data (including HLA)
 DONOR_LIVE - living donor data (including HLA)
 REC_HISTO - recipient HLA data (including more HLA loci than in TX_KI)
+SAF_DPA_DQA - DQA1 and DPA1 HLA typing were provided separately (donor and recip)
 ```
 
-DQA1 and DPA1 HLA typing were provided separately.
+Python script for merging HLA data across SAF database files:
+
+```
+python3 srtr_saf_hla_merge_9loc.py
+```
+
+Output file with merged HLA data:
+
+```
+tx_ki_hla_9loc.csv
+
+Columns:
+['ORG_TY', 'PERS_ID', 'PX_ID', 'REC_TX_DT', 'REC_HISTO_TX_ID', 'DON_TY', 'DON_RACE', 'DON_RACE_SRTR', 'DON_ETHNICITY_SRTR', 'DON_A1', 'DON_A2', 'DON_B1', 'DON_B2', 'DON_DR1', 'DON_DR2', 'REC_AGE_IN_MONTHS_AT_TX', 'CAN_RACE', 'CAN_RACE_SRTR', 'CAN_ETHNICITY_SRTR', 'REC_TX_TY', 'REC_A1', 'REC_A2', 'REC_B1', 'REC_B2', 'REC_DR1', 'REC_DR2', 'DONOR_ID', 'DON_C1', 'DON_C2', 'DON_DQ1', 'DON_DQ2', 'DON_DP1', 'DON_DP2', 'DON_DR51', 'DON_DR52', 'DON_DR53', 'REC_CW1', 'REC_CW2', 'REC_DQW1', 'REC_DQW2', 'REC_DPW1', 'REC_DPW2', 'REC_DRW51', 'REC_DRW52', 'REC_DRW53', 'DON_DQA1', 'DON_DQA2', 'DON_DPA1', 'DON_DPA2', 'REC_DQA1', 'REC_DQA2', 'REC_DPA1', 'REC_DPA2']
+```
 
 Decoding for DQA1 and DPA1 HLA data formats came from using UNOS APIs - example JSON API query:
 
