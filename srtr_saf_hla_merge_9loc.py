@@ -54,31 +54,26 @@ print(list(DQA1_DPA1_HLA.columns))
 
 # subset TX_KI columns for merge
 print ("Subset REC_HISTO columns: ")
-tx_ki = tx_ki[['ORG_TY','PERS_ID','PX_ID','REC_TX_DT', 'REC_HISTO_TX_ID', \
+tx_ki = tx_ki[['ORG_TY','PERS_ID','PX_ID','REC_TX_DT', 'REC_HISTO_TX_ID', 'REC_TX_TY',\
 		'DON_TY','DON_RACE','DON_RACE_SRTR','DON_ETHNICITY_SRTR','DON_A1','DON_A2','DON_B1','DON_B2','DON_DR1','DON_DR2', \
-		'REC_AGE_IN_MONTHS_AT_TX','CAN_RACE','CAN_RACE_SRTR','CAN_ETHNICITY_SRTR','REC_TX_TY','REC_A1','REC_A2','REC_B1','REC_B2','REC_DR1','REC_DR2','DONOR_ID']]
+		'REC_AGE_IN_MONTHS_AT_TX','CAN_RACE','CAN_RACE_SRTR','CAN_ETHNICITY_SRTR','REC_A1','REC_A2','REC_B1','REC_B2','REC_DR1','REC_DR2','DONOR_ID']]
+
 
 # SAS filters on TX_KI
 # where (REC_AGE_AT_TX ge 18) and ((DON)TY = 'C') and (ORG_TY = 'KI') and (REC_MULTI_ORG='') and (2000 le YER(REC_TX_DT) le 2017);
+# drop rows that don't meet criteria from pullIDs.sas criteria
 
 # Substitute for REC_MULTI_ORG - REC_TX_TY - "1: Single donor, single organ type TX"
-
 # 93 REC_MULTI_ORG Char 15 $MULTORG. Text listing organs in a multi-organ TX  in TXF_HR
 # 92 REC_KP_MULTI Num 8 KP_MULT. Flag indicating if a Flag indicating if a KP TX or a KP involved in a Multi
 
-# drop rows that don't meet criteria from pullIDs.sas criteria
-
-print ("Merging HLA for All Transplants in SRTR SAF TX_KI table pubsaf2306: " + str(len(tx_ki)))
+# handle dates
 
 # convert to DateTime - already in ISO8601 format in pubsaf2306!
 # tx_ki['REC_TX_DT'] = pandas.to_datetime(tx_ki['REC_TX_DT'],format='%m/%d/%y')
-
-# filter based on dates
+# filter based on dates - TODO - migrate this downstream after imputation
 # tx_ki = tx_ki[(tx_ki['REC_TX_DT'] > '2000-01-01') & (tx_ki['REC_TX_DT'] < '2017-12-31')]
 
-# rename some of the tx_ki values
-tx_ki.loc[tx_ki.ORG_TY == 'KI: Kidney', 'ORG_TY'] = "KI"
-tx_ki.loc[tx_ki.REC_TX_TY == '1: Single donor, single organ type TX', 'REC_TX_TY'] = "1" # 3 preceding tabs are new
 
 # Use donor and recipient race and ethnic info to NMDP Rollup Race codes
 
@@ -159,11 +154,29 @@ DQA1_DPA1_HLA = DQA1_DPA1_HLA.rename(columns={"don_dqa1": "DON_DQA1", "don_dqa2"
 DQA1_DPA1_HLA = DQA1_DPA1_HLA[['PX_ID','DON_DQA1','DON_DQA2','DON_DPA1','DON_DPA2','REC_DQA1','REC_DQA2','REC_DPA1','REC_DPA2']]
 print ("Subset DQA1_DPA1 columns: ")
 print(list(DQA1_DPA1_HLA.columns))
-print (DQA1_DPA1_HLA.dtypes)
+# print (DQA1_DPA1_HLA.dtypes)
 # DQA1_DPA1_HLA = DQA1_DPA1_HLA["DONOR_ID"].astype(np.int64)
 
 
-# MERGE TABLES
+# MERGE AND FILTER TABLES
+
+print ("Merging HLA for All Transplants in SRTR SAF TX_KI table pubsaf2306: " + str(len(tx_ki)))
+
+
+# select organ type kidney - excludes KP - didn't change count so commenting out
+# tx_ki.loc[tx_ki.ORG_TY == 'KI: Kidney', 'ORG_TY'] = "KI"
+
+# select only single donor, single organ type TX for REC_TX_TY
+# 	Transplant Type, number of donors & organ types involved in TX
+# 1: Single donor, single organ type TX
+# 2: Single donor, multiple organ types TX
+# 3: Multiple donors, single organ type TX  - can't use because merging DQA1 and DPA1 on patient ID
+# 4: Multiple donors, multiple organ type TX
+tx_ki.REC_TX_TY = tx_ki.REC_TX_TY.str.split(': ',expand=True)[1]
+tx_ki.loc[(tx_ki.REC_TX_TY == "Single donor, single organ type TX"), 'REC_TX_TY'] = "1"
+tx_ki = tx_ki[(tx_ki['REC_TX_TY'] == "1")]
+
+print ("Subset to Single donor, single organ type TX: " + str(len(tx_ki)))
 
 # merge DONOR_DECEASED on DONOR_ID to add C, DQ, and DP
 tx_ki_donor_hla = tx_ki.merge(donor_deceased,how="inner",on="DONOR_ID")
@@ -173,20 +186,37 @@ print ("Merged with DONOR_DECEASED on DONOR_ID: " + str(len(tx_ki_donor_hla)))
 tx_ki_donor_rec_hla = tx_ki_donor_hla.merge(rec_histo,how="inner",on="REC_HISTO_TX_ID")
 print ("Merged with REC_HISTO on REC_HISTO_TX_ID: " + str(len(tx_ki_donor_rec_hla)))
 
+# find row dropped in merge with REC_HISTO
+# print (tx_ki_donor_hla[~tx_ki_donor_hla['REC_HISTO_TX_ID'].isin(rec_histo['REC_HISTO_TX_ID'])])
+# print ("Missing row from REC_HISTO merge with TX_KI: ")
+# print(tx_ki.loc[tx_ki['PERS_ID'] == 2679941])
+# tx_ki_missing_from_rec_histo = tx_ki.loc[tx_ki['PERS_ID'] == 2679941]
+# print ("Missing REC_HISTO_TX_ID: ")
+# print (tx_ki_missing_from_rec_histo['REC_HISTO_TX_ID'])
+# PX_ID -1656071
+# PERS_ID 2679941
+# REC_HISTO_TX_ID 1776506
+# print (rec_histo[~rec_histo['REC_HISTO_TX_ID'].isin(rec_histo['REC_HISTO_TX_ID'])])
+
 # merge DQA1_DPA1_HLA on PX_ID to add C, DQ, and DP
-tx_ki_all_hla = tx_ki_donor_rec_hla.merge(DQA1_DPA1_HLA,how="inner",on="PX_ID")
+# can't merge on DONOR_ID - uses actual UNOS donor IDs which aren't in SAF
+# can't use 
+tx_ki_all_hla = tx_ki_donor_rec_hla.merge(DQA1_DPA1_HLA,how="left",on="PX_ID")
 print ("Merged with DQA1_DPA1_HLA on PX_ID: " + str(len(tx_ki_all_hla)))
 
 
 # list columns in final table
-print(list(tx_ki_all_hla.columns))
+# print(list(tx_ki_all_hla.columns))
+
+# print (tx_ki_all_hla['DON_A1'])
 
 hla_filename = "tx_ki_hla_9loc.csv"
 tx_ki_all_hla.to_csv(hla_filename, header=True, index=False)
 
-exit()
-
-
+# after SAS formats decoding, HLA field look like "203: 0203"
+# these commands convert the data to what appears after the colon - "0203"
+# not needed for DQA1 and DPA1 which were extracted outside of SAS
+# DQA1 and DPA1 already cleanly decoded
 tx_ki_all_hla.DON_A1 = tx_ki_all_hla.DON_A1.str.split(': ',expand=True)[1]
 tx_ki_all_hla.DON_A2 = tx_ki_all_hla.DON_A2.str.split(': ',expand=True)[1]
 tx_ki_all_hla.DON_B1 = tx_ki_all_hla.DON_B1.str.split(': ',expand=True)[1]
@@ -195,12 +225,8 @@ tx_ki_all_hla.DON_C1 = tx_ki_all_hla.DON_C1.str.split(': ',expand=True)[1]
 tx_ki_all_hla.DON_C2 = tx_ki_all_hla.DON_C2.str.split(': ',expand=True)[1]
 tx_ki_all_hla.DON_DR1 = tx_ki_all_hla.DON_DR1.str.split(': ',expand=True)[1]
 tx_ki_all_hla.DON_DR2 = tx_ki_all_hla.DON_DR2.str.split(': ',expand=True)[1]
-tx_ki_all_hla.DON_DQA1 = tx_ki_all_hla.DON_DQA1.str.split(': ',expand=True)[1]
-tx_ki_all_hla.DON_DQA2 = tx_ki_all_hla.DON_DQA2.str.split(': ',expand=True)[1]
 tx_ki_all_hla.DON_DQ1 = tx_ki_all_hla.DON_DQ1.str.split(': ',expand=True)[1]
 tx_ki_all_hla.DON_DQ2 = tx_ki_all_hla.DON_DQ2.str.split(': ',expand=True)[1]
-tx_ki_all_hla.DON_DPA1 = tx_ki_all_hla.DON_DPA1.str.split(': ',expand=True)[1]
-tx_ki_all_hla.DON_DPA2 = tx_ki_all_hla.DON_DPA2.str.split(': ',expand=True)[1]
 tx_ki_all_hla.DON_DP1 = tx_ki_all_hla.DON_DP1.str.split(': ',expand=True)[1]
 tx_ki_all_hla.DON_DP2 = tx_ki_all_hla.DON_DP2.str.split(': ',expand=True)[1]
 tx_ki_all_hla.DON_DR51 = tx_ki_all_hla.DON_DR51.str.split(': ',expand=True)[1]
@@ -215,12 +241,8 @@ tx_ki_all_hla.REC_CW1 = tx_ki_all_hla.REC_CW1.str.split(': ',expand=True)[1]
 tx_ki_all_hla.REC_CW2 = tx_ki_all_hla.REC_CW2.str.split(': ',expand=True)[1]
 tx_ki_all_hla.REC_DR1 = tx_ki_all_hla.REC_DR1.str.split(': ',expand=True)[1]
 tx_ki_all_hla.REC_DR2 = tx_ki_all_hla.REC_DR2.str.split(': ',expand=True)[1]
-tx_ki_all_hla.REC_DQA1 = tx_ki_all_hla.REC_DQA1.str.split(': ',expand=True)[1]
-tx_ki_all_hla.REC_DQA2 = tx_ki_all_hla.REC_DQA2.str.split(': ',expand=True)[1]
 tx_ki_all_hla.REC_DQW1 = tx_ki_all_hla.REC_DQW1.str.split(': ',expand=True)[1]
 tx_ki_all_hla.REC_DQW2 = tx_ki_all_hla.REC_DQW2.str.split(': ',expand=True)[1]
-tx_ki_all_hla.REC_DPA1 = tx_ki_all_hla.REC_DPA1.str.split(': ',expand=True)[1]
-tx_ki_all_hla.REC_DPA2 = tx_ki_all_hla.REC_DPA2.str.split(': ',expand=True)[1]
 tx_ki_all_hla.REC_DPW1 = tx_ki_all_hla.REC_DPW1.str.split(': ',expand=True)[1]
 tx_ki_all_hla.REC_DPW2 = tx_ki_all_hla.REC_DPW2.str.split(': ',expand=True)[1]
 tx_ki_all_hla.REC_DRW51 = tx_ki_all_hla.REC_DRW51.str.split(': ',expand=True)[1]
@@ -491,7 +513,8 @@ tx_ki_all_hla.loc[tx_ki_all_hla.REC_DPW1 == '1 (Inactive)', 'REC_DPW1'] = ""
 tx_ki_all_hla.loc[tx_ki_all_hla.REC_DPW2 == '1 (Inactive)', 'REC_DPW2'] = ""
 
 
-# TODO: manage DRB3/4/5 typing - not currently used as imputation input - typing is mostly Negative/Positive/Not Tested
+# DRB3/4/5 typing is mostly Negative/Positive/Not Tested
+# will be handled downstream in conversion to GL strings
 
 # view Pandas data types
 # print (tx_ki_all_hla.info())
