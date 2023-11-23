@@ -3,36 +3,16 @@ import pandas
 import numpy
 import re
 import requests
-import pyard
+# import pyard
 
 # initialize pyARD and roll up typing to 'g' group for imputation
 # XX codes are always in latest IMGT/HLA allele list
-ard = pyard.ARD()
+# ard = pyard.init()
 
 # global XX code GL hash
 XX_hash = {}
 dna2ser = {}
 seroGL = {}
-
-def expand_XX(ac, XX_hash):
-	# uses hashing to limit calls to MAC service 
-	if (ac in XX_hash):
-		gl = XX_hash[ac]
-		# print ("Hash Lookup")
-	else:
-		url = "https://hml.nmdp.org/mac/api/decode?typing="
-		response = requests.get(url + ac)
-		gl = response.text
-		XX_hash[ac] = gl
-		# print ("Service Call")
-
-	gl_ars = ard.redux_gl(gl,'lgx')
-	return(gl_ars)
-
-def expand_AC(ac):
-	# print ("AC " + ac)
-	gl_ars = ard.redux_gl(ac,'lg')
-	return(gl_ars)
 
 def loc_gl (loc, typ1, typ2, dna1, dna2, XX_hash):
 	if (typ2 == ""):
@@ -51,14 +31,11 @@ def loc_gl (loc, typ1, typ2, dna1, dna2, XX_hash):
 	al1 = ""
 	al2 = ""
 
-	# C is DNA only
-	if (loc == "C"):
-		dna1 = "Y"
-		dna2 = "Y"
-		if ((typ1 == "13:XX") | (typ2 == "13:XX")):
-			# Cw*1301	Sequence shown to be in error (July 2002) - https://hla.alleles.org/alleles/deleted.html
-			# print ("Deleted allele C*13:XX in HLA typing: " + str(getattr(row, 'PX_ID')))
-			return "SKIP"
+	# TODO - handle C13
+	# if ((typ1 == "13:XX") | (typ2 == "13:XX")):
+		# Cw*1301	Sequence shown to be in error (July 2002) - https://hla.alleles.org/alleles/deleted.html
+		# print ("Deleted allele C*13:XX in HLA typing: " + str(getattr(row, 'PX_ID')))
+	# 	return "SKIP"
 
 	# B*15:22 renamed to B*35:43
 	if (loc == "B"):
@@ -73,8 +50,12 @@ def loc_gl (loc, typ1, typ2, dna1, dna2, XX_hash):
 		loc_ser = loc
 		if (loc == "DRB1"):
 			loc_ser = "DR"
+		if (loc == "DQA1"):
+			loc_ser = "DQA1*"
 		if (loc == "DQB1"):
 			loc_ser = "DQ"
+		if (loc == "DPA1"):
+			loc_ser = "DPA1*"
 		if (loc == "DPB1"):
 			loc_ser = "DP"
 			# print ("Legacy DP antigen-level typing  - not using for imputation:" + str(getattr(row, 'PX_ID')))
@@ -88,19 +69,20 @@ def loc_gl (loc, typ1, typ2, dna1, dna2, XX_hash):
 		typ1_fields = typ1.split(':')
 		subtype1 = typ1_fields[1]
 		loctyp1 = '*'.join([loc,typ1])
-		if (subtype1 == "XX"):
-			al1 = expand_XX(loctyp1,XX_hash)
-		else:
-			al1 = loctyp1
-			# ARD rollup of alleles in typing - Handle cases like DPB1*350:01 which aren't in freqs
-			al1 = ard.redux_gl(al1,'lgx')
+		al1 = loctyp1
+		# two-field analysis - ARD rollup no longer being used
+		# al1 = ard.redux(al1,'lgx')
 
 	if (dna2 == "N"):
 		loc_ser = loc
 		if (loc == "DRB1"):
 			loc_ser = "DR"
+		if (loc == "DQA1"):
+			loc_ser = "DQA1*"
 		if (loc == "DQB1"):
 			loc_ser = "DQ"
+		if (loc == "DPA1"):
+			loc_ser = "DPA1*"
 		if (loc == "DPB1"):
 			loc_ser = "DP"
 			# print ("Legacy DP antigen-level typing - not using for imputation: " + str(getattr(row, 'PX_ID')))
@@ -113,12 +95,9 @@ def loc_gl (loc, typ1, typ2, dna1, dna2, XX_hash):
 		typ2_fields = typ2.split(':')
 		subtype2 = typ2_fields[1]
 		loctyp2 = '*'.join([loc,typ2])
-		if (subtype2 == "XX"):
-			al2 = expand_XX(loctyp2,XX_hash)
-		else:
-			al2 = loctyp2
-			# ARD rollup of alleles in typing - Handle cases like DPB1*350:01 which aren't in freqs
-			al2 = ard.redux_gl(al2,'lgx')
+		al2 = loctyp2
+		# # two-field analysis - ARD rollup no longer being used
+		# al2 = ard.redux(al2,'lgx')
 
 	else:
 		print ("Missing DNA or Serology Indicator for Locus Typing: " + str(getattr(row, 'PX_ID')))
@@ -155,7 +134,7 @@ def loadSeroWMDAMap (seroGL):
 
 
 # load file generated from HLA merge
-tx_ki_hla_filename = "tx_ki_hla.csv"
+tx_ki_hla_filename = "tx_ki_hla_9loc.csv"
 tx_ki_hla = pandas.read_csv(tx_ki_hla_filename, index_col=None, encoding='Latin-1', low_memory=False)
 
 # output SRTR pull/glid files
@@ -197,8 +176,12 @@ for row in tx_ki_hla.itertuples():
 	DON_B2 = str(getattr(row,'DON_B2'))
 	DON_DR1 = str(getattr(row,'DON_DR1'))
 	DON_DR2 = str(getattr(row,'DON_DR2'))
+	DON_DQA1 = str(getattr(row,'DON_DQA1'))
+	DON_DQA2 = str(getattr(row,'DON_DQA2'))
 	DON_DQ1 = str(getattr(row,'DON_DQ1'))
 	DON_DQ2 = str(getattr(row,'DON_DQ2'))
+	DON_DPA1 = str(getattr(row,'DON_DPA1'))
+	DON_DPA2 = str(getattr(row,'DON_DPA2'))
 	DON_DP1 = str(getattr(row,'DON_DP1'))
 	DON_DP2 = str(getattr(row,'DON_DP2'))
 	DON_DR51 = str(getattr(row,'DON_DR51')) # Negative or Positive until recently
@@ -220,10 +203,18 @@ for row in tx_ki_hla.itertuples():
 		DON_DR1 = ""
 	if (DON_DR2 == "nan"):
 		DON_DR2 = ""
+	if (DON_DQA1 == "nan"):
+		DON_DQA1 = ""
+	if (DON_DQA2 == "nan"):
+		DON_DQA2 = ""
 	if (DON_DQ1 == "nan"):
 		DON_DQ1 = ""
 	if (DON_DQ2 == "nan"):
 		DON_DQ2 = ""
+	if (DON_DPA1 == "nan"):
+		DON_DPA1 = ""
+	if (DON_DPA2 == "nan"):
+		DON_DPA2 = ""
 	if (DON_DP1 == "nan"):
 		DON_DP1 = ""
 	if (DON_DP2 == "nan"):
@@ -243,8 +234,12 @@ for row in tx_ki_hla.itertuples():
 	DON_B2_DNA_TYPING_IND = "N"
 	DON_DR1_DNA_TYPING_IND = "N"
 	DON_DR2_DNA_TYPING_IND = "N"
+	DON_DQA1_DNA_TYPING_IND = "N"
+	DON_DQA2_DNA_TYPING_IND = "N"
 	DON_DQ1_DNA_TYPING_IND = "N"
 	DON_DQ2_DNA_TYPING_IND = "N"
+	DON_DPA1_DNA_TYPING_IND = "N"
+	DON_DPA2_DNA_TYPING_IND = "N"
 	DON_DP1_DNA_TYPING_IND = "N"
 	DON_DP2_DNA_TYPING_IND = "N"
 
@@ -264,10 +259,18 @@ for row in tx_ki_hla.itertuples():
 		DON_DR1_DNA_TYPING_IND = "Y"
 	if (re.search(":",DON_DR2)):
 		DON_DR2_DNA_TYPING_IND = "Y"
+	if (re.search(":",DON_DQA1)):
+		DON_DQA1_DNA_TYPING_IND = "Y"
+	if (re.search(":",DON_DQA2)):
+		DON_DQA2_DNA_TYPING_IND = "Y"
 	if (re.search(":",DON_DQ1)):
 		DON_DQ1_DNA_TYPING_IND = "Y"
 	if (re.search(":",DON_DQ2)):
 		DON_DQ2_DNA_TYPING_IND = "Y"
+	if (re.search(":",DON_DPA1)):
+		DON_DPA1_DNA_TYPING_IND = "Y"
+	if (re.search(":",DON_DPA2)):
+		DON_DPA2_DNA_TYPING_IND = "Y"
 	if (re.search(":",DON_DP1)):
 		DON_DP1_DNA_TYPING_IND = "Y"
 	if (re.search(":",DON_DP2)):
@@ -282,8 +285,12 @@ for row in tx_ki_hla.itertuples():
 	REC_B2 = str(getattr(row,'REC_B2'))
 	REC_DR1 = str(getattr(row,'REC_DR1'))
 	REC_DR2 = str(getattr(row,'REC_DR2'))
+	REC_DQA1 = str(getattr(row,'REC_DQA1'))
+	REC_DQA2 = str(getattr(row,'REC_DQA2'))
 	REC_DQ1 = str(getattr(row,'REC_DQW1'))
 	REC_DQ2 = str(getattr(row,'REC_DQW2'))
+	REC_DPA1 = str(getattr(row,'REC_DPA1'))
+	REC_DPA2 = str(getattr(row,'REC_DPA2'))
 	REC_DP1 = str(getattr(row,'REC_DPW1'))
 	REC_DP2 = str(getattr(row,'REC_DPW2'))
 	REC_DR51 = str(getattr(row,'REC_DRW51')) # Negative or Positive until recently
@@ -307,10 +314,18 @@ for row in tx_ki_hla.itertuples():
 		REC_DR1 = ""
 	if (REC_DR2 == "nan"):
 		REC_DR2 = ""
+	if (REC_DQA1 == "nan"):
+		REC_DQA1 = ""
+	if (REC_DQA2 == "nan"):
+		REC_DQA2 = ""
 	if (REC_DQ1 == "nan"):
 		REC_DQ1 = ""
 	if (REC_DQ2 == "nan"):
 		REC_DQ2 = ""
+	if (REC_DPA1 == "nan"):
+		REC_DPA1 = ""
+	if (REC_DPA2 == "nan"):
+		REC_DPA2 = ""
 	if (REC_DP1 == "nan"):
 		REC_DP1 = ""
 	if (REC_DP2 == "nan"):
@@ -330,8 +345,12 @@ for row in tx_ki_hla.itertuples():
 	REC_B2_DNA_TYPING_IND = "N"
 	REC_DR1_DNA_TYPING_IND = "N"
 	REC_DR2_DNA_TYPING_IND = "N"
+	REC_DQA1_DNA_TYPING_IND = "N"
+	REC_DQA2_DNA_TYPING_IND = "N"
 	REC_DQ1_DNA_TYPING_IND = "N"
 	REC_DQ2_DNA_TYPING_IND = "N"
+	REC_DPA1_DNA_TYPING_IND = "N"
+	REC_DPA2_DNA_TYPING_IND = "N"
 	REC_DP1_DNA_TYPING_IND = "N"
 	REC_DP2_DNA_TYPING_IND = "N"
 	if (re.search(":",REC_A1)):
@@ -350,10 +369,18 @@ for row in tx_ki_hla.itertuples():
 		REC_DR1_DNA_TYPING_IND = "Y"
 	if (re.search(":",REC_DR2)):
 		REC_DR2_DNA_TYPING_IND = "Y"
+	if (re.search(":",REC_DQA1)):
+		REC_DQA1_DNA_TYPING_IND = "Y"
+	if (re.search(":",REC_DQA2)):
+		REC_DQA2_DNA_TYPING_IND = "Y"
 	if (re.search(":",REC_DQ1)):
 		REC_DQ1_DNA_TYPING_IND = "Y"
 	if (re.search(":",REC_DQ2)):
 		REC_DQ2_DNA_TYPING_IND = "Y"
+	if (re.search(":",REC_DPA1)):
+		REC_DPA1_DNA_TYPING_IND = "Y"
+	if (re.search(":",REC_DPA2)):
+		REC_DPA2_DNA_TYPING_IND = "Y"
 	if (re.search(":",REC_DP1)):
 		REC_DP1_DNA_TYPING_IND = "Y"
 	if (re.search(":",REC_DP2)):
@@ -378,22 +405,24 @@ for row in tx_ki_hla.itertuples():
 		print (row)
 		continue
 
-	# expand_antigens()
-
 
 	# print GLID file
 	# print PULL file
 
 	# PX_ID is donor_ID
 	PX_ID = str(getattr(row, 'PX_ID'))
+	# print (PX_ID)
 
 	# print ("A " + DON_A1 + " " + DON_A2 + " DNA " + DON_A1_DNA_TYPING_IND + " " + DON_A2_DNA_TYPING_IND)
+	# print ("C " + DON_C1 + " " + DON_C2 + " DNA " + DON_C1_DNA_TYPING_IND + " " + DON_C2_DNA_TYPING_IND)
 
 	don_gl_A = loc_gl("A",DON_A1,DON_A2,DON_A1_DNA_TYPING_IND,DON_A2_DNA_TYPING_IND,XX_hash)
 	don_gl_B = loc_gl("B",DON_B1,DON_B2,DON_B1_DNA_TYPING_IND,DON_B2_DNA_TYPING_IND,XX_hash)
 	don_gl_C = loc_gl("C",DON_C1,DON_C2,DON_C1_DNA_TYPING_IND,DON_C2_DNA_TYPING_IND,XX_hash)
 	don_gl_DRB1 = loc_gl("DRB1",DON_DR1,DON_DR2,DON_DR1_DNA_TYPING_IND,DON_DR2_DNA_TYPING_IND,XX_hash)
+	don_gl_DQA1 = loc_gl("DQA1",DON_DQA1,DON_DQA2,DON_DQA1_DNA_TYPING_IND,DON_DQA2_DNA_TYPING_IND,XX_hash)
 	don_gl_DQB1 = loc_gl("DQB1",DON_DQ1,DON_DQ2,DON_DQ1_DNA_TYPING_IND,DON_DQ2_DNA_TYPING_IND,XX_hash)
+	don_gl_DPA1 = loc_gl("DPA1",DON_DPA1,DON_DPA2,DON_DPA1_DNA_TYPING_IND,DON_DPA2_DNA_TYPING_IND,XX_hash)
 	don_gl_DPB1 = loc_gl("DPB1",DON_DP1,DON_DP2,DON_DP1_DNA_TYPING_IND,DON_DP2_DNA_TYPING_IND,XX_hash)
 	# print (PX_ID, don_gl_A, don_gl_B, don_gl_C, don_gl_DRB1, don_gl_DQB1, don_gl_DPB1)
 
@@ -401,7 +430,9 @@ for row in tx_ki_hla.itertuples():
 	rec_gl_B = loc_gl("B",REC_B1,REC_B2,REC_B1_DNA_TYPING_IND,REC_B2_DNA_TYPING_IND,XX_hash)
 	rec_gl_C = loc_gl("C",REC_C1,REC_C2,REC_C1_DNA_TYPING_IND,REC_C2_DNA_TYPING_IND,XX_hash)
 	rec_gl_DRB1 = loc_gl("DRB1",REC_DR1,REC_DR2,REC_DR1_DNA_TYPING_IND,REC_DR2_DNA_TYPING_IND,XX_hash)
+	rec_gl_DQA1 = loc_gl("DQA1",REC_DQA1,REC_DQA2,REC_DQA1_DNA_TYPING_IND,REC_DQA2_DNA_TYPING_IND,XX_hash)
 	rec_gl_DQB1 = loc_gl("DQB1",REC_DQ1,REC_DQ2,REC_DQ1_DNA_TYPING_IND,REC_DQ2_DNA_TYPING_IND,XX_hash)
+	rec_gl_DPA1 = loc_gl("DPA1",REC_DPA1,REC_DPA2,REC_DPA1_DNA_TYPING_IND,REC_DPA2_DNA_TYPING_IND,XX_hash)
 	rec_gl_DPB1 = loc_gl("DPB1",REC_DP1,REC_DP2,REC_DP1_DNA_TYPING_IND,REC_DP2_DNA_TYPING_IND,XX_hash)
 	# print (PX_ID, rec_gl_A, rec_gl_B, rec_gl_C, rec_gl_DRB1, rec_gl_DQB1, rec_gl_DPB1)
 
@@ -467,6 +498,13 @@ for row in tx_ki_hla.itertuples():
 		print ("Invalid DR in donor: " + str(getattr(row, 'PX_ID')) + " DR " + DON_DR1 + " " + DON_DR2)
 		print (row)
 		continue
+	if (don_gl_DQA1 != "SKIP"):
+		if don_gl_DQA1 not in glid_dict:
+			glid_index = glid_index + 1
+			glid_dict[don_gl_DQA1] = glid_index
+			don_glid_DQA1 = glid_index
+		else:
+			don_glid_DQA1 = glid_dict[don_gl_DQA1]
 	if (don_gl_DQB1 != "SKIP"):
 		if don_gl_DQB1 not in glid_dict:
 			glid_index = glid_index + 1
@@ -474,6 +512,13 @@ for row in tx_ki_hla.itertuples():
 			don_glid_DQB1 = glid_index
 		else:
 			don_glid_DQB1 = glid_dict[don_gl_DQB1]
+	if (don_gl_DPA1 != "SKIP"):
+		if don_gl_DPA1 not in glid_dict:
+			glid_index = glid_index + 1
+			glid_dict[don_gl_DPA1] = glid_index
+			don_glid_DPA1 = glid_index
+		else:
+			don_glid_DPA1 = glid_dict[don_gl_DPA1]
 	if (don_gl_DPB1 != "SKIP"):
 		if don_gl_DPB1 not in glid_dict:
 			glid_index = glid_index + 1
@@ -522,6 +567,13 @@ for row in tx_ki_hla.itertuples():
 		print ("Invalid DR in recip: " + str(getattr(row, 'PX_ID')) + " DR " + REC_DR1 + " " + REC_DR2)
 		print (row)
 		continue
+	if (rec_gl_DQA1 != "SKIP"):
+		if rec_gl_DQA1 not in glid_dict:
+			glid_index = glid_index + 1
+			glid_dict[rec_gl_DQA1] = glid_index
+			rec_glid_DQA1 = glid_index
+		else:
+			rec_glid_DQA1 = glid_dict[rec_gl_DQA1]
 	if (rec_gl_DQB1 != "SKIP"):
 		if rec_gl_DQB1 not in glid_dict:
 			glid_index = glid_index + 1
@@ -529,6 +581,13 @@ for row in tx_ki_hla.itertuples():
 			rec_glid_DQB1 = glid_index
 		else:
 			rec_glid_DQB1 = glid_dict[rec_gl_DQB1]
+	if (rec_gl_DPA1 != "SKIP"):
+		if rec_gl_DPA1 not in glid_dict:
+			glid_index = glid_index + 1
+			glid_dict[rec_gl_DPA1] = glid_index
+			rec_glid_DPA1 = glid_index
+		else:
+			rec_glid_DPA1 = glid_dict[rec_gl_DPA1]
 	if (rec_gl_DPB1 != "SKIP"):
 		if rec_gl_DPB1 not in glid_dict:
 			glid_index = glid_index + 1
