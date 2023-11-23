@@ -160,7 +160,7 @@ print(list(DQA1_DPA1_HLA.columns))
 
 # MERGE AND FILTER TABLES
 
-print ("Merging HLA for All Transplants in SRTR SAF TX_KI table pubsaf2306: " + str(len(tx_ki)))
+print ("All Transplants in SRTR SAF TX_KI table pubsaf2306: " + str(len(tx_ki)))
 
 
 # select organ type kidney - excludes KP - didn't change count so commenting out
@@ -180,11 +180,11 @@ print ("Subset to Single donor, single organ type TX: " + str(len(tx_ki)))
 
 # merge DONOR_DECEASED on DONOR_ID to add C, DQ, and DP
 tx_ki_donor_hla = tx_ki.merge(donor_deceased,how="inner",on="DONOR_ID")
-print ("Merged with DONOR_DECEASED on DONOR_ID: " + str(len(tx_ki_donor_hla)))
+print ("Inner join with DONOR_DECEASED on DONOR_ID: " + str(len(tx_ki_donor_hla)))
 
 # merge REC_HISTO on REC_HISTO_TX_ID to add C, DQ, and DP
 tx_ki_donor_rec_hla = tx_ki_donor_hla.merge(rec_histo,how="inner",on="REC_HISTO_TX_ID")
-print ("Merged with REC_HISTO on REC_HISTO_TX_ID: " + str(len(tx_ki_donor_rec_hla)))
+print ("Inner join with REC_HISTO on REC_HISTO_TX_ID: " + str(len(tx_ki_donor_rec_hla)))
 
 # find row dropped in merge with REC_HISTO
 # print (tx_ki_donor_hla[~tx_ki_donor_hla['REC_HISTO_TX_ID'].isin(rec_histo['REC_HISTO_TX_ID'])])
@@ -202,7 +202,7 @@ print ("Merged with REC_HISTO on REC_HISTO_TX_ID: " + str(len(tx_ki_donor_rec_hl
 # can't merge on DONOR_ID - uses actual UNOS donor IDs which aren't in SAF
 # can't use 
 tx_ki_all_hla = tx_ki_donor_rec_hla.merge(DQA1_DPA1_HLA,how="left",on="PX_ID")
-print ("Merged with DQA1_DPA1_HLA on PX_ID: " + str(len(tx_ki_all_hla)))
+print ("Left join with DQA1_DPA1_HLA on PX_ID: " + str(len(tx_ki_all_hla)))
 
 
 # list columns in final table
@@ -407,7 +407,7 @@ tx_ki_all_hla['REC_DQW2'] = tx_ki_all_hla['REC_DQW2'].str.replace(r'^(\d\d)(\d\d
 # manage C serology - No second antigen can mean low expression alleles - Imputation algorithm should do this!
 
 
-# manage not tested and no second antigen for C and DQ
+# manage not tested and no second antigen for C and DQ and DQA1
 
 tx_ki_all_hla.loc[tx_ki_all_hla.DON_C1 == 'Not Tested', 'DON_C1'] = ""
 tx_ki_all_hla.loc[tx_ki_all_hla.REC_CW1 == 'Not Tested', 'REC_CW1'] = ""
@@ -417,11 +417,17 @@ tx_ki_all_hla.loc[tx_ki_all_hla.DON_DQ1 == 'Not Tested', 'DON_DQ1'] = ""
 tx_ki_all_hla.loc[tx_ki_all_hla.REC_DQW1 == 'Not Tested', 'REC_DQW1'] = ""
 tx_ki_all_hla.loc[tx_ki_all_hla.DON_DQ2 == 'Not Tested', 'DON_DQ2'] = ""
 tx_ki_all_hla.loc[tx_ki_all_hla.REC_DQW2 == 'Not Tested', 'REC_DQW2'] = ""
+tx_ki_all_hla.loc[tx_ki_all_hla.DON_DQA1 == 'Not Tested', 'DON_DQA1'] = ""
+tx_ki_all_hla.loc[tx_ki_all_hla.REC_DQA1 == 'Not Tested', 'REC_DQA1'] = ""
+tx_ki_all_hla.loc[tx_ki_all_hla.DON_DQA2 == 'Not Tested', 'DON_DQA2'] = ""
+tx_ki_all_hla.loc[tx_ki_all_hla.REC_DQA2 == 'Not Tested', 'REC_DQA2'] = ""
 
 tx_ki_all_hla.loc[tx_ki_all_hla.DON_C1 == 'No antigen detected', 'DON_C1'] = ""
 tx_ki_all_hla.loc[tx_ki_all_hla.REC_CW1 == 'No antigen detected', 'REC_CW1'] = ""
 tx_ki_all_hla.loc[tx_ki_all_hla.DON_DQ1 == 'No antigen detected', 'DON_DQ1'] = ""
 tx_ki_all_hla.loc[tx_ki_all_hla.REC_DQW1 == 'No antigen detected', 'REC_DQW1'] = ""
+tx_ki_all_hla.loc[tx_ki_all_hla.DON_DQA1 == 'No antigen detected', 'DON_DQA1'] = ""
+tx_ki_all_hla.loc[tx_ki_all_hla.REC_DQA1 == 'No antigen detected', 'REC_DQA1'] = ""
 
 tx_ki_all_hla.loc[tx_ki_all_hla.DON_C1 == 'Unknown', 'DON_C1'] = ""
 tx_ki_all_hla.loc[tx_ki_all_hla.DON_C1 == 'No antigen detected', 'DON_C1'] = ""
@@ -442,6 +448,8 @@ tx_ki_all_hla.loc[tx_ki_all_hla.DON_C1 == 'No second antigen detected', 'DON_C1'
 tx_ki_all_hla.loc[tx_ki_all_hla.REC_CW1 == 'No second antigen detected', 'REC_CW1'] = tx_ki_all_hla.REC_CW2
 tx_ki_all_hla.loc[tx_ki_all_hla.DON_DQ1 == 'No second antigen detected', 'DON_DQ1'] = tx_ki_all_hla.DON_DQ2
 tx_ki_all_hla.loc[tx_ki_all_hla.REC_DQW1 == 'No second antigen detected', 'REC_DQW1'] = tx_ki_all_hla.REC_DQW2
+tx_ki_all_hla.loc[tx_ki_all_hla.DON_DQA1 == 'No second antigen detected', 'DON_DQA1'] = tx_ki_all_hla.DON_DQA2
+tx_ki_all_hla.loc[tx_ki_all_hla.REC_DQA1 == 'No second antigen detected', 'REC_DQA1'] = tx_ki_all_hla.REC_DQA2
 
 # convert splits C9 and C10 to broad C3 - C9 and C10 aren't first-field DNA categories
 # tx_ki_all_hla.loc[tx_ki_all_hla.DON_C1 == '09', 'DON_C1'] = "03"
