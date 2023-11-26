@@ -53,7 +53,7 @@ print ("DQA1 DPA1 Loaded: " + str(len(DQA1_DPA1_HLA)))
 print(list(DQA1_DPA1_HLA.columns))
 
 # subset TX_KI columns for merge
-print ("Subset REC_HISTO columns: ")
+print ("Subset TX_ID columns: ")
 tx_ki = tx_ki[['ORG_TY','PERS_ID','PX_ID','REC_TX_DT', 'REC_HISTO_TX_ID', 'REC_TX_TY',\
 		'DON_TY','DON_RACE','DON_RACE_SRTR','DON_ETHNICITY_SRTR','DON_A1','DON_A2','DON_B1','DON_B2','DON_DR1','DON_DR2', \
 		'REC_AGE_IN_MONTHS_AT_TX','CAN_RACE','CAN_RACE_SRTR','CAN_ETHNICITY_SRTR','REC_A1','REC_A2','REC_B1','REC_B2','REC_DR1','REC_DR2','DONOR_ID']]
@@ -80,49 +80,77 @@ tx_ki = tx_ki[['ORG_TY','PERS_ID','PX_ID','REC_TX_DT', 'REC_HISTO_TX_ID', 'REC_T
 # RACE_SRTR and ETHNICITY_SRTR splits the concepts of race and ethnicity - PREFERRED
 # DON_RACE and CAN_RACE is more similar to NMDP rollup race, but has nonstandard formatting for multiracial
 
-# CAN_RACE categories
+# DON_RACE and CAN_RACE categories
 # Multi-Racial
 # 8: White
-# 2000: Hispanic/Latino
+# 16: Black or African American
+# 32: American Indian or Alaska Native
 # 64: Asian
+# 128: Native Hawaiian or Other Pacific Islander
+# 1024: Unknown (for Donor Referral only)
+# 2000: Hispanic/Latino
 
-# CAN_RACE_SRTR categories
-# WHITE: White
-# MULTI: Multiracial
+# DON_RACE_SRTR
+# ASIAN	ASIAN: Asian
+# BLACK	BLACK: Black
+# MULTI	MULTI: Multiracial
+# NATIVE	NATIVE: Native American
+# PACIFIC	PACIFIC: Pacific Islander
+# WHITE	WHITE: White
 
-# CAN_RACE_ETHNICITY categories
+# ETHNICITY categories
 # LATINO: Latino
 # NLATIN: Non-Latino or unknown
 
-# Using MLT category for imputation using NEMO 9-locus pipeline - HapLogic uses CAU - Consider using US
+# Using MLT category for imputation using NEMO 9-locus pipeline
+# TODO - Consider using Overall US but hasn't been run yet for two-field
+
+# PERS_ID, PX_ID, REC_HISTO_TX_ID, DONOR_ID all loaded as int64 instead of strings
+# print (tx_ki.dtypes)
+
+# print data frame for PX_IDs to track down NAs
+# result = tx_ki.loc[tx_ki.PX_ID.astype('str') == "347820"]
+# print (result['DON_RACE'])
+# print (result['CAN_RACE'])
+# print (result['DON_RACE_SRTR'])
+# print (result['CAN_RACE_SRTR'])
+
+# abbreviate organ type data to "KI"
+tx_ki.loc[tx_ki.ORG_TY == 'KI: Kidney', 'ORG_TY'] = "KI"
+
+
 
 tx_ki.DON_RACE_SRTR = tx_ki.DON_RACE_SRTR.str.split(': ',expand=True)[1]
+tx_ki.DON_RACE = tx_ki.DON_RACE.str.split(': ',expand=True)[1]
 tx_ki.DON_ETHNICITY_SRTR = tx_ki.DON_ETHNICITY_SRTR.str.split(': ',expand=True)[0]
 tx_ki.loc[((tx_ki.DON_RACE_SRTR == 'White') & (tx_ki.DON_ETHNICITY_SRTR == 'NLATIN')), 'DON_RACE'] = "CAU"
-tx_ki.loc[((tx_ki.DON_RACE_SRTR == 'Asian') & (tx_ki.DON_ETHNICITY_SRTR == 'NLATIN')), 'DON_RACE'] = "API"
+tx_ki.loc[((tx_ki.DON_RACE_SRTR == 'Asian') & (tx_ki.DON_ETHNICITY_SRTR == 'NLATIN')), 'DON_RACE'] = "ASN"
 tx_ki.loc[((tx_ki.DON_RACE_SRTR == 'Black') & (tx_ki.DON_ETHNICITY_SRTR == 'NLATIN')), 'DON_RACE'] = "AFA"
 tx_ki.loc[((tx_ki.DON_RACE_SRTR == 'Native American') & (tx_ki.DON_ETHNICITY_SRTR == 'NLATIN')), 'DON_RACE'] = "NAM"
-tx_ki.loc[((tx_ki.DON_RACE_SRTR == 'Pacific Islander') & (tx_ki.DON_ETHNICITY_SRTR == 'NLATIN')), 'DON_RACE'] = "API"
+tx_ki.loc[((tx_ki.DON_RACE_SRTR == 'Pacific Islander') & (tx_ki.DON_ETHNICITY_SRTR == 'NLATIN')), 'DON_RACE'] = "ASN"
 tx_ki.loc[((tx_ki.DON_RACE_SRTR == 'White') & (tx_ki.DON_ETHNICITY_SRTR == 'LATINO')), 'DON_RACE'] = "HIS"
 tx_ki.loc[((tx_ki.DON_RACE_SRTR == 'Asian') & (tx_ki.DON_ETHNICITY_SRTR == 'LATINO')), 'DON_RACE'] = "MLT" # MLT
 tx_ki.loc[((tx_ki.DON_RACE_SRTR == 'Black') & (tx_ki.DON_ETHNICITY_SRTR == 'LATINO')), 'DON_RACE'] = "MLT" # MLT
 tx_ki.loc[((tx_ki.DON_RACE_SRTR == 'Native American') & (tx_ki.DON_ETHNICITY_SRTR == 'LATINO')), 'DON_RACE'] = "HIS"
 tx_ki.loc[((tx_ki.DON_RACE_SRTR == 'Pacific Islander') & (tx_ki.DON_ETHNICITY_SRTR == 'LATINO')), 'DON_RACE'] = "MLT" # MLT
 tx_ki.loc[tx_ki.DON_RACE_SRTR == 'Multiracial', 'DON_RACE'] = "MLT" # MLT
+tx_ki.loc[tx_ki.DON_RACE == 'Unknown (for Donor Referral only)', 'DON_RACE'] = "MLT" # MLT
+tx_ki.loc[tx_ki.DON_RACE_SRTR.isna(), 'DON_RACE'] = "MLT" # MLT
 
 tx_ki.CAN_RACE_SRTR = tx_ki.CAN_RACE_SRTR.str.split(': ',expand=True)[1]
 tx_ki.CAN_ETHNICITY_SRTR = tx_ki.CAN_ETHNICITY_SRTR.str.split(': ',expand=True)[0]
 tx_ki.loc[((tx_ki.CAN_RACE_SRTR == 'White') & (tx_ki.CAN_ETHNICITY_SRTR == 'NLATIN')), 'CAN_RACE'] = "CAU"
-tx_ki.loc[((tx_ki.CAN_RACE_SRTR == 'Asian') & (tx_ki.CAN_ETHNICITY_SRTR == 'NLATIN')), 'CAN_RACE'] = "API"
+tx_ki.loc[((tx_ki.CAN_RACE_SRTR == 'Asian') & (tx_ki.CAN_ETHNICITY_SRTR == 'NLATIN')), 'CAN_RACE'] = "ASN"
 tx_ki.loc[((tx_ki.CAN_RACE_SRTR == 'Black') & (tx_ki.CAN_ETHNICITY_SRTR == 'NLATIN')), 'CAN_RACE'] = "AFA"
 tx_ki.loc[((tx_ki.CAN_RACE_SRTR == 'Native American') & (tx_ki.CAN_ETHNICITY_SRTR == 'NLATIN')), 'CAN_RACE'] = "NAM"
-tx_ki.loc[((tx_ki.CAN_RACE_SRTR == 'Pacific Islander') & (tx_ki.CAN_ETHNICITY_SRTR == 'NLATIN')), 'CAN_RACE'] = "API"
+tx_ki.loc[((tx_ki.CAN_RACE_SRTR == 'Pacific Islander') & (tx_ki.CAN_ETHNICITY_SRTR == 'NLATIN')), 'CAN_RACE'] = "ASN"
 tx_ki.loc[((tx_ki.CAN_RACE_SRTR == 'White') & (tx_ki.CAN_ETHNICITY_SRTR == 'LATINO')), 'CAN_RACE'] = "HIS"
 tx_ki.loc[((tx_ki.CAN_RACE_SRTR == 'Asian') & (tx_ki.CAN_ETHNICITY_SRTR == 'LATINO')), 'CAN_RACE'] = "MLT" # MLT
 tx_ki.loc[((tx_ki.CAN_RACE_SRTR == 'Black') & (tx_ki.CAN_ETHNICITY_SRTR == 'LATINO')), 'CAN_RACE'] = "MLT" # MLT
 tx_ki.loc[((tx_ki.CAN_RACE_SRTR == 'Native American') & (tx_ki.CAN_ETHNICITY_SRTR == 'LATINO')), 'CAN_RACE'] = "HIS"
 tx_ki.loc[((tx_ki.CAN_RACE_SRTR == 'Pacific Islander') & (tx_ki.CAN_ETHNICITY_SRTR == 'LATINO')), 'CAN_RACE'] = "MLT" # MLT
 tx_ki.loc[tx_ki.CAN_RACE_SRTR == 'Multiracial', 'CAN_RACE'] = "MLT" # MLT
+tx_ki.loc[tx_ki.CAN_RACE_SRTR.isna(), 'CAN_RACE'] = "MLT" # MLT
 
 # subset DONOR_DECEASED columns
 # PERS_ID is not the same between DONOR_DECEASED and TX_KI!!

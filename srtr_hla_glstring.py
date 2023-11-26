@@ -158,14 +158,14 @@ for row in tx_ki_hla.itertuples():
 	# handle unknown and missing race
 	DON_RACE = str(getattr(row,'DON_RACE'))
 	CAN_RACE = str(getattr(row,'CAN_RACE'))
-	if (CAN_RACE == "1024: Unknown (for Donor Referral only)"):
-		CAN_RACE = "UNK"
-	if (DON_RACE == "1024: Unknown (for Donor Referral only)"):
-		DON_RACE = "UNK"	
-	if (CAN_RACE == "Missing"):
-		CAN_RACE = "UNK"
-	if (DON_RACE == "Missing"):
-		DON_RACE = "UNK"	
+	# if (CAN_RACE == "1024: Unknown (for Donor Referral only)"):
+	# 	CAN_RACE = "UNK"
+	# if (DON_RACE == "1024: Unknown (for Donor Referral only)"):
+	# 	DON_RACE = "UNK"	
+	# if (CAN_RACE == "Missing"):
+	# 	CAN_RACE = "UNK"
+	# if (DON_RACE == "Missing"):
+	#	DON_RACE = "UNK"	
 
 	# handle nan
 	DON_A1 = str(getattr(row,'DON_A1'))
@@ -404,6 +404,12 @@ for row in tx_ki_hla.itertuples():
 		# print ("Missing A or B or DR in donor or recip: " + str(getattr(row, 'PX_ID')))
 		print (row)
 		continue
+
+
+	# TODO - handle DRB3/4/5
+	# REC_DR51, REC_DR52, REC_DR53
+	# DON_DR51, DON_DR52, DON_DR52
+
 
 
 	# print GLID file
