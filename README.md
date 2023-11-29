@@ -48,6 +48,19 @@ glid.srtr.txt
 pull.srtr.txt
 ```
 
+Get population-specific cohort size in pull file to show clean conversion of race/ethnicity:
+
+```
+cut -d ',' -f2 pull.srtr.txt | sort | uniq -c
+
+155728 AFA
+30994 API
+421387 CAU
+100931 HIS
+4929 MLT
+5219 NAM
+```
+
 Imputation to two-field level - requires two-field haplotype freqs:
 
 ```
