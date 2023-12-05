@@ -54,17 +54,22 @@ Get population-specific cohort size in pull file to show clean conversion of rac
 cut -d ',' -f2 pull.srtr.txt | sort | uniq -c
 
 155728 AFA
-30994 API
+30994 ASN
 421387 CAU
 100931 HIS
 4929 MLT
 5219 NAM
 ```
 
-Imputation to two-field level - requires two-field haplotype freqs:
+Imputation to two-field WHO alleles
+Requires two-field haplotype freqs for various locus combos
+Shares some logic with EM haplotype frequency estimation
+Files are split by OPTN population for [AFA, ASN, CAU, HIS, MLT, NAM]
+HPI is a small population (Hawaiian and Pacific Islander)
+Rolled into ASN for imputation purposes because reference data too small
 
 ```
-
+impute.srtr.*.csv.gz 
 ```
 
 Amino acid mismatch assignment:
