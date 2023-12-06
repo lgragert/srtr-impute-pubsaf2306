@@ -62,11 +62,26 @@ cut -d ',' -f2 pull.srtr.txt | sort | uniq -c
 ```
 
 Imputation to two-field WHO alleles
-Requires two-field haplotype freqs for various locus combos
+Requires subdirectories with two-field NMDP haplotype freqs for various locus combos
+Haplotype freqs will be provided on I2C2 after DUA is in place
 Shares some logic with EM haplotype frequency estimation
 Files are split by OPTN population for [AFA, ASN, CAU, HIS, MLT, NAM]
 HPI is a small population (Hawaiian and Pacific Islander)
 Rolled into ASN for imputation purposes because reference data too small
+(1) Split GLID/pull data into population-specific files
+(2) Allele list reduction using greedy algorithm - eliminates alleles not found in freqs
+(3) Imputation using partition-ligation in two-locus blocks
+
+```
+perl make_slurm_split_srtr_loni.pl
+sbatch ./slurm/run_slurm_srtr_split_loni.sh
+perl make_slurm_greedy_srtr_loni.pl
+bash ./run_sbatch_greedy_srtr_loni.sh
+perl make_slurm_impute_srtr_loni.pl
+bash ./run_sbatch_impute_srtr_loni.sh
+```
+
+Output of imputation pipelines - list of haplotype pairs and probabilities for each ID
 
 ```
 impute.srtr.*.csv.gz 
