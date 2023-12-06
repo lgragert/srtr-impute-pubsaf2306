@@ -88,9 +88,12 @@ impute.srtr.*.csv.gz
 ```
 
 Amino acid mismatch assignment:
+Needs to be modified to use HLAGenie to make AA sequences
+    https://github.com/gbiagini/hlagenie
+Also needs to expand coordinates beyond ARD to full protein
 
 ```
-
+python3 aa_mm_biopython_runmatch_9loc.py
 ```
 
 Decoding for DQA1 and DPA1 HLA data formats came from using UNOS APIs - example JSON API query:
