@@ -14,8 +14,26 @@ TX_KI - kidney transplant data
 DONOR_DECEASED - deceased donor data (including HLA)
 DONOR_LIVE - living donor data (including HLA)
 REC_HISTO - recipient HLA data (including more HLA loci than in TX_KI)
-SAF_DPA_DQA - DQA1 and DPA1 HLA typing were provided separately (donor and recip)
 ```
+
+Data request for DRB3/4/5 with DQA1 and DPA1
+
+```
+SAF_DPA_DQA folder - DQA1 and DPA1 HLA typing (donor and recip)
+DR51-52-53 folder - DRB3/4/5 with DQA1 and DPA1 (donor and recip)
+upenn_dqadpadr5153_29Nov2023.csv - File with encoded typing data 
+```
+
+Antigen code decoding files (extracted by API):
+
+```
+DR51_Lookup.csv
+DR52_Lookup.csv
+DR53_Lookup.csv
+UNOS_typing_codes_DQA.txt
+UNOS_typing_codes_DPA.txt
+```
+
 
 Python script for merging HLA data across SAF database files:
 
@@ -88,8 +106,9 @@ impute.srtr.*.csv.gz
 ```
 
 Amino acid mismatch assignment:
-Needs to be modified to use HLAGenie to make AA sequences
-    https://github.com/gbiagini/hlagenie
+Needs to be modified to use HLAGenie to manage AA sequences
+    - https://github.com/gbiagini/hlagenie
+    - Replaces aa_matching_msf module
 Also needs to expand coordinates beyond ARD to full protein
 
 ```
