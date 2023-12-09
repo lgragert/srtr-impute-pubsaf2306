@@ -25,7 +25,7 @@ import numpy as np
 tx_ki_filename = "TX_KI_decoded.txt"
 # tx_ki = pandas.read_csv(tx_ki_filename, index_col="PX_ID", engine='python')
 # tx_ki = pandas.read_csv(tx_ki_filename, index_col=None, engine='python')
-tx_ki = pandas.read_csv(tx_ki_filename, index_col=None, encoding='Latin-1', low_memory=False, sep='\t')
+tx_ki = pandas.read_csv(tx_ki_filename, index_col=None, encoding='Latin-1', low_memory=False, sep='\t',dtype=str)
 
 print ("TX_KI Loaded: " + str(len(tx_ki)))
 print(list(tx_ki.columns))
@@ -33,7 +33,7 @@ print(list(tx_ki.columns))
 donor_deceased_filename = "DONOR_DECEASED_decoded.txt"
 # donor_deceased = pandas.read_csv(donor_deceased_filename, index_col="PERS_ID", engine='python')
 # donor_deceased = pandas.read_csv(donor_deceased_filename, index_col=None, engine='python')
-donor_deceased = pandas.read_csv(donor_deceased_filename, index_col=None, encoding='Latin-1', low_memory=False, sep='\t')
+donor_deceased = pandas.read_csv(donor_deceased_filename, index_col=None, encoding='Latin-1', low_memory=False, sep='\t',dtype=str)
 
 print ("DONOR_DECEASED Loaded: " + str(len(donor_deceased)))
 print(list(donor_deceased.columns))
@@ -41,16 +41,95 @@ print(list(donor_deceased.columns))
 rec_histo_filename = "rec_histo_decoded.txt"
 # rec_histo = pandas.read_csv(rec_histo_filename, index_col="REC_HISTO_TX_ID", engine='python')
 # rec_histo = pandas.read_csv(rec_histo_filename, index_col=None, engine='python')
-rec_histo = pandas.read_csv(rec_histo_filename, index_col=None, encoding='Latin-1', low_memory=False, sep='\t')
+rec_histo = pandas.read_csv(rec_histo_filename, index_col=None, encoding='Latin-1', low_memory=False, sep='\t',dtype=str)
 
 print ("REC_HISTO Loaded: " + str(len(rec_histo)))
 print(list(rec_histo.columns))
 
-DQA1_DPA1_HLA_filename = "SAF_DPA_DQA_decoded.txt"
-DQA1_DPA1_HLA = pandas.read_csv(DQA1_DPA1_HLA_filename, index_col=None, encoding='Latin-1', low_memory=False, sep='\t')
+DQA1_DPA1_DRB345_HLA_filename = "upenn_dqadpadr5153_29Nov2023.csv"
+DQA1_DPA1_DRB345_HLA = pandas.read_csv(DQA1_DPA1_DRB345_HLA_filename, index_col=None, encoding='Latin-1', low_memory=False, dtype=str)
 
-print ("DQA1 DPA1 Loaded: " + str(len(DQA1_DPA1_HLA)))
-print(list(DQA1_DPA1_HLA.columns))
+# Name index column as "RECORD"
+DQA1_DPA1_DRB345_HLA = DQA1_DPA1_DRB345_HLA.rename(columns={DQA1_DPA1_DRB345_HLA.columns[0]: 'RECORD'})
+
+# Function to remove quotes from column names
+remove_quotes = lambda x: x.replace('"', '')
+# Rename columns using the remove_quotes function
+DQA1_DPA1_DRB345_HLA = DQA1_DPA1_DRB345_HLA.rename(columns=remove_quotes)
+
+
+print ("DQA1 DPA1 DRB345 Loaded: " + str(len(DQA1_DPA1_DRB345_HLA)))
+print(list(DQA1_DPA1_DRB345_HLA.columns))
+
+DQA1_DPA1_DRB345_HLA_filename = "upenn_dqadpadr5153_29Nov2023.csv"
+DQA1_DPA1_DRB345_HLA = pandas.read_csv(DQA1_DPA1_DRB345_HLA_filename, index_col=None, encoding='Latin-1', low_memory=False, dtype=str)
+
+
+DRB3_DECODE_filename = "DR52_LOOKUP.csv"
+DRB3_DECODE = pandas.read_csv(DRB3_DECODE_filename, index_col=None, encoding='Latin-1', low_memory=False, dtype=str)
+DRB4_DECODE_filename = "DR53_LOOKUP.csv"
+DRB4_DECODE = pandas.read_csv(DRB4_DECODE_filename, index_col=None, encoding='Latin-1', low_memory=False, dtype=str)
+DRB5_DECODE_filename = "DR51_LOOKUP.csv"
+DRB5_DECODE = pandas.read_csv(DRB5_DECODE_filename, index_col=None, encoding='Latin-1', low_memory=False, dtype=str)
+
+# Rename columns using the remove_quotes function
+DRB3_DECODE = DRB3_DECODE.rename(columns=remove_quotes)
+DRB4_DECODE = DRB4_DECODE.rename(columns=remove_quotes)
+DRB5_DECODE = DRB5_DECODE.rename(columns=remove_quotes)
+
+# Name index column as "RECORD"
+DRB3_DECODE = DRB3_DECODE.rename(columns={DRB3_DECODE.columns[0]: 'RECORD'})
+DRB4_DECODE = DRB4_DECODE.rename(columns={DRB4_DECODE.columns[0]: 'RECORD'})
+DRB5_DECODE = DRB5_DECODE.rename(columns={DRB5_DECODE.columns[0]: 'RECORD'})
+
+# View Decode tables
+# print ("DRB3/4/5 Decode Tables:")
+# print (DRB3_DECODE)
+# print (DRB4_DECODE)
+# print (DRB5_DECODE)
+
+# Create a dictionary mapping values in id to descrip values
+DRB3_DECODE_dict = dict(zip(DRB3_DECODE['id'], DRB3_DECODE['descrip']))
+DRB4_DECODE_dict = dict(zip(DRB4_DECODE['id'], DRB4_DECODE['descrip']))
+DRB5_DECODE_dict = dict(zip(DRB5_DECODE['id'], DRB5_DECODE['descrip']))
+
+# standardize "Not Tested" - called "NT-not tested" here
+DRB3_DECODE_dict["99"] = "Not Tested"
+DRB4_DECODE_dict["99"] = "Not Tested"
+DRB5_DECODE_dict["99"] = "Not Tested"
+
+# print (DRB3_DECODE_dict)
+# print (DRB4_DECODE_dict)
+# print (DRB5_DECODE_dict)
+
+# Confirmed DRB3/4/5 does contain allele-specific data
+# print ("Unique values for DRB3/4/5")
+# print(DQA1_DPA1_DRB345_HLA['DON_DRB3_1'].unique())
+
+# DQA1 and DPA1 decoding
+DQA1_DECODE_filename = "UNOS_typing_codes_DQA.txt"
+DQA1_DECODE = pandas.read_csv(DRB3_DECODE_filename, index_col=None, encoding='Latin-1', low_memory=False, dtype=str)
+DPA1_DECODE_filename = "UNOS_typing_codes_DPA.txt"
+DPA1_DECODE = pandas.read_csv(DRB4_DECODE_filename, index_col=None, encoding='Latin-1', low_memory=False, dtype=str)
+
+print (DQA1_DECODE)
+print (DPA1_DECODE)
+
+DQA1_DECODE_dict = dict(zip(DQA1_DECODE['id'], DQA1_DECODE['descrip']))
+DPA1_DECODE_dict = dict(zip(DPA1_DECODE['id'], DPA1_DECODE['descrip']))
+
+print (DQA1_DECODE_dict)
+print (DPA1_DECODE_dict)
+
+# standardize "Not Tested" - called "NT-not tested" here
+DQA1_DECODE_dict["99"] = "Not Tested"
+DPA1_DECODE_dict["99"] = "Not Tested"
+
+# DQA1_DPA1_HLA_filename = "SAF_DPA_DQA_decoded.txt"
+# DQA1_DPA1_HLA = pandas.read_csv(DQA1_DPA1_HLA_filename, index_col=None, encoding='Latin-1', low_memory=False, sep='\t')
+
+# print ("DQA1 DPA1 Loaded: " + str(len(DQA1_DPA1_HLA)))
+# print(list(DQA1_DPA1_HLA.columns))
 
 # subset TX_KI columns for merge
 print ("Subset TX_ID columns: ")
@@ -177,13 +256,45 @@ print(list(rec_histo.columns))
 # DQA1_DPA1_HLA = DQA1_DPA1_HLA.rename(columns={"DON_ID": "DONOR_ID"}) 
 
 
-DQA1_DPA1_HLA = DQA1_DPA1_HLA.rename(columns={"don_dqa1": "DON_DQA1", "don_dqa2": "DON_DQA2", "don_dpa1": "DON_DPA1", "don_dpa2": "DON_DPA2",
-                    "cand_dqa1": "REC_DQA1", "cand_dqa2": "REC_DQA2", "cand_dpa1": "REC_DPA1", "cand_dpa2": "REC_DPA2"})
-DQA1_DPA1_HLA = DQA1_DPA1_HLA[['PX_ID','DON_DQA1','DON_DQA2','DON_DPA1','DON_DPA2','REC_DQA1','REC_DQA2','REC_DPA1','REC_DPA2']]
-print ("Subset DQA1_DPA1 columns: ")
-print(list(DQA1_DPA1_HLA.columns))
-# print (DQA1_DPA1_HLA.dtypes)
-# DQA1_DPA1_HLA = DQA1_DPA1_HLA["DONOR_ID"].astype(np.int64)
+# DQA1_DPA1_HLA = DQA1_DPA1_HLA.rename(columns={"don_dqa1": "DON_DQA1", "don_dqa2": "DON_DQA2", "don_dpa1": "DON_DPA1", "don_dpa2": "DON_DPA2",
+#                     "cand_dqa1": "REC_DQA1", "cand_dqa2": "REC_DQA2", "cand_dpa1": "REC_DPA1", "cand_dpa2": "REC_DPA2"})
+# DQA1_DPA1_HLA = DQA1_DPA1_HLA[['PX_ID','DON_DQA1','DON_DQA2','DON_DPA1','DON_DPA2','REC_DQA1','REC_DQA2','REC_DPA1','REC_DPA2']]
+# print ("Subset DQA1_DPA1 columns: ")
+# print(list(DQA1_DPA1_HLA.columns))
+
+print (DQA1_DPA1_DRB345_HLA.dtypes)
+
+'Unnamed: 0', 'REC_TX_DT', 'PX_ID', 'DON_ID', 'REC_AGE_AT_TX', 'don_dqa1', 'don_dqa2', 'don_dpa1', 'don_dpa2', 'don_dr51', 'don_dr_52', 'don_dr53', 'don_dr51_2', 'don_dr_52_2', 'don_dr53_2', 'DON_RECOV_DT', 'cand_dqa1', 'cand_dqa2', 'cand_dpa1', 'cand_dpa2', 'cand_dr51', 'cand_dr52', 'cand_dr53', 'cand_dr51_2', 'cand_dr52_2', 'cand_dr53_2'
+
+DQA1_DPA1_DRB345_HLA = DQA1_DPA1_DRB345_HLA.rename(
+    columns={"don_dqa1": "DON_DQA1", "don_dqa2": "DON_DQA2"})
+
+DQA1_DPA1_DRB345_HLA = DQA1_DPA1_DRB345_HLA.rename(
+    columns={"don_dqa1": "DON_DQA1", "don_dqa2": "DON_DQA2", \
+			"don_dpa1": "DON_DPA1", "don_dpa2": "DON_DPA2", \
+			"cand_dqa1": "REC_DQA1", "cand_dqa2": "REC_DQA2", \
+			"cand_dpa1": "REC_DPA1", "cand_dpa2": "REC_DPA2", \
+			"don_dr51": "DON_DRB5_1", "don_dr51_2": "DON_DRB5_2", \
+			"don_dr_52": "DON_DRB3_1", "don_dr_52_2": "DON_DRB3_2", \
+			"don_dr53": "DON_DRB4_1", "don_dr53_2": "DON_DRB4_2", \
+			"cand_dr51": "REC_DRB5_1", "cand_dr51_2": "REC_DRB5_2", \
+			"cand_dr52": "REC_DRB3_1", "cand_dr52_2": "REC_DRB3_2", \
+			"cand_dr53": "REC_DRB4_1", "cand_dr53_2": "REC_DRB4_2"})
+
+
+
+
+
+DQA1_DPA1_DRB345_HLA = \
+	DQA1_DPA1_DRB345_HLA[['PX_ID', \
+    'DON_DRB3_1','DON_DRB3_2','DON_DRB4_1','DON_DRB4_2','DON_DRB5_1','DON_DRB5_2', \
+    'DON_DQA1','DON_DQA2','DON_DPA1','DON_DPA2', \
+	'REC_DRB3_1','REC_DRB3_2','REC_DRB4_1','REC_DRB4_2','REC_DRB5_1','REC_DRB5_2', \
+    'REC_DQA1','REC_DQA2','REC_DPA1','REC_DPA2' \
+    ]]
+print ("Subset DQA1_DPA1_DRB345 columns: ")
+print(list(DQA1_DPA1_DRB345_HLA.columns))
+
 
 
 # MERGE AND FILTER TABLES
@@ -229,7 +340,7 @@ print ("Inner join with REC_HISTO on REC_HISTO_TX_ID: " + str(len(tx_ki_donor_re
 # merge DQA1_DPA1_HLA on PX_ID to add C, DQ, and DP
 # can't merge on DONOR_ID - uses actual UNOS donor IDs which aren't in SAF
 # can't use 
-tx_ki_all_hla = tx_ki_donor_rec_hla.merge(DQA1_DPA1_HLA,how="left",on="PX_ID")
+tx_ki_all_hla = tx_ki_donor_rec_hla.merge(DQA1_DPA1_DRB345_HLA,how="left",on="PX_ID")
 print ("Left join with DQA1_DPA1_HLA on PX_ID: " + str(len(tx_ki_all_hla)))
 
 
@@ -240,6 +351,43 @@ print ("Left join with DQA1_DPA1_HLA on PX_ID: " + str(len(tx_ki_all_hla)))
 
 hla_filename = "tx_ki_hla_9loc.csv"
 tx_ki_all_hla.to_csv(hla_filename, header=True, index=False)
+
+
+# DECODE DQA1, DPA1, DRB3/4/5
+tx_ki_all_hla['DON_DRB3_1'] = tx_ki_all_hla['DON_DRB3_1'].map(DRB3_DECODE_dict)
+tx_ki_all_hla['DON_DRB3_2'] = tx_ki_all_hla['DON_DRB3_2'].map(DRB3_DECODE_dict)
+tx_ki_all_hla['DON_DRB4_1'] = tx_ki_all_hla['DON_DRB4_1'].map(DRB4_DECODE_dict)
+tx_ki_all_hla['DON_DRB4_2'] = tx_ki_all_hla['DON_DRB4_2'].map(DRB4_DECODE_dict)
+tx_ki_all_hla['DON_DRB5_1'] = tx_ki_all_hla['DON_DRB5_1'].map(DRB5_DECODE_dict)
+tx_ki_all_hla['DON_DRB5_2'] = tx_ki_all_hla['DON_DRB5_2'].map(DRB5_DECODE_dict)
+
+tx_ki_all_hla['REC_DRB3_1'] = tx_ki_all_hla['REC_DRB3_1'].map(DRB3_DECODE_dict)
+tx_ki_all_hla['REC_DRB3_2'] = tx_ki_all_hla['REC_DRB3_2'].map(DRB3_DECODE_dict)
+tx_ki_all_hla['REC_DRB4_1'] = tx_ki_all_hla['REC_DRB4_1'].map(DRB4_DECODE_dict)
+tx_ki_all_hla['REC_DRB4_2'] = tx_ki_all_hla['REC_DRB4_2'].map(DRB4_DECODE_dict)
+tx_ki_all_hla['REC_DRB5_1'] = tx_ki_all_hla['REC_DRB5_1'].map(DRB5_DECODE_dict)
+tx_ki_all_hla['REC_DRB5_2'] = tx_ki_all_hla['REC_DRB5_2'].map(DRB5_DECODE_dict)
+
+print ("Unique values for DRB3/4/5")
+print(tx_ki_all_hla['DON_DRB3_1'].unique())
+print(tx_ki_all_hla['DON_DRB5_1'].unique())
+
+
+tx_ki_all_hla['DON_DQA1'] = tx_ki_all_hla['DON_DQA1'].map(DQA1_DECODE_dict)
+tx_ki_all_hla['DON_DQA2'] = tx_ki_all_hla['DON_DQA2'].map(DQA1_DECODE_dict)
+tx_ki_all_hla['DON_DPA1'] = tx_ki_all_hla['DON_DPA1'].map(DPA1_DECODE_dict)
+tx_ki_all_hla['DON_DPA2'] = tx_ki_all_hla['DON_DPA2'].map(DPA1_DECODE_dict)
+
+tx_ki_all_hla['REC_DQA1'] = tx_ki_all_hla['REC_DQA1'].map(DQA1_DECODE_dict)
+tx_ki_all_hla['REC_DQA2'] = tx_ki_all_hla['REC_DQA2'].map(DQA1_DECODE_dict)
+tx_ki_all_hla['REC_DPA1'] = tx_ki_all_hla['REC_DPA1'].map(DPA1_DECODE_dict)
+tx_ki_all_hla['REC_DPA2'] = tx_ki_all_hla['REC_DPA2'].map(DPA1_DECODE_dict)
+
+print ("Unique values for DQA1 and DPA1")
+print(tx_ki_all_hla['DON_DQA1'].unique())
+print(tx_ki_all_hla['DON_DPA1'].unique())
+
+exit()
 
 # after SAS formats decoding, HLA field look like "203: 0203"
 # these commands convert the data to what appears after the colon - "0203"
@@ -309,6 +457,8 @@ tx_ki_all_hla.loc[tx_ki_all_hla.DON_DQA1 == 'Unknown', 'DON_DQA1'] = ""
 tx_ki_all_hla.loc[tx_ki_all_hla.DON_DPA1 == 'Unknown', 'DON_DPA1'] = ""
 tx_ki_all_hla.loc[tx_ki_all_hla.DON_DQA1 == '0', 'DON_DQA1'] = ""
 tx_ki_all_hla.loc[tx_ki_all_hla.DON_DPA1 == '0', 'DON_DPA1'] = ""
+tx_ki_all_hla.loc[tx_ki_all_hla.DON_DQA1 == 'Not Tested', 'DON_DQA1'] = ""
+tx_ki_all_hla.loc[tx_ki_all_hla.DON_DPA1 == 'Not Tested', 'DON_DPA1'] = ""
 
 tx_ki_all_hla.loc[tx_ki_all_hla.REC_DQW1 == 'Unknown', 'REC_DQW1'] = ""
 tx_ki_all_hla.loc[tx_ki_all_hla.REC_DPW1 == 'Unknown', 'REC_DPW1'] = ""
@@ -318,6 +468,8 @@ tx_ki_all_hla.loc[tx_ki_all_hla.REC_DQA1 == 'Unknown', 'REC_DQA1'] = ""
 tx_ki_all_hla.loc[tx_ki_all_hla.REC_DPA1 == 'Unknown', 'REC_DPA1'] = ""
 tx_ki_all_hla.loc[tx_ki_all_hla.REC_DQA1 == '0', 'REC_DQA1'] = ""
 tx_ki_all_hla.loc[tx_ki_all_hla.REC_DPA1 == '0', 'REC_DPA1'] = ""
+tx_ki_all_hla.loc[tx_ki_all_hla.REC_DQA1 == 'Not Tested', 'REC_DQA1'] = ""
+tx_ki_all_hla.loc[tx_ki_all_hla.REC_DPA1 == 'Not Tested', 'REC_DPA1'] = ""
 
 # manage homozygosity
 
@@ -550,8 +702,13 @@ tx_ki_all_hla.loc[tx_ki_all_hla.REC_DPW1 == '1 (Inactive)', 'REC_DPW1'] = ""
 tx_ki_all_hla.loc[tx_ki_all_hla.REC_DPW2 == '1 (Inactive)', 'REC_DPW2'] = ""
 
 
-# DRB3/4/5 typing is mostly Negative/Positive/Not Tested
-# will be handled downstream in conversion to GL strings
+# Negative DRB3/4/5 typing - convert to blank and create DRB345 locus genotypes in next step
+tx_ki_all_hla.loc[tx_ki_all_hla.DON_DRB3_1 == 'N-Negative', 'DON_DRB3_1'] = ""
+tx_ki_all_hla.loc[tx_ki_all_hla.DON_DRB3_2 == 'N-Negative', 'DON_DRB3_2'] = ""
+tx_ki_all_hla.loc[tx_ki_all_hla.DON_DRB4_1 == 'N-Negative', 'DON_DRB4_1'] = ""
+tx_ki_all_hla.loc[tx_ki_all_hla.DON_DRB4_2 == 'N-Negative', 'DON_DRB4_2'] = ""
+tx_ki_all_hla.loc[tx_ki_all_hla.DON_DRB5_1 == 'N-Negative', 'DON_DRB5_1'] = ""
+tx_ki_all_hla.loc[tx_ki_all_hla.DON_DRB5_2 == 'N-Negative', 'DON_DRB5_2'] = ""
 
 # view Pandas data types
 # print (tx_ki_all_hla.info())
