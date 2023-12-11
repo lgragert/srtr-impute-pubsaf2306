@@ -193,7 +193,7 @@ for rep in range(1,multiple_imputation_replicates+1):
 	antigen_mm_filename = "srtr_antigen_mm_" + str(rep) + ".csv"
 	antigen_mm_file = open(antigen_mm_filename, "w")
 
-	antigen_mm_file.write ("PX_ID,DON_C1,DON_C2,REC_C1,REC_C2,REC_C_MM_EQUIV_CUR,DON_DQ1,DON_DQ2,REC_DQ1,REC_DQ2,REC_DQ_MM_EQUIV_CUR,DON_DQA1,DON_DQA2,REC_DQA1,REC_DQA2,REC_DQA1_MM_EQUIV_CUR,DON_DPA1,DON_DPA2,REC_DPA1,REC_DPA2,REC_DPA1_MM_EQUIV_CUR\n")
+	antigen_mm_file.write ("PX_ID,DON_C1,DON_C2,REC_C1,REC_C2,REC_C_MM_EQUIV_CUR,DON_DQ1,DON_DQ2,REC_DQ1,REC_DQ2,REC_DQ_MM_EQUIV_CUR,DON_DQA1,DON_DQA2,REC_DQA1,REC_DQA2,REC_DQA1_MM_EQUIV_CUR,DON_DPA1,DON_DPA2,REC_DPA1,REC_DPA2,REC_DPA1_MM_EQUIV_CUR,DON_DPB1,DON_DPB2,REC_DPB1,REC_DPB2,REC_DPB1_MM_EQUIV_CUR\n")
 
 
 	for PX_ID in PXID_list:
@@ -245,5 +245,12 @@ for rep in range(1,multiple_imputation_replicates+1):
 
 		REC_DPA1_MM_EQUIV_CUR = antigen_mm("DPA1",dpa1_1_donor,dpa1_2_donor,dpa1_1_recip,dpa1_2_recip)
 
+		REC_DPB1_MM_EQUIV_CUR = antigen_mm("DPB1",dpb1_1_donor,dpb1_2_donor,dpb1_1_recip,dpb1_2_recip)
 
-		antigen_mm_file.write(','.join([PX_ID,c1_donor,c2_donor,c1_recip,c2_recip,str(REC_C_MM_EQUIV_CUR),dqb1_1_donor,dqb1_2_donor,dqb1_1_recip,dqb1_2_recip,str(REC_DQ_MM_EQUIV_CUR),dqa1_1_donor,dqa1_2_donor,dqa1_1_recip,dqa1_2_recip,str(REC_DQA1_MM_EQUIV_CUR),dpa1_1_donor,dpa1_2_donor,dpa1_1_recip,dpa1_2_recip,str(REC_DPA1_MM_EQUIV_CUR)]) + "\n")
+
+		antigen_mm_file.write(','.join([PX_ID,\
+							c1_donor,c2_donor,c1_recip,c2_recip,str(REC_C_MM_EQUIV_CUR),\
+							dqb1_1_donor,dqb1_2_donor,dqb1_1_recip,dqb1_2_recip,str(REC_DQ_MM_EQUIV_CUR),\
+							dqa1_1_donor,dqa1_2_donor,dqa1_1_recip,dqa1_2_recip,str(REC_DQA1_MM_EQUIV_CUR),\
+							dpa1_1_donor,dpa1_2_donor,dpa1_1_recip,dpa1_2_recip,str(REC_DPA1_MM_EQUIV_CUR),\
+							dpb1_1_donor,dpb1_2_donor,dpb1_1_recip,dpb1_2_recip,str(REC_DPB1_MM_EQUIV_CUR)])+ "\n")
