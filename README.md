@@ -105,6 +105,20 @@ Output of imputation pipelines - list of haplotype pairs and probabilities for e
 impute.srtr.*.csv.gz 
 ```
 
+Antigen mismatch assignment:
+
+```
+python3 srtr_hla_antigen_mm.py
+
+srtr_antigen_mm_*.csv
+
+REC_C_MM_EQUIV_CUR - Cw antigen MM
+REC_DQ_MM_EQUIV_CUR - DQ antigen MM
+REC_DQA1_MM_EQUIV_CUR - DQA1 First-field MM
+REC_DPA1_MM_EQUIV_CUR - DPA1 First-field MM
+REC_DPB1_MM_EQUIV_CUR - DPB1 allele mismatch
+```
+
 Amino acid mismatch assignment:
 Needs to be modified to use HLAGenie to manage AA sequences
     - https://github.com/gbiagini/hlagenie
