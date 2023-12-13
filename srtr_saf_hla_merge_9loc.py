@@ -182,7 +182,7 @@ tx_ki = tx_ki[['ORG_TY','PERS_ID','PX_ID','REC_TX_DT', 'REC_HISTO_TX_ID', 'REC_T
 # NLATIN: Non-Latino or unknown
 
 # Using MLT category for imputation using NEMO 9-locus pipeline
-# TODO - Consider using Overall US but hasn't been run yet for two-field
+# TODO - Consider using Overall US instead of MLT to impute MLT but hasn't been run yet for two-field
 
 # PERS_ID, PX_ID, REC_HISTO_TX_ID, DONOR_ID all loaded as int64 instead of strings
 # print (tx_ki.dtypes)
@@ -312,6 +312,10 @@ print ("Subset to Single donor, single organ type TX: " + str(len(tx_ki)))
 # merge DONOR_DECEASED on DONOR_ID to add C, DQ, and DP
 tx_ki_donor_hla = tx_ki.merge(donor_deceased,how="inner",on="DONOR_ID")
 print ("Inner join with DONOR_DECEASED on DONOR_ID: " + str(len(tx_ki_donor_hla)))
+
+# Add row to REC_HISTO with missing REC_HISTO_TX_ID
+missing_rec_histo_id = {'REC_HISTO_TX_ID': "1776506"}
+rec_histo = rec_histo._append(missing_rec_histo_id, ignore_index=True) # uses private method
 
 # merge REC_HISTO on REC_HISTO_TX_ID to add C, DQ, and DP
 tx_ki_donor_rec_hla = tx_ki_donor_hla.merge(rec_histo,how="inner",on="REC_HISTO_TX_ID")
@@ -706,6 +710,43 @@ tx_ki_all_hla.loc[tx_ki_all_hla.DON_DRB4_1 == 'N-Negative', 'DON_DRB4_1'] = ""
 tx_ki_all_hla.loc[tx_ki_all_hla.DON_DRB4_2 == 'N-Negative', 'DON_DRB4_2'] = ""
 tx_ki_all_hla.loc[tx_ki_all_hla.DON_DRB5_1 == 'N-Negative', 'DON_DRB5_1'] = ""
 tx_ki_all_hla.loc[tx_ki_all_hla.DON_DRB5_2 == 'N-Negative', 'DON_DRB5_2'] = ""
+
+tx_ki_all_hla.loc[tx_ki_all_hla.DON_DRB3_1 == '0', 'DON_DRB3_1'] = ""
+tx_ki_all_hla.loc[tx_ki_all_hla.DON_DRB3_2 == '0', 'DON_DRB3_2'] = ""
+tx_ki_all_hla.loc[tx_ki_all_hla.DON_DRB4_1 == '0', 'DON_DRB4_1'] = ""
+tx_ki_all_hla.loc[tx_ki_all_hla.DON_DRB4_2 == '0', 'DON_DRB4_2'] = ""
+tx_ki_all_hla.loc[tx_ki_all_hla.DON_DRB5_1 == '0', 'DON_DRB5_1'] = ""
+tx_ki_all_hla.loc[tx_ki_all_hla.DON_DRB5_2 == '0', 'DON_DRB5_2'] = ""
+
+tx_ki_all_hla.loc[tx_ki_all_hla.REC_DRB3_1 == '0', 'REC_DRB3_1'] = ""
+tx_ki_all_hla.loc[tx_ki_all_hla.REC_DRB3_2 == '0', 'REC_DRB3_2'] = ""
+tx_ki_all_hla.loc[tx_ki_all_hla.REC_DRB4_1 == '0', 'REC_DRB4_1'] = ""
+tx_ki_all_hla.loc[tx_ki_all_hla.REC_DRB4_2 == '0', 'REC_DRB4_2'] = ""
+tx_ki_all_hla.loc[tx_ki_all_hla.REC_DRB5_1 == '0', 'REC_DRB5_1'] = ""
+tx_ki_all_hla.loc[tx_ki_all_hla.REC_DRB5_2 == '0', 'REC_DRB5_2'] = ""
+
+tx_ki_all_hla.loc[tx_ki_all_hla.DON_DRB3_1 == 'Not Tested', 'DON_DRB3_1'] = ""
+tx_ki_all_hla.loc[tx_ki_all_hla.DON_DRB3_2 == 'Not Tested', 'DON_DRB3_2'] = ""
+tx_ki_all_hla.loc[tx_ki_all_hla.DON_DRB4_1 == 'Not Tested', 'DON_DRB4_1'] = ""
+tx_ki_all_hla.loc[tx_ki_all_hla.DON_DRB4_2 == 'Not Tested', 'DON_DRB4_2'] = ""
+tx_ki_all_hla.loc[tx_ki_all_hla.DON_DRB5_1 == 'Not Tested', 'DON_DRB5_1'] = ""
+tx_ki_all_hla.loc[tx_ki_all_hla.DON_DRB5_2 == 'Not Tested', 'DON_DRB5_2'] = ""
+
+tx_ki_all_hla.loc[tx_ki_all_hla.REC_DRB3_1 == 'Not Tested', 'REC_DRB3_1'] = ""
+tx_ki_all_hla.loc[tx_ki_all_hla.REC_DRB3_2 == 'Not Tested', 'REC_DRB3_2'] = ""
+tx_ki_all_hla.loc[tx_ki_all_hla.REC_DRB4_1 == 'Not Tested', 'REC_DRB4_1'] = ""
+tx_ki_all_hla.loc[tx_ki_all_hla.REC_DRB4_2 == 'Not Tested', 'REC_DRB4_2'] = ""
+tx_ki_all_hla.loc[tx_ki_all_hla.REC_DRB5_1 == 'Not Tested', 'REC_DRB5_1'] = ""
+tx_ki_all_hla.loc[tx_ki_all_hla.REC_DRB5_2 == 'Not Tested', 'REC_DRB5_2'] = ""
+
+
+tx_ki_all_hla.loc[(tx_ki_all_hla.DON_DR51 == 'Positive') & (tx_ki_all_hla.DON_DRB5_1 == ''), 'DON_DRB5_1'] = "51"
+tx_ki_all_hla.loc[(tx_ki_all_hla.DON_DR52 == 'Positive') & (tx_ki_all_hla.DON_DRB3_1 == ''), 'DON_DRB3_1'] = "52"
+tx_ki_all_hla.loc[(tx_ki_all_hla.DON_DR53 == 'Positive') & (tx_ki_all_hla.DON_DRB4_1 == ''), 'DON_DRB4_1'] = "53"
+
+tx_ki_all_hla.loc[(tx_ki_all_hla.REC_DRW51 == 'Positive') & (tx_ki_all_hla.REC_DRB5_1 == ''), 'REC_DRB5_1'] = "51"
+tx_ki_all_hla.loc[(tx_ki_all_hla.REC_DRW52 == 'Positive') & (tx_ki_all_hla.REC_DRB3_1 == ''), 'REC_DRB3_1'] = "52"
+tx_ki_all_hla.loc[(tx_ki_all_hla.REC_DRW53 == 'Positive') & (tx_ki_all_hla.REC_DRB4_1 == ''), 'REC_DRB4_1'] = "53"
 
 # view Pandas data types
 # print (tx_ki_all_hla.info())

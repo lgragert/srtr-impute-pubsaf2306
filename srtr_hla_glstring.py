@@ -15,13 +15,18 @@ dna2ser = {}
 seroGL = {}
 
 def loc_gl (loc, typ1, typ2, dna1, dna2, XX_hash):
-	if (typ2 == ""):
+
+	# manage homozygotes by copying over antigen
+	# TODO - modify to add null allele list when homozygous
+	if (typ2 == ""): 
 		typ2 = typ1
 		dna2 = dna1
 	if (typ1 == ""):
 		typ1 = typ2
 		dna1 = dna2
 	if ((typ1 == "") | (typ2 == "")):
+		if (loc == "DRB345"):
+			return '+'.join([null_alleles_glstring_locus["DRB345"],null_alleles_glstring_locus["DRB345"]])
 		# if (loc in ["A","B","DRB1"]):
 		# 	print ("Either no typ1 or typ2 in loc_gl: " + str(getattr(row, 'PX_ID')) + " Typ1: " + typ1 + " Typ2: " + typ2 + "^")
 		return "SKIP"
@@ -50,6 +55,10 @@ def loc_gl (loc, typ1, typ2, dna1, dna2, XX_hash):
 		loc_ser = loc
 		if (loc == "DRB1"):
 			loc_ser = "DR"
+		if (loc == "DRB345"):
+			loc_ser = "DR"
+			if ("*" in typ1):
+				loc_ser = "DRB"		
 		if (loc == "DQA1"):
 			loc_ser = "DQA1*"
 		if (loc == "DQB1"):
@@ -66,9 +75,15 @@ def loc_gl (loc, typ1, typ2, dna1, dna2, XX_hash):
 
 	# dna typing
 	elif (dna1 == "Y"):
+		loc_dna = loc
 		typ1_fields = typ1.split(':')
-		subtype1 = typ1_fields[1]
-		loctyp1 = '*'.join([loc,typ1])
+		if (loc == "DRB345"):
+			if ("*" in typ1): # DRB345
+				loc_dna = "DRB"	
+				loctyp1 = loc_dna + typ2
+		else:
+			subtype1 = typ1_fields[1]
+			loctyp1 = '*'.join([loc_dna,typ1])
 		al1 = loctyp1
 		# two-field analysis - ARD rollup no longer being used
 		# al1 = ard.redux(al1,'lgx')
@@ -77,6 +92,10 @@ def loc_gl (loc, typ1, typ2, dna1, dna2, XX_hash):
 		loc_ser = loc
 		if (loc == "DRB1"):
 			loc_ser = "DR"
+		if (loc == "DRB345"):
+			loc_ser = "DR"
+			if ("*" in typ2):
+				loc_ser = "DRB"
 		if (loc == "DQA1"):
 			loc_ser = "DQA1*"
 		if (loc == "DQB1"):
@@ -88,14 +107,27 @@ def loc_gl (loc, typ1, typ2, dna1, dna2, XX_hash):
 			# print ("Legacy DP antigen-level typing - not using for imputation: " + str(getattr(row, 'PX_ID')))
 			return "SKIP"  # DP serology is inactive
 		loctyp2 = loc_ser + typ2
-		al2 = seroGL[loctyp2]
+		# 2nd typing can indicate either homozygous or null
+		if (typ1 == typ2): 
+			al2 = seroGL[loctyp1] + null_alleles_glstring_locus[loc]
+		else:
+			al2 = seroGL[loctyp2]
 
 	# dna typing
 	elif (dna2 == "Y"):
-		typ2_fields = typ2.split(':')
-		subtype2 = typ2_fields[1]
-		loctyp2 = '*'.join([loc,typ2])
-		al2 = loctyp2
+		loc_dna = loc
+		if (typ2 == ""): 
+			al2 = loctyp1 + null_alleles_glstring_locus[loc]
+		else:
+			typ2_fields = typ2.split(':')
+			if (loc_dna == "DRB345"):
+				if ("*" in typ2): # DRB345
+					loc_dna = "DRB"
+					loctyp2 = loc_dna + typ2
+			else:
+				subtype2 = typ2_fields[1]
+				loctyp2 = '*'.join([loc_dna,typ2])
+			al2 = loctyp2
 		# # two-field analysis - ARD rollup no longer being used
 		# al2 = ard.redux(al2,'lgx')
 
@@ -131,11 +163,60 @@ def loadSeroWMDAMap (seroGL):
 	return (0)
 
 
+# get list of two-field alleles that include nulls from WMDA file
+wmda_filename  = "rel_dna_ser.txt"
+wmda_file = open(wmda_filename, 'r')
+null_alleles_locus = {} # list of null alleles per locus
+for line in wmda_file:
+	# skip header and some nonclassical HLA loci
+	if ((line.startswith('#')) or (line.startswith('DMA')) or (line.startswith('DMB')) or (line.startswith('DOA')) or
+		(line.startswith('DOB')) or (line.startswith('DPA2')) or (line.startswith('DQA2')) or (line.startswith('DPB')) or
+		(line.startswith('DRA')) or	(line.startswith('DRB2'))):
+		continue
+
+	# skip rest of file after DRB6
+	if (line.startswith('DRB6')):
+		break
+
+	line = line.strip('\n')
+	(who_locus,who_allele_name,who_unambiguous_ag,possible_ag,assumed_ag,expert_assigned_ag) = line.split(';')
+
+	imgt_hla_allele = who_locus + who_allele_name
+	allele_fields = who_allele_name.split(':')
+	allele_group = allele_fields[0]
+	protein = allele_fields[1]
+	has_expression_char = re.search('[A-Z]$', who_allele_name)
+	imgt_two_field_allele = who_locus + allele_group + ":" + protein # no shortnulls in freqs
+
+	# trim off trailing "*" character from locus name
+	who_locus = who_locus[:-1]
+	if who_locus in ["DRB3","DRB4","DRB5"]:
+		who_locus = "DRB345"
+
+	expression_char = ""
+	if (has_expression_char):
+		expression_char = has_expression_char.group(0)
+	if (expression_char == "N"): # add two-field null allele to locus-specific list
+		if who_locus in null_alleles_locus.keys():
+			if imgt_two_field_allele in null_alleles_locus[who_locus]:
+				continue
+			else:
+				null_alleles_locus[who_locus].append(imgt_two_field_allele)
+		else:
+			null_alleles_locus[who_locus] = [imgt_two_field_allele]
+
+null_alleles_locus["DRB345"].append("DRBX*NNNN")
+
+null_alleles_glstring_locus = {}
+
+for locus in null_alleles_locus:
+	null_alleles_glstring_locus[locus] = '\\'.join(null_alleles_locus[locus])
+	print(null_alleles_glstring_locus[locus])
 
 
 # load file generated from HLA merge
 tx_ki_hla_filename = "tx_ki_hla_9loc.csv"
-tx_ki_hla = pandas.read_csv(tx_ki_hla_filename, index_col=None, encoding='Latin-1', low_memory=False)
+tx_ki_hla = pandas.read_csv(tx_ki_hla_filename, index_col=None, encoding='Latin-1', low_memory=False, dtype=str)
 
 # output SRTR pull/glid files
 pull_filename = "pull.srtr.txt"
@@ -184,9 +265,16 @@ for row in tx_ki_hla.itertuples():
 	DON_DPA2 = str(getattr(row,'DON_DPA2'))
 	DON_DP1 = str(getattr(row,'DON_DP1'))
 	DON_DP2 = str(getattr(row,'DON_DP2'))
-	DON_DR51 = str(getattr(row,'DON_DR51')) # Negative or Positive until recently
-	DON_DR52 = str(getattr(row,'DON_DR52')) # Negative or Positive until recently
-	DON_DR53 = str(getattr(row,'DON_DR53')) # Negative or Positive until recently
+	# DON_DR51 = str(getattr(row,'DON_DR51')) # this field is only Negative or Positive
+	# DON_DR52 = str(getattr(row,'DON_DR52')) # this field is only Negative or Positive
+	# DON_DR53 = str(getattr(row,'DON_DR53')) # this field is only Negative or Positive
+	DON_DRB3_1 = str(getattr(row,'DON_DRB3_1'))
+	DON_DRB3_2 = str(getattr(row,'DON_DRB3_2'))
+	DON_DRB4_1 = str(getattr(row,'DON_DRB4_1'))
+	DON_DRB4_2 = str(getattr(row,'DON_DRB4_2'))
+	DON_DRB5_1 = str(getattr(row,'DON_DRB5_1'))
+	DON_DRB5_2 = str(getattr(row,'DON_DRB5_2'))
+
 	if (DON_A1 == "nan"):
 		DON_A1 = ""
 	if (DON_A2 == "nan"):
@@ -219,12 +307,19 @@ for row in tx_ki_hla.itertuples():
 		DON_DP1 = ""
 	if (DON_DP2 == "nan"):
 		DON_DP2 = ""
-	if (DON_DR51 == "nan"):
-		DON_DR51 = ""
-	if (DON_DR52 == "nan"):
-		DON_DR52 = ""	
-	if (DON_DR53 == "nan"):
-		DON_DR53 = ""
+	if (DON_DRB3_1 == "nan"):
+		DON_DRB3_1 = ""
+	if (DON_DRB3_2 == "nan"):
+		DON_DRB3_2 = ""
+	if (DON_DRB4_1 == "nan"):
+		DON_DRB4_1 = ""
+	if (DON_DRB4_2 == "nan"):
+		DON_DRB4_2 = ""
+	if (DON_DRB5_1 == "nan"):
+		DON_DRB5_1 = ""
+	if (DON_DRB5_2 == "nan"):
+		DON_DRB5_2 = ""
+
 
 	DON_A1_DNA_TYPING_IND = "N"
 	DON_A2_DNA_TYPING_IND = "N"
@@ -293,10 +388,15 @@ for row in tx_ki_hla.itertuples():
 	REC_DPA2 = str(getattr(row,'REC_DPA2'))
 	REC_DP1 = str(getattr(row,'REC_DPW1'))
 	REC_DP2 = str(getattr(row,'REC_DPW2'))
-	REC_DR51 = str(getattr(row,'REC_DRW51')) # Negative or Positive until recently
-	REC_DR52 = str(getattr(row,'REC_DRW52')) # Negative or Positive until recently
-	REC_DR53 = str(getattr(row,'REC_DRW53')) # Negative or Positive until recently
-
+	# REC_DR51 = str(getattr(row,'REC_DRW51')) # this field is only Negative or Positive
+	# REC_DR52 = str(getattr(row,'REC_DRW52')) # this field is only Negative or Positive
+	# REC_DR53 = str(getattr(row,'REC_DRW53')) # this field is only Negative or Positive
+	REC_DRB3_1 = str(getattr(row,'REC_DRB3_1'))
+	REC_DRB3_2 = str(getattr(row,'REC_DRB3_2'))
+	REC_DRB4_1 = str(getattr(row,'REC_DRB4_1'))
+	REC_DRB4_2 = str(getattr(row,'REC_DRB4_2'))
+	REC_DRB5_1 = str(getattr(row,'REC_DRB5_1'))
+	REC_DRB5_2 = str(getattr(row,'REC_DRB5_2'))
 
 	if (REC_A1 == "nan"):
 		REC_A1 = ""
@@ -330,12 +430,18 @@ for row in tx_ki_hla.itertuples():
 		REC_DP1 = ""
 	if (REC_DP2 == "nan"):
 		REC_DP2 = ""
-	if (REC_DR51 == "nan"):
-		REC_DR51 = ""
-	if (REC_DR52 == "nan"):
-		REC_DR52 = ""	
-	if (REC_DR53 == "nan"):
-		REC_DR53 = ""
+	if (REC_DRB3_1 == "nan"):
+		REC_DRB3_1 = ""
+	if (REC_DRB3_2 == "nan"):
+		REC_DRB3_2 = ""
+	if (REC_DRB4_1 == "nan"):
+		REC_DRB4_1 = ""
+	if (REC_DRB4_2 == "nan"):
+		REC_DRB4_2 = ""
+	if (REC_DRB5_1 == "nan"):
+		REC_DRB5_1 = ""
+	if (REC_DRB5_2 == "nan"):
+		REC_DRB5_2 = ""
 
 	REC_A1_DNA_TYPING_IND = "N"
 	REC_A2_DNA_TYPING_IND = "N"
@@ -406,11 +512,88 @@ for row in tx_ki_hla.itertuples():
 		continue
 
 
-	# TODO - handle DRB3/4/5
-	# REC_DR51, REC_DR52, REC_DR53
-	# DON_DR51, DON_DR52, DON_DR52
+	# handle DRB3/4/5
+	# Previously REC_DR51, REC_DR52, REC_DR53, DON_DR51, DON_DR52, DON_DR52
+	DON_DRB345_1 = ""
+	DON_DRB345_2 = ""	
+	if (DON_DRB3_1 != ""):
+		if (DON_DRB345_1 == ""):
+			DON_DRB345_1 = DON_DRB3_1
+		else:
+			DON_DRB345_2 = DON_DRB3_1
+	if (DON_DRB3_2 != ""):
+		if (DON_DRB345_1 == ""):
+			DON_DRB345_1 = DON_DRB3_2
+		else:
+			DON_DRB345_2 = DON_DRB3_2
+	if (DON_DRB4_1 != ""):
+		if (DON_DRB345_1 == ""):
+			DON_DRB345_1 = DON_DRB4_1
+		else:
+			DON_DRB345_2 = DON_DRB4_1
+	if (DON_DRB4_2 != ""):
+		if (DON_DRB345_1 == ""):
+			DON_DRB345_1 = DON_DRB4_2
+		else:
+			DON_DRB345_2 = DON_DRB4_2
+	if (DON_DRB5_1 != ""):
+		if (DON_DRB345_1 == ""):
+			DON_DRB345_1 = DON_DRB5_1
+		else:
+			DON_DRB345_2 = DON_DRB5_1
+	if (DON_DRB5_2 != ""):
+		if (DON_DRB345_1 == ""):
+			DON_DRB345_1 = DON_DRB5_2
+		else:
+			DON_DRB345_2 = DON_DRB5_2
+
+	DON_DRB345_1_DNA_TYPING_IND = "N"
+	DON_DRB345_2_DNA_TYPING_IND = "N"
+	if (re.search(":",DON_DRB345_1)):
+		DON_DRB345_1_DNA_TYPING_IND = "Y"
+	if (re.search(":",DON_DRB345_2)):
+		DON_DRB345_2_DNA_TYPING_IND = "Y"
 
 
+	REC_DRB345_1 = ""
+	REC_DRB345_2 = ""	
+	if (REC_DRB3_1 != ""):
+		if (REC_DRB345_1 == ""):
+			REC_DRB345_1 = REC_DRB3_1
+		else:
+			REC_DRB345_2 = REC_DRB3_1
+	if (REC_DRB3_2 != ""):
+		if (REC_DRB345_1 == ""):
+			REC_DRB345_1 = REC_DRB3_2
+		else:
+			REC_DRB345_2 = REC_DRB3_2
+	if (REC_DRB4_1 != ""):
+		if (REC_DRB345_1 == ""):
+			REC_DRB345_1 = REC_DRB4_1
+		else:
+			REC_DRB345_2 = REC_DRB4_1
+	if (REC_DRB4_2 != ""):
+		if (REC_DRB345_1 == ""):
+			REC_DRB345_1 = REC_DRB4_2
+		else:
+			REC_DRB345_2 = REC_DRB4_2
+	if (REC_DRB5_1 != ""):
+		if (REC_DRB345_1 == ""):
+			REC_DRB345_1 = REC_DRB5_1
+		else:
+			REC_DRB345_2 = REC_DRB5_1
+	if (REC_DRB5_2 != ""):
+		if (REC_DRB345_1 == ""):
+			REC_DRB345_1 = REC_DRB5_2
+		else:
+			REC_DRB345_2 = REC_DRB5_2
+
+	REC_DRB345_1_DNA_TYPING_IND = "N"
+	REC_DRB345_2_DNA_TYPING_IND = "N"
+	if (re.search(":",REC_DRB345_1)):
+		REC_DRB345_1_DNA_TYPING_IND = "Y"
+	if (re.search(":",REC_DRB345_2)):
+		REC_DRB345_2_DNA_TYPING_IND = "Y"
 
 	# print GLID file
 	# print PULL file
@@ -418,6 +601,7 @@ for row in tx_ki_hla.itertuples():
 	# PX_ID is donor_ID
 	PX_ID = str(getattr(row, 'PX_ID'))
 	# print (PX_ID)
+	# print (row)
 
 	# print ("A " + DON_A1 + " " + DON_A2 + " DNA " + DON_A1_DNA_TYPING_IND + " " + DON_A2_DNA_TYPING_IND)
 	# print ("C " + DON_C1 + " " + DON_C2 + " DNA " + DON_C1_DNA_TYPING_IND + " " + DON_C2_DNA_TYPING_IND)
@@ -425,6 +609,7 @@ for row in tx_ki_hla.itertuples():
 	don_gl_A = loc_gl("A",DON_A1,DON_A2,DON_A1_DNA_TYPING_IND,DON_A2_DNA_TYPING_IND,XX_hash)
 	don_gl_B = loc_gl("B",DON_B1,DON_B2,DON_B1_DNA_TYPING_IND,DON_B2_DNA_TYPING_IND,XX_hash)
 	don_gl_C = loc_gl("C",DON_C1,DON_C2,DON_C1_DNA_TYPING_IND,DON_C2_DNA_TYPING_IND,XX_hash)
+	don_gl_DRB345 = loc_gl("DRB345",DON_DRB345_1,DON_DRB345_2,DON_DRB345_1_DNA_TYPING_IND,DON_DRB345_2_DNA_TYPING_IND,XX_hash)
 	don_gl_DRB1 = loc_gl("DRB1",DON_DR1,DON_DR2,DON_DR1_DNA_TYPING_IND,DON_DR2_DNA_TYPING_IND,XX_hash)
 	don_gl_DQA1 = loc_gl("DQA1",DON_DQA1,DON_DQA2,DON_DQA1_DNA_TYPING_IND,DON_DQA2_DNA_TYPING_IND,XX_hash)
 	don_gl_DQB1 = loc_gl("DQB1",DON_DQ1,DON_DQ2,DON_DQ1_DNA_TYPING_IND,DON_DQ2_DNA_TYPING_IND,XX_hash)
@@ -435,6 +620,7 @@ for row in tx_ki_hla.itertuples():
 	rec_gl_A = loc_gl("A",REC_A1,REC_A2,REC_A1_DNA_TYPING_IND,REC_A2_DNA_TYPING_IND,XX_hash)
 	rec_gl_B = loc_gl("B",REC_B1,REC_B2,REC_B1_DNA_TYPING_IND,REC_B2_DNA_TYPING_IND,XX_hash)
 	rec_gl_C = loc_gl("C",REC_C1,REC_C2,REC_C1_DNA_TYPING_IND,REC_C2_DNA_TYPING_IND,XX_hash)
+	rec_gl_DRB345 = loc_gl("DRB345",REC_DRB345_1,REC_DRB345_2,REC_DRB345_1_DNA_TYPING_IND,REC_DRB345_2_DNA_TYPING_IND,XX_hash)
 	rec_gl_DRB1 = loc_gl("DRB1",REC_DR1,REC_DR2,REC_DR1_DNA_TYPING_IND,REC_DR2_DNA_TYPING_IND,XX_hash)
 	rec_gl_DQA1 = loc_gl("DQA1",REC_DQA1,REC_DQA2,REC_DQA1_DNA_TYPING_IND,REC_DQA2_DNA_TYPING_IND,XX_hash)
 	rec_gl_DQB1 = loc_gl("DQB1",REC_DQ1,REC_DQ2,REC_DQ1_DNA_TYPING_IND,REC_DQ2_DNA_TYPING_IND,XX_hash)
@@ -448,7 +634,7 @@ for row in tx_ki_hla.itertuples():
 	don_glid_A = 0
 	don_glid_B = 0
 	don_glid_C = 0
-	don_glid_DRBX = 0
+	don_glid_DRB345 = 0
 	don_glid_DRB1 = 0
 	don_glid_DQA1 = 0
 	don_glid_DQB1 = 0
@@ -457,7 +643,7 @@ for row in tx_ki_hla.itertuples():
 	rec_glid_A = 0
 	rec_glid_B = 0
 	rec_glid_C = 0
-	rec_glid_DRBX = 0
+	rec_glid_DRB345 = 0
 	rec_glid_DRB1 = 0
 	rec_glid_DQA1 = 0
 	rec_glid_DQB1 = 0
@@ -493,6 +679,13 @@ for row in tx_ki_hla.itertuples():
 			don_glid_C = glid_index
 		else:
 			don_glid_C = glid_dict[don_gl_C]
+	if (don_gl_DRB345 != "SKIP"):
+		if don_gl_DRB345 not in glid_dict:
+			glid_index = glid_index + 1
+			glid_dict[don_gl_DRB345] = glid_index
+			don_gl_DRB345 = glid_index
+		else:
+			don_gl_DRB345 = glid_dict[don_gl_DRB345]
 	if (don_gl_DRB1 != "SKIP"):
 		if don_gl_DRB1 not in glid_dict:
 			glid_index = glid_index + 1
@@ -562,6 +755,13 @@ for row in tx_ki_hla.itertuples():
 			rec_glid_C = glid_index
 		else:
 			rec_glid_C = glid_dict[rec_gl_C]
+	if (rec_gl_DRB345 != "SKIP"):
+		if rec_gl_DRB345 not in glid_dict:
+			glid_index = glid_index + 1
+			glid_dict[rec_gl_DRB345] = glid_index
+			rec_gl_DRB345 = glid_index
+		else:
+			rec_gl_DRB345 = glid_dict[rec_gl_DRB345]
 	if (rec_gl_DRB1 != "SKIP"):
 		if rec_gl_DRB1 not in glid_dict:
 			glid_index = glid_index + 1
@@ -603,9 +803,9 @@ for row in tx_ki_hla.itertuples():
 			rec_glid_DPB1 = glid_dict[rec_gl_DPB1]
 
 
-	pull_string = DON_ID + "," + DON_RACE + "," + ','.join([str(don_glid_A),str(don_glid_B),str(don_glid_C),str(don_glid_DRB1),str(don_glid_DRBX),str(don_glid_DQA1),str(don_glid_DQB1),str(don_glid_DPA1),str(don_glid_DPB1)])
+	pull_string = DON_ID + "," + DON_RACE + "," + ','.join([str(don_glid_A),str(don_glid_B),str(don_glid_C),str(don_glid_DRB1),str(don_glid_DRB345),str(don_glid_DQA1),str(don_glid_DQB1),str(don_glid_DPA1),str(don_glid_DPB1)])
 	PULL.write(pull_string + "\n")
-	pull_string = REC_ID + "," + CAN_RACE + "," + ','.join([str(rec_glid_A),str(rec_glid_B),str(rec_glid_C),str(rec_glid_DRB1),str(rec_glid_DRBX),str(rec_glid_DQA1),str(rec_glid_DQB1),str(rec_glid_DPA1),str(rec_glid_DPB1)])
+	pull_string = REC_ID + "," + CAN_RACE + "," + ','.join([str(rec_glid_A),str(rec_glid_B),str(rec_glid_C),str(rec_glid_DRB1),str(rec_glid_DRB345),str(rec_glid_DQA1),str(rec_glid_DQB1),str(rec_glid_DPA1),str(rec_glid_DPB1)])
 	PULL.write(pull_string + "\n")
 
 PULL.close()
