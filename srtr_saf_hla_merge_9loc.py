@@ -65,11 +65,11 @@ DQA1_DPA1_DRB345_HLA_filename = "upenn_dqadpadr5153_29Nov2023.csv"
 DQA1_DPA1_DRB345_HLA = pandas.read_csv(DQA1_DPA1_DRB345_HLA_filename, index_col=None, encoding='Latin-1', low_memory=False, dtype=str)
 
 
-DRB3_DECODE_filename = "DR52_LOOKUP.csv"
+DRB3_DECODE_filename = "DR52_Lookup.csv"
 DRB3_DECODE = pandas.read_csv(DRB3_DECODE_filename, index_col=None, encoding='Latin-1', low_memory=False, dtype=str)
-DRB4_DECODE_filename = "DR53_LOOKUP.csv"
+DRB4_DECODE_filename = "DR53_Lookup.csv"
 DRB4_DECODE = pandas.read_csv(DRB4_DECODE_filename, index_col=None, encoding='Latin-1', low_memory=False, dtype=str)
-DRB5_DECODE_filename = "DR51_LOOKUP.csv"
+DRB5_DECODE_filename = "DR51_Lookup.csv"
 DRB5_DECODE = pandas.read_csv(DRB5_DECODE_filename, index_col=None, encoding='Latin-1', low_memory=False, dtype=str)
 
 # Rename columns using the remove_quotes function
