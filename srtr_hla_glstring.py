@@ -109,7 +109,7 @@ def loc_gl (loc, typ1, typ2, dna1, dna2, XX_hash):
 		loctyp2 = loc_ser + typ2
 		# 2nd typing can indicate either homozygous or null
 		if (typ1 == typ2): 
-			al2 = seroGL[loctyp1] + null_alleles_glstring_locus[loc]
+			al2 = seroGL[loctyp1] + '/' + null_alleles_glstring_locus[loc]
 		else:
 			al2 = seroGL[loctyp2]
 
@@ -210,7 +210,7 @@ null_alleles_locus["DRB345"].append("DRBX*NNNN")
 null_alleles_glstring_locus = {}
 
 for locus in null_alleles_locus:
-	null_alleles_glstring_locus[locus] = '\\'.join(null_alleles_locus[locus])
+	null_alleles_glstring_locus[locus] = '/'.join(null_alleles_locus[locus])
 	print(null_alleles_glstring_locus[locus])
 
 
