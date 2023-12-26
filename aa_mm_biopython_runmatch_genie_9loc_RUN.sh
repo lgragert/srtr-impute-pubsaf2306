@@ -10,7 +10,7 @@
 #SBATCH --ntasks-per-node=1   ### Number of tasks to be launched per Node
 
 module unload anaconda3/2020.07
-module unload anaconda3/2023.07
+module load anaconda3/2023.07
 export CONDA_ENVS_PATH="/lustre/project/lgragert/local/conda-envs/"
 source activate lgR
 unset PYTHONPATH
