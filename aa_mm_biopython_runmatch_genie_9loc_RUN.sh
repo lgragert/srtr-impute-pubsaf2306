@@ -2,7 +2,7 @@
 #SBATCH --job-name=AAMM_RM   ### Job Name
 #SBATCH --output=./logs/aa_mm_biopython_runmatch_9loc.out       ### File in which to store job output
 #SBATCH --error=./logs/aa_mm_biopython_runmatch_9loc.err        ### File in which to store job error messages
-#SBATCH --qos=normal          ### Quality of Service (like a queue in PBS)
+#SBATCH --qos=long          ### Quality of Service (like a queue in PBS)
 #SBATCH --partition=centos7   ### Required for Python 3.11
 #SBATCH --mem=256000
 #SBATCH --time=0-168:00:00     ### Wall clock time limit in Days-HH:MM:SS
