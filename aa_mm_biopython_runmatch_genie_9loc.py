@@ -15,8 +15,8 @@ import glob
 from tqdm import tqdm
 import hlagenie
 genie = hlagenie.init("3510", ungap = True)
-from aa_matching_msf_genie import *
-aa_mm = AAMatch(dbversion=3420)
+# from aa_matching_msf_genie import *
+# aa_mm = AAMatch(dbversion=3420)
 
 #loci = ["A","C","B","DRB1","DRB345","DQA1","DQB1","DPA1","DPB1"]
 
@@ -29,11 +29,7 @@ random.seed("20180413") # had to change seed to avoid deleted C*13:01
 # flag to create runMatchMC files
 generateRunMatchMC = 1
 
-#path="/lustre/project/lgragert/gwager/kidney-outcomes-sfvt/"
-path="./kamoun_impute/"
 
-
-pathloc = str(Path(__file__).parent)
 
 loci_value = 9
 loci_range_value = 10
@@ -45,7 +41,7 @@ SFVT_positions = {} # list of positions for each SFVT
 SFVT_list = {} # list of SFVTs
 seqf_name_ID = {} # sequence feature ID for each sequence feature name - to join to feature_2_name
 #seqf_filename = "/Users/gracewager/dev/kidney-outcomes-sfvt/variant_type.bcp"
-seqf_filename = pathloc + "/variant_type.bcp" 
+seqf_filename = "variant_type.bcp" 
 seqf_file = open (seqf_filename,'r')
 for line in seqf_file:
 	# print (line)
@@ -472,7 +468,7 @@ for pop in pops:
 
 
 # load in outcomes data from TX_KI file (tab-delimited is best?)
-tx_ki_filename = pathloc + "/TX_KI_decoded.txt"
+tx_ki_filename = "TX_KI_decoded.txt"
 tx_ki = pd.read_csv(tx_ki_filename, sep='\t', index_col=None, encoding='Latin-1', low_memory=False)
 
 # subset TX_KI columns to those used in previous study
@@ -504,7 +500,7 @@ for rep in tqdm(range(1,multiple_imputation_replicates+1)):
 	print(rep)
 	# tx_ki_hla.csv
 	# ORG_TY,PERS_ID,PX_ID,REC_TX_DT,REC_HISTO_TX_ID,DON_TY,DON_RACE,DON_RACE_SRTR,DON_ETHNICITY_SRTR,DON_A1,DON_A2,DON_B1,DON_B2,DON_DR1,DON_DR2,REC_AGE_IN_MONTHS_AT_TX,CAN_RACE,CAN_RACE_SRTR,CAN_ETHNICITY_SRTR,REC_TX_TY,REC_A1,REC_A2,REC_B1,REC_B2,REC_DR1,REC_DR2,DONOR_ID,DON_C1,DON_C2,DON_DQ1,DON_DQ2,DON_DP1,DON_DP2,DON_DR51,DON_DR52,DON_DR53,REC_CW1,REC_CW2,REC_DPW1,REC_DPW2,REC_DQW1,REC_DQW2,REC_DRW51,REC_DRW52,REC_DRW53
-	tx_hla_filename = pathloc + "/tx_ki_hla_9loc.csv"
+	tx_hla_filename = "tx_ki_hla_9loc.csv"
 	tx_hla_file = open(tx_hla_filename, "r")
 	runmatch_filename = "out.runmatchMCgenie." + str(rep) + ".txt.gz"
 	runmatch_file = gzip.open(runmatch_filename, "wt")
