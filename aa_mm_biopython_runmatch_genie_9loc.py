@@ -18,9 +18,9 @@ genie = hlagenie.init("3510", ungap = True)
 from aa_matching_msf_genie import *
 aa_mm = AAMatch(dbversion=3420)
 
-#loci = ["A","C","B","DRB1","DRB345","DQA1","DQB1","DPA1","DPB1"]
+loci = ["A","C","B","DRB1","DRB345","DQA1","DQB1","DPA1","DPB1"]
 
-loci = ["A","C","B","DRB1","DQA1","DQB1","DPA1","DPB1"]
+# loci = ["A","C","B","DRB1","DQA1","DQB1","DPA1","DPB1"]
 
 
 # set random seed
