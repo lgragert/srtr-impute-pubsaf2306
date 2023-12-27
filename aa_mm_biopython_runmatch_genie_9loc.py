@@ -756,3 +756,210 @@ for rep in tqdm(range(1,multiple_imputation_replicates+1)):
 				runmatch_file.write(PX_ID + "|" + loc + "|" + str(pos) + "|" + str(mm_count_0) + "|" + str(mm_count_1) + "|" + str(mm_count_2) + "\n")
 	tx_hla_file.close()
 
+	# DATA MATRIX FILE OUTPUT
+
+	# create dataframes from happair dictionaries
+	happair_selected_recip_df = pd.DataFrame(list(happair_selected_recip.items()),columns=["PX_ID","HAPPAIR_RECIP"])
+	happair_selected_donor_df = pd.DataFrame(list(happair_selected_donor.items()),columns=["PX_ID","HAPPAIR_DONOR"])
+
+	happair_selected = happair_selected_recip_df.merge(happair_selected_donor_df,left_on="PX_ID",right_on="PX_ID")
+	# happair_selected = pd.concat(happair_selected_donor_df,happair_selected_recip_df,axis=1)
+	'''
+	with pd.option_context("display.max_rows",None,"display.max_columns",None):
+		print (happair_selected)
+	'''
+
+	# create dataframes with additional HLA columns
+	#print ("selected:", happair_selected_recip_df["HAPPAIR_RECIP"])
+
+	# new data frame with split value columns for loci
+	recip_haplos = happair_selected["HAPPAIR_RECIP"].str.split("+", n = 1, expand = True)
+	donor_haplos = happair_selected["HAPPAIR_DONOR"].str.split("+", n = 1, expand = True)
+	happair_selected["RECIP_HAP1"] = recip_haplos[0]
+	happair_selected["RECIP_HAP2"] = recip_haplos[1]
+	happair_selected["DONOR_HAP1"] = donor_haplos[0]
+	happair_selected["DONOR_HAP2"] = donor_haplos[1]
+	recip_alleles1 = happair_selected["RECIP_HAP1"].str.split("~", n = loci_value, expand = True)
+	recip_alleles2 = happair_selected["RECIP_HAP2"].str.split("~", n = loci_value, expand = True)
+	donor_alleles1 = happair_selected["DONOR_HAP1"].str.split("~", n = loci_value, expand = True)
+	donor_alleles2 = happair_selected["DONOR_HAP2"].str.split("~", n = loci_value, expand = True)
+	# happair_selected["RECIP_A1"] = recip_alleles1[0]
+	# print (happair_selected)
+	# print (recip_alleles1)
+
+	# add allele columns
+	for i in range(1,loci_range_value):
+		loc = loci[i-1]
+		recip_alleles1_column_name = "RECIP_" + loc + "_1"
+		recip_alleles2_column_name = "RECIP_" + loc + "_2"
+		donor_alleles1_column_name = "DONOR_" + loc + "_1"
+		donor_alleles2_column_name = "DONOR_" + loc + "_2"
+		recip_allele1 = recip_alleles1[i-1]
+		recip_allele2 = recip_alleles2[i-1]
+		donor_allele1 = donor_alleles1[i-1]
+		donor_allele2 = donor_alleles2[i-1]		
+		happair_selected[recip_alleles1_column_name] = recip_allele1
+		happair_selected[recip_alleles2_column_name] = recip_allele2
+		happair_selected[donor_alleles1_column_name] = donor_allele1
+		happair_selected[donor_alleles2_column_name] = donor_allele2
+
+	# add AA position columns
+	# for i in range(1,5):
+	#	loc = loci[i-1]
+	# 	ard_start = ard_start_pos[loc]
+	# 	ard_end = ard_end_pos[loc]
+	# 	for pos in range(ard_start,ard_end):
+	# 		recip_aa1_column_name = "RECIP_" + loc + "_1_" + str(pos)
+	# 		recip_aa2_column_name = "RECIP_" + loc + "_2_" + str(pos)
+	# 		donor_aa1_column_name = "DONOR_" + loc + "_1_" + str(pos)
+	# 		donor_aa2_column_name = "DONOR_" + loc + "_2_" + str(pos)
+
+			# initialize new columns
+	# 		happair_selected[recip_aa1_column_name] = happair_selected[recip_alleles1_column_name]
+	# 		happair_selected[recip_aa2_column_name] = happair_selected[recip_alleles2_column_name]
+	# 		happair_selected[donor_aa1_column_name] = happair_selected[donor_alleles1_column_name]
+	# 		happair_selected[donor_aa2_column_name] = happair_selected[donor_alleles2_column_name]
+
+			# get AA position and count mismatches for each row
+	# 		for index,row in happair_selected.head().iterrows():
+	# 			happair_selected[index,recip_aa1_column_name] = getAAposition(HLA_seq,recip_allele1[index],pos)
+	# 			happair_selected[index,recip_aa2_column_name] = getAAposition(HLA_seq,recip_allele2[index],pos)
+	# 			happair_selected[index,donor_aa1_column_name] = getAAposition(HLA_seq,donor_allele1[index],pos)
+	# 			happair_selected[index,donor_aa2_column_name] = getAAposition(HLA_seq,donor_allele2[index],pos)
+
+	# add AA mismatch columns
+	for i in range(1,loci_range_value):
+		recip_allele1 = recip_alleles1[i-1]
+		loc = recip_allele1[0].split('*')[0]
+		print(loc)
+		if loc in ['DRB3', 'DRB4', 'DRB5', 'DRBX']:
+			loc = 'DRB345'
+			full_start = aa_mm.full_start_pos['DRB3']
+			full_end = aa_mm.full_end_pos['DRB3']
+		else:
+			full_start = aa_mm.full_start_pos[loc]
+			full_end = aa_mm.full_end_pos[loc]		
+		#print("recip_alleles1: "+str(recip_alleles1)+"\n")
+		#print("recip_alleles2: "+str(recip_alleles2)+"\n")
+		#print("donor_alleles1: "+str(donor_alleles1)+"\n")
+		#print("donor_alleles2: "+str(donor_alleles2)+"\n")
+		recip_allele2 = recip_alleles2[i-1]
+		donor_allele1 = donor_alleles1[i-1]
+		donor_allele2 = donor_alleles2[i-1]	
+
+		for index,row in happair_selected.iterrows():
+			mm_loc_count = 0
+			mm_loc_sfvt_count = 0
+			for pos in range(full_start, full_end):
+				mm_aa_column_name = "MM_"+loc+"_"+str(pos)
+				#happair_selected[mm_aa_column_name] = ''
+				#print(donor_allele1[index],donor_allele2[index],recip_allele1[index],recip_allele2[index],pos)
+				#allele1 = donor_allele1[index]
+				#allele2 = donor_allele2[index]
+				#allele3 = recip_allele1[index]
+				#allele4 = recip_allele2[index]
+				#print(type(allele1))
+				#position = int(pos)
+				#print(allele1)
+				#print(type(position))
+				#print(position)
+
+				if (recip_allele1[index] == 'DRBX*NNNN' and recip_allele2[index] == 'DRBX*NNNN'):
+					mm_pos_count == 2
+				elif (donor_allele1[index] == 'DRBX*NNNN' and donor_allele2[index] == 'DRBX*NNNN' ):
+					mm_pos_count == 2
+				else:
+					if (donor_allele1[index]  == 'DRBX*NNNN'):
+						donor_allele1[index]  = donor_allele2[index] 
+					if (donor_allele2[index]  == 'DRBX*NNNN'):
+						donor_allele2[index]  = donor_allele1[index] 
+					if (recip_allele1[index] == 'DRBX*NNNN'):
+						recip_allele1[index] = recip_allele2[index] 
+					if (recip_allele2[index]  == 'DRBX*NNNN'):
+						recip_allele2[index]  = recip_allele1[index]
+					mm_pos_count = genie.countAAMismatchesAllele(donor_allele1[index],donor_allele2[index],recip_allele1[index],recip_allele2[index],pos)
+				mm_loc_count += mm_pos_count
+				happair_selected.at[index,mm_aa_column_name] = mm_pos_count
+				# happair_selected.at[index,mm_aa_column_name] = count_AA_Mismatches_Allele(HLA_seq,donor_allele1[index],donor_allele2[index],recip_allele1[index],recip_allele2[index],pos)
+
+				# add columns for per-locus count
+			mm_loc_count_name = "MM_" + loc + "_COUNT"
+			happair_selected.at[index,mm_loc_count_name] = mm_loc_count
+		
+		'''
+		mm_loc_count = 0
+		mm_loc_sfvt_count = 0
+		for pos in range(ard_start,ard_end):
+			mm_aa_column_name = "MM_" + loc + "_" + str(pos)
+
+			# initialize new columns
+			happair_selected[mm_aa_column_name] = ''
+			#happair_selected[mm_aa_column_name] = happair_selected["HAPPAIR_DONOR"]
+
+			# get AA position and count mismatches for each row
+			for index,row in happair_selected.iterrows():
+				# if (loc=="DRB345"):
+				# 	mm_pos_count=1
+				# 	continue
+				mm_pos_count = aa_mm.count_AA_Mismatches_Allele(donor_allele1[index],donor_allele2[index],recip_allele1[index],recip_allele2[index],pos)
+				if loc == 'A':
+					print('Locus:{}\t\tPosition:{}\t\tmm_pos_count:{}'.format(loc, str(pos), str(mm_pos_count)))
+				mm_loc_count += mm_pos_count
+				happair_selected.at[index,mm_aa_column_name] = mm_pos_count
+				# happair_selected.at[index,mm_aa_column_name] = count_AA_Mismatches_Allele(HLA_seq,donor_allele1[index],donor_allele2[index],recip_allele1[index],recip_allele2[index],pos)
+
+		# add columns for per-locus count
+		mm_loc_count_name = "MM_" + loc + "_COUNT"
+		happair_selected.at[index,mm_loc_count_name] = mm_loc_count
+		'''
+
+		# add SFVT columns
+		# loop through all the SFVT_IDs
+		for id in range(1,1000):
+			seqf_name= "SFVT_" + loc + "_"  + str(id)
+			if (seqf_name not in SFVT_list):
+				continue
+			# initialize new column for SFVT
+			happair_selected[seqf_name] = happair_selected["HAPPAIR_DONOR"]			
+			
+			position_list = SFVT_positions[seqf_name]
+			positions = [int(x) for x in position_list.split(",")]
+
+			for index,row in happair_selected.iterrows():
+				mm_pos_count = genie.countAAMismatchesAllele(donor_allele1[index],donor_allele2[index],recip_allele1[index],recip_allele2[index],positions)
+				mm_loc_sfvt_count = mm_loc_count + mm_pos_count
+				happair_selected.at[index,seqf_name] = mm_pos_count
+
+			# add columns for per-locus count
+			mm_loc_count_name = "MM_" + loc + "SFVT_COUNT"
+			happair_selected.at[index,mm_loc_count_name] = mm_loc_sfvt_count
+
+			# print ("Sequence Feature Name: " + seqf_name + " Positions: " + position_list + " MM Count: " + str(SFVT_MM_count))				
+
+	# make sure data types are the same for merge
+	tx_ki['PX_ID'] = tx_ki['PX_ID'].astype('int64')
+	happair_selected['PX_ID'] = happair_selected['PX_ID'].astype('int64')
+
+	'''
+	# show complete HLA table of positions and mismatches
+	print ("HapPair_Selected")
+	print (happair_selected)
+
+	print ('TX_KI')
+	print (tx_ki)
+	'''
+	# merge in outcomes data from TX_KI file
+	# tx_ki_design_matrix = pd.merge(tx_ki,happair_selected,how='inner',on='PX_ID')
+	tx_ki_design_matrix = tx_ki.merge(happair_selected,how='right',left_on="PX_ID",right_on="PX_ID")
+
+	'''
+	print ("Design Matrix")
+	with pd.option_context("display.max_rows",None,"display.max_columns",None):
+		print (tx_ki_design_matrix)
+	'''
+
+	# write SRTR design matrix
+	design_matrix_filename = pathloc + "/SRTR_AA_MM_9loc_matrix_genie_" + str(rep) + ".txt"
+	tx_ki_design_matrix.to_csv(design_matrix_filename,index=False,sep="\t")
+
+exit()
