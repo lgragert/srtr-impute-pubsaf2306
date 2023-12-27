@@ -959,7 +959,7 @@ for rep in tqdm(range(1,multiple_imputation_replicates+1)):
 	'''
 
 	# write SRTR design matrix
-	design_matrix_filename = pathloc + "/SRTR_AA_MM_9loc_matrix_" + str(rep) + ".txt"
+	design_matrix_filename = "SRTR_AA_MM_9loc_matrix_" + str(rep) + ".txt"
 	tx_ki_design_matrix.to_csv(design_matrix_filename,index=False,sep="\t")
 
 exit()
