@@ -737,20 +737,20 @@ for rep in tqdm(range(1,multiple_imputation_replicates+1)):
 				# AA = getAAposition(HLA_seq,allele1_donor,pos)
 				# print (allele1_donor + " - " + str(pos) + AA)
 				mm_count = 0
-				if (allele1_recip[index] == 'DRBX*NNNN' and allele2_recip[index] == 'DRBX*NNNN'):
+				if (allele1_recip[pos] == 'DRBX*NNNN' and allele2_recip[pos] == 'DRBX*NNNN'):
 					mm_count == 2
-				elif (allele1_donor[index] == 'DRBX*NNNN' and allele2_donor[index] == 'DRBX*NNNN' ):
+				elif (allele1_donor[pos] == 'DRBX*NNNN' and allele2_donor[pos] == 'DRBX*NNNN' ):
 					mm_count == 2
 				else:
-					if (allele1_donor[index]  == 'DRBX*NNNN'):
-						allele1_donor[index]  = allele2_donor[index] 
-					if (allele2_donor[index]  == 'DRBX*NNNN'):
-						allele2_donor[index]  = allele1_donor[index] 
-					if (allele1_recip[index] == 'DRBX*NNNN'):
-						allele1_recip[index] = allele2_recip[index] 
-					if (allele2_recip[index]  == 'DRBX*NNNN'):
-						allele2_recip[index]  = allele1_recip[index]
-					mm_count = genie.countAAMismatchesAllele(allele1_donor[index],allele2_donor[index],allele1_recip[index],allele2_recip[index],pos)
+					if (allele1_donor[pos]  == 'DRBX*NNNN'):
+						allele1_donor[pos]  = allele2_donor[pos] 
+					if (allele2_donor[pos]  == 'DRBX*NNNN'):
+						allele2_donor[pos]  = allele1_donor[pos] 
+					if (allele1_recip[pos] == 'DRBX*NNNN'):
+						allele1_recip[pos] = allele2_recip[pos] 
+					if (allele2_recip[pos]  == 'DRBX*NNNN'):
+						allele2_recip[pos]  = allele1_recip[pos]
+					mm_count = genie.countAAMismatchesAllele(allele1_donor[pos],allele2_donor[pos],allele1_recip[pos],allele2_recip[pos],pos)
 				#print ("MM_count at position " + str(pos) + ": " + str(mm_count) + " - HLA - " + allele1_donor + " " + allele2_donor + " " + allele1_recip + " " + allele2_recip)
 
 				mm_count_0 = 0
