@@ -14,9 +14,12 @@ import os
 import glob
 from tqdm import tqdm
 import hlagenie
+import warnings
 genie = hlagenie.init("3510", ungap = True)
 from aa_matching_msf_genie import *
 aa_mm = AAMatch(dbversion=3420)
+
+warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
 
 loci = ["A","C","B","DRB1","DRB345","DQA1","DQB1","DPA1","DPB1"]
 
@@ -27,7 +30,7 @@ loci = ["A","C","B","DRB1","DRB345","DQA1","DQB1","DPA1","DPB1"]
 random.seed("20180413") # had to change seed to avoid deleted C*13:01
 
 # flag to create runMatchMC files
-generateRunMatchMC = 1
+generateRunMatchMC = 0
 
 
 
@@ -497,7 +500,7 @@ impute_err_file.write("Type,ID\n")
 #  loop through 10 replicate random realizations for multiple imputation
 multiple_imputation_replicates = 10
 for rep in tqdm(range(1,multiple_imputation_replicates+1)):
-	print(rep)
+	print("Replicate: " + str(rep))
 	# tx_ki_hla.csv
 	# ORG_TY,PERS_ID,PX_ID,REC_TX_DT,REC_HISTO_TX_ID,DON_TY,DON_RACE,DON_RACE_SRTR,DON_ETHNICITY_SRTR,DON_A1,DON_A2,DON_B1,DON_B2,DON_DR1,DON_DR2,REC_AGE_IN_MONTHS_AT_TX,CAN_RACE,CAN_RACE_SRTR,CAN_ETHNICITY_SRTR,REC_TX_TY,REC_A1,REC_A2,REC_B1,REC_B2,REC_DR1,REC_DR2,DONOR_ID,DON_C1,DON_C2,DON_DQ1,DON_DQ2,DON_DP1,DON_DP2,DON_DR51,DON_DR52,DON_DR53,REC_CW1,REC_CW2,REC_DPW1,REC_DPW2,REC_DQW1,REC_DQW2,REC_DRW51,REC_DRW52,REC_DRW53
 	tx_hla_filename = "tx_ki_hla_9loc.csv"
@@ -682,7 +685,6 @@ for rep in tqdm(range(1,multiple_imputation_replicates+1)):
 		for loc in loci:
 			#print(loc)
 
-			#handeling of DRBX
 			if (loc == "A"):
 				allele1_donor = a1_donor
 				allele2_donor = a2_donor
@@ -772,6 +774,8 @@ for rep in tqdm(range(1,multiple_imputation_replicates+1)):
 
 	# DATA MATRIX FILE OUTPUT
 
+	print ("Data Matrix Output")
+
 	# create dataframes from happair dictionaries
 	happair_selected_recip_df = pd.DataFrame(list(happair_selected_recip.items()),columns=["PX_ID","HAPPAIR_RECIP"])
 	happair_selected_donor_df = pd.DataFrame(list(happair_selected_donor.items()),columns=["PX_ID","HAPPAIR_DONOR"])
@@ -801,6 +805,7 @@ for rep in tqdm(range(1,multiple_imputation_replicates+1)):
 	# print (happair_selected)
 	# print (recip_alleles1)
 
+
 	# add allele columns
 	for i in range(1,loci_range_value):
 		loc = loci[i-1]
@@ -816,30 +821,6 @@ for rep in tqdm(range(1,multiple_imputation_replicates+1)):
 		happair_selected[recip_alleles2_column_name] = recip_allele2
 		happair_selected[donor_alleles1_column_name] = donor_allele1
 		happair_selected[donor_alleles2_column_name] = donor_allele2
-
-	# add AA position columns
-	# for i in range(1,5):
-	#	loc = loci[i-1]
-	# 	ard_start = ard_start_pos[loc]
-	# 	ard_end = ard_end_pos[loc]
-	# 	for pos in range(ard_start,ard_end):
-	# 		recip_aa1_column_name = "RECIP_" + loc + "_1_" + str(pos)
-	# 		recip_aa2_column_name = "RECIP_" + loc + "_2_" + str(pos)
-	# 		donor_aa1_column_name = "DONOR_" + loc + "_1_" + str(pos)
-	# 		donor_aa2_column_name = "DONOR_" + loc + "_2_" + str(pos)
-
-			# initialize new columns
-	# 		happair_selected[recip_aa1_column_name] = happair_selected[recip_alleles1_column_name]
-	# 		happair_selected[recip_aa2_column_name] = happair_selected[recip_alleles2_column_name]
-	# 		happair_selected[donor_aa1_column_name] = happair_selected[donor_alleles1_column_name]
-	# 		happair_selected[donor_aa2_column_name] = happair_selected[donor_alleles2_column_name]
-
-			# get AA position and count mismatches for each row
-	# 		for index,row in happair_selected.head().iterrows():
-	# 			happair_selected[index,recip_aa1_column_name] = getAAposition(HLA_seq,recip_allele1[index],pos)
-	# 			happair_selected[index,recip_aa2_column_name] = getAAposition(HLA_seq,recip_allele2[index],pos)
-	# 			happair_selected[index,donor_aa1_column_name] = getAAposition(HLA_seq,donor_allele1[index],pos)
-	# 			happair_selected[index,donor_aa2_column_name] = getAAposition(HLA_seq,donor_allele2[index],pos)
 
 	# add AA mismatch columns
 	for i in range(1,loci_range_value):
@@ -866,17 +847,9 @@ for rep in tqdm(range(1,multiple_imputation_replicates+1)):
 			mm_loc_sfvt_count = 0
 			for pos in range(full_start, full_end):
 				mm_aa_column_name = "MM_"+loc+"_"+str(pos)
-				#happair_selected[mm_aa_column_name] = ''
-				#print(donor_allele1[index],donor_allele2[index],recip_allele1[index],recip_allele2[index],pos)
-				#allele1 = donor_allele1[index]
-				#allele2 = donor_allele2[index]
-				#allele3 = recip_allele1[index]
-				#allele4 = recip_allele2[index]
-				#print(type(allele1))
-				#position = int(pos)
-				#print(allele1)
-				#print(type(position))
-				#print(position)
+
+				# initialize new columns
+				happair_selected[mm_aa_column_name] = happair_selected["HAPPAIR_DONOR"]
 
 				if (recip_allele1[index] == 'DRBX*NNNN' and recip_allele2[index] == 'DRBX*NNNN'):
 					mm_pos_count == 2
@@ -893,53 +866,49 @@ for rep in tqdm(range(1,multiple_imputation_replicates+1)):
 						recip_allele2[index]  = recip_allele1[index]
 					mm_pos_count = genie.countAAMismatchesAllele(donor_allele1[index],donor_allele2[index],recip_allele1[index],recip_allele2[index],pos)
 				mm_loc_count += mm_pos_count
+
+				# TODO - update to concatenate a whole row of data to improve performance
+				# https://stackoverflow.com/questions/68292862/performancewarning-dataframe-is-highly-fragmented-this-is-usually-the-result-o
 				happair_selected.at[index,mm_aa_column_name] = mm_pos_count
 				# happair_selected.at[index,mm_aa_column_name] = count_AA_Mismatches_Allele(HLA_seq,donor_allele1[index],donor_allele2[index],recip_allele1[index],recip_allele2[index],pos)
 
-				# add columns for per-locus count
+			# add columns for per-locus count
 			mm_loc_count_name = "MM_" + loc + "_COUNT"
 			happair_selected.at[index,mm_loc_count_name] = mm_loc_count
 		
-		'''
-		mm_loc_count = 0
-		mm_loc_sfvt_count = 0
-		for pos in range(ard_start,ard_end):
-			mm_aa_column_name = "MM_" + loc + "_" + str(pos)
 
-			# initialize new columns
-			happair_selected[mm_aa_column_name] = ''
-			#happair_selected[mm_aa_column_name] = happair_selected["HAPPAIR_DONOR"]
+			# add SFVT columns
+			# loop through all the SFVT_IDs
+			for id in range(1,1000):
+				seqf_name= "SFVT_" + loc + "_"  + str(id)
+				if (seqf_name not in SFVT_list):
+					continue
 
-			# get AA position and count mismatches for each row
-			for index,row in happair_selected.iterrows():
-				# if (loc=="DRB345"):
-				# 	mm_pos_count=1
-				# 	continue
-				mm_pos_count = aa_mm.count_AA_Mismatches_Allele(donor_allele1[index],donor_allele2[index],recip_allele1[index],recip_allele2[index],pos)
-				if loc == 'A':
-					print('Locus:{}\t\tPosition:{}\t\tmm_pos_count:{}'.format(loc, str(pos), str(mm_pos_count)))
+				# initialize new column for SFVT
+				happair_selected[seqf_name] = happair_selected["HAPPAIR_DONOR"]			
+				
+				position_list = SFVT_positions[seqf_name]
+				positions = [int(x) for x in position_list.split(",")]
+
+				
+				if (recip_allele1[index] == 'DRBX*NNNN' and recip_allele2[index] == 'DRBX*NNNN'):
+					mm_pos_count == 2 * positions
+				elif (donor_allele1[index] == 'DRBX*NNNN' and donor_allele2[index] == 'DRBX*NNNN' ):
+					mm_pos_count == 2 * positions
+				else:
+					if (donor_allele1[index]  == 'DRBX*NNNN'):
+						donor_allele1[index]  = donor_allele2[index] 
+					if (donor_allele2[index]  == 'DRBX*NNNN'):
+						donor_allele2[index]  = donor_allele1[index] 
+					if (recip_allele1[index] == 'DRBX*NNNN'):
+						recip_allele1[index] = recip_allele2[index] 
+					if (recip_allele2[index]  == 'DRBX*NNNN'):
+						recip_allele2[index]  = recip_allele1[index]
+
+					mm_pos_count = genie.countAAMismatchesAllele(donor_allele1[index],donor_allele2[index],recip_allele1[index],recip_allele2[index],pos)
+
 				mm_loc_count += mm_pos_count
-				happair_selected.at[index,mm_aa_column_name] = mm_pos_count
-				# happair_selected.at[index,mm_aa_column_name] = count_AA_Mismatches_Allele(HLA_seq,donor_allele1[index],donor_allele2[index],recip_allele1[index],recip_allele2[index],pos)
 
-		# add columns for per-locus count
-		mm_loc_count_name = "MM_" + loc + "_COUNT"
-		happair_selected.at[index,mm_loc_count_name] = mm_loc_count
-		'''
-
-		# add SFVT columns
-		# loop through all the SFVT_IDs
-		for id in range(1,1000):
-			seqf_name= "SFVT_" + loc + "_"  + str(id)
-			if (seqf_name not in SFVT_list):
-				continue
-			# initialize new column for SFVT
-			happair_selected[seqf_name] = happair_selected["HAPPAIR_DONOR"]			
-			
-			position_list = SFVT_positions[seqf_name]
-			positions = [int(x) for x in position_list.split(",")]
-
-			for index,row in happair_selected.iterrows():
 				mm_pos_count = genie.countAAMismatchesAllele(donor_allele1[index],donor_allele2[index],recip_allele1[index],recip_allele2[index],positions)
 				mm_loc_sfvt_count = mm_loc_count + mm_pos_count
 				happair_selected.at[index,seqf_name] = mm_pos_count
@@ -950,6 +919,7 @@ for rep in tqdm(range(1,multiple_imputation_replicates+1)):
 
 			# print ("Sequence Feature Name: " + seqf_name + " Positions: " + position_list + " MM Count: " + str(SFVT_MM_count))				
 
+			
 	# make sure data types are the same for merge
 	tx_ki['PX_ID'] = tx_ki['PX_ID'].astype('int64')
 	happair_selected['PX_ID'] = happair_selected['PX_ID'].astype('int64')
