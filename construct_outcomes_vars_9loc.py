@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import pandas as pd
 import numpy as np
+from dask import dataframe as dd
 from datetime import datetime
 import time
 
@@ -13,9 +14,33 @@ import time
 replicates = 10
 
 for i in range(1, replicates+1):
+	print ("Replicate: " + str(i))
+
 	# load in raw design matrix
-	srtr_AA_MM_filename = "SRTR_AA_MM_9loc_" + str(i) + ".txt"
-	design_matrix = pd.read_csv(srtr_AA_MM_filename, sep='\t', index_col=None, encoding='Latin-1', low_memory=False)
+	srtr_AA_MM_filename = "SRTR_AA_MM_9loc_matrix_" + str(i) + ".txt"
+	design_matrix = dd.read_csv(srtr_AA_MM_filename, sep='\t', encoding='Latin-1', low_memory=False,
+							 dtype={ 
+								 'ORG_TY': 'string',
+								 'REC_TX_ORG_TY': 'string',
+								 'REC_AGE_IN_MONTHS_AT_TX': 'float64',
+								 'REC_AGE_AT_TX': 'string',
+								 'DON_AGE': 'string',
+								 'CAN_DIAB': 'string',
+								 'CAN_DGN': 'string',
+								 'CAN_GENDER': 'string',
+								 'DON_TY': 'string',
+								 'REC_PREV_KI': 'int64',
+								 'REC_PREV_KP': 'int64',
+							 },
+							 parse_dates=['TFL_DEATH_DT','TFL_GRAFT_DT','PERS_RETX','TFL_ENDTXFU','REC_TX_DT']
+							 )
+
+	# print ("Matrix file loaded")
+	print ("Transplant Pairs with A, B, DRB1 typing for donor/recip: " + str(len(design_matrix)))
+
+	# pd.set_option("display.max_rows", None)  # Set to None to display all rows
+	# pd.set_option("display.max_columns", None)  # Set to None to display all columns
+	# print(design_matrix.dtypes)
 
 	# print (design_matrix)
 
@@ -26,9 +51,6 @@ for i in range(1, replicates+1):
 	#                 /*and don_ty eq 'C'*/ and don_age ge 9 /*and CAN_SSN_FLG = "V"*/; 
 	# let censor_dt = "01JUL2011"D;
 
-
-	design_matrix['TFL_DEATH_DT'] = pd.to_datetime(design_matrix['TFL_DEATH_DT'])
-
 	# set organ type to kidney only
 	design_matrix = design_matrix[design_matrix.ORG_TY == "KI: Kidney"]
 	design_matrix = design_matrix[design_matrix.REC_TX_ORG_TY == "KI: Kidney"]
@@ -37,46 +59,64 @@ for i in range(1, replicates+1):
 	# print(design_matrix['REC_AGE_AT_TX'].unique())
 	# ['35-49' '50-64' '18-34' '65+']
 	# recipient age over 18 - 216 months
+
 	design_matrix = design_matrix[design_matrix['REC_AGE_IN_MONTHS_AT_TX'].astype(float) >= 216.0]
 	print ("Recipient Age >=18: " + str(len(design_matrix)))
 
 	# restrict donor age to greater than 9
-	design_matrix = design_matrix[design_matrix.DON_AGE >= 9]
+	design_matrix = design_matrix[design_matrix['DON_AGE'].astype(float) >= 9.0]
 	print ("Donor Age >=9: " + str(len(design_matrix)))
 
 	# Get death date.  Per Ann and Shannon (May 16, 2006) use pers_all_death_dt for all these purposes;
 	# No longer have this, so use TFL_DEATH_DT;
 	# Using additional follow-up (ESRD and SSDMF), so do not include tfl_lafudate, tfl_lafudateki;
 
-	# print(design_matrix['TFL_DEATH_DT'].dtypes)
+	# print ("Death Date Data Type: ")
+	# print(design_matrix['TFL_DEATH_DT'].dtype)
 
-	design_matrix['TFL_DEATH_DT'] = pd.to_datetime(design_matrix['TFL_DEATH_DT'])
-	design_matrix['TFL_GRAFT_DT'] = pd.to_datetime(design_matrix['TFL_GRAFT_DT'])
-	design_matrix['PERS_RETX'] = pd.to_datetime(design_matrix['PERS_RETX'])
-	design_matrix['TFL_ENDTXFU'] = pd.to_datetime(design_matrix['TFL_ENDTXFU'])
-	design_matrix['REC_TX_DT'] = pd.to_datetime(design_matrix['REC_TX_DT'])
+	# TODO - Verify dates do not need conversion
+	# design_matrix['TFL_DEATH_DT'] = pd.to_datetime(design_matrix['TFL_DEATH_DT'])
+	# design_matrix['TFL_GRAFT_DT'] = pd.to_datetime(design_matrix['TFL_GRAFT_DT'])
+	# design_matrix['PERS_RETX'] = pd.to_datetime(design_matrix['PERS_RETX'])
+	# design_matrix['TFL_ENDTXFU'] = pd.to_datetime(design_matrix['TFL_ENDTXFU'])
+	# design_matrix['REC_TX_DT'] = pd.to_datetime(design_matrix['REC_TX_DT'])
 
-	# TODO - review censoring date - selected as end of year 2022 for pubsaf2306
+	# TODO - confirm censoring date - selected as end of year 2022 for pubsaf2306
 	censor_dt = datetime.strptime("2022-12-31",'%Y-%m-%d')
+	design_matrix['censor_dt'] = 0
 	design_matrix['censor_dt'] = censor_dt
+	design_matrix['died_dt'] = 0
 	design_matrix['died_dt'] = design_matrix['TFL_DEATH_DT']
-	design_matrix.loc[ design_matrix['died_dt'] <= design_matrix['REC_TX_DT'], 'died_dt'] = np.nan # Death before the tx date is wrong;
+	condition = design_matrix['died_dt'] <= design_matrix['REC_TX_DT']
+	design_matrix['died_dt'] = design_matrix['died_dt'].mask(condition, np.nan)
+	# design_matrix.mask[ design_matrix['died_dt'] <= design_matrix['REC_TX_DT'], 'died_dt'] = np.nan # Death before the tx date is wrong;
 
 	# if died_dt = < REC_TX_DT then died_dt = .; 
+	design_matrix['endpt'] = 0
 	design_matrix['endpt'] = design_matrix[['TFL_ENDTXFU','PERS_RETX','censor_dt','died_dt']].min(axis=1)
+	design_matrix['patyrs'] = 0
 	design_matrix['patyrs'] = (design_matrix['endpt'] - design_matrix['REC_TX_DT']) / np.timedelta64(1, 'Y')
 
 	# SAS code created died variable for recipient - yes or no variable
 	# died=(died_dt=endpt) ;
 
+	design_matrix['graftenddate'] = 0
 	design_matrix['graftenddate'] = design_matrix[['TFL_GRAFT_DT','died_dt','TFL_ENDTXFU','PERS_RETX','censor_dt']].min(axis=1)
+	design_matrix['graftyrs'] = 0
 	design_matrix['graftyrs'] = (design_matrix['graftenddate'] - design_matrix['REC_TX_DT']) / np.timedelta64(1, 'Y')
 
-	design_matrix['grf_fail'] = 0
+
 
 	# only measure graft failure in first year
 	# if (graftenddate=TFL_GRAFT_DT or graftenddate=died_dt or graftenddate=PERS_RETX) then grf_fail=1;  else grf_fail=0;
-	design_matrix.loc[((design_matrix['graftenddate'] == design_matrix['TFL_GRAFT_DT']) | (design_matrix['graftenddate'] == design_matrix['died_dt']) | (design_matrix['graftenddate'] == design_matrix['PERS_RETX']) | (design_matrix['graftyrs'] <= 1)), 'grf_fail'] = 1
+	design_matrix['grf_fail'] = 0
+	condition = (
+		(design_matrix['graftenddate'] == design_matrix['TFL_GRAFT_DT']) |
+		(design_matrix['graftenddate'] == design_matrix['died_dt']) |
+		(design_matrix['graftenddate'] == design_matrix['PERS_RETX']) |
+		(design_matrix['graftyrs'] <= 1)
+	)
+	design_matrix['grf_fail'] = design_matrix['grf_fail'].mask(condition, 1)
 
 
 	# restrict transplant date
@@ -85,8 +125,8 @@ for i in range(1, replicates+1):
 
 	# first transplants only
 	design_matrix = design_matrix[design_matrix['REC_PREV_KI'] == 0] 
-	print ("Transplant Date starting 2005: " + str(len(design_matrix)))
 	design_matrix = design_matrix[design_matrix['REC_PREV_KP'] == 0]   # no changes
+	print ("First Transplant Only: " + str(len(design_matrix)))
 
 	# construct donor variables
 
@@ -152,10 +192,10 @@ for i in range(1, replicates+1):
 	design_matrix = design_matrix.drop(['RECIP_DRB1_2'], axis=1)
 	design_matrix = design_matrix.drop(['DONOR_DRB1_1'], axis=1)
 	design_matrix = design_matrix.drop(['DONOR_DRB1_2'], axis=1)
-	design_matrix = design_matrix.drop(['RECIP_DRW1_1'], axis=1)
-	design_matrix = design_matrix.drop(['RECIP_DRW1_2'], axis=1)
-	design_matrix = design_matrix.drop(['DONOR_DRW1_1'], axis=1)
-	design_matrix = design_matrix.drop(['DONOR_DRW1_2'], axis=1)
+	design_matrix = design_matrix.drop(['RECIP_DRB345_1'], axis=1)
+	design_matrix = design_matrix.drop(['RECIP_DRB345_2'], axis=1)
+	design_matrix = design_matrix.drop(['DONOR_DRB345_1'], axis=1)
+	design_matrix = design_matrix.drop(['DONOR_DRB345_2'], axis=1)
 	design_matrix = design_matrix.drop(['RECIP_DQA1_1'], axis=1)
 	design_matrix = design_matrix.drop(['RECIP_DQA1_2'], axis=1)
 	design_matrix = design_matrix.drop(['DONOR_DQA1_1'], axis=1)
@@ -173,10 +213,15 @@ for i in range(1, replicates+1):
 	design_matrix = design_matrix.drop(['DONOR_DPB1_1'], axis=1)
 	design_matrix = design_matrix.drop(['DONOR_DPB1_2'], axis=1)
 
-	# write SRTR design matrix
-	design_matrix_filename = "SRTR_AA_MM_9loc_grffail_" + str(i) + ".txt"
-	design_matrix.to_csv(design_matrix_filename,index=False,sep="\t")
-	print("Logging info")
+	# drop extra age variable
+	design_matrix = design_matrix.drop(['REC_AGE_IN_MONTHS_AT_TX'], axis=1)
 	
-	#file.close()
+	# convert to Pandas DF for output
+	pandas_df = design_matrix.compute()
+
+	# write SRTR design matrix
+	print ("Printing grffail matrix to CSV: ")
+	design_matrix_filename = "./SRTR_AA_MM_9loc_grffail_" + str(i) + ".txt.gz"
+	pandas_df.to_csv(design_matrix_filename,index=False,sep="\t",compression='gzip')
+	
 	#exit() # TEMP - stop after one runmatch file

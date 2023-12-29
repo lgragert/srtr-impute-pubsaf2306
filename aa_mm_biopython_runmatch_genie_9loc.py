@@ -15,29 +15,34 @@ import glob
 from tqdm import tqdm
 import hlagenie
 import warnings
+import sys
 genie = hlagenie.init("3510", ungap = True)
 from aa_matching_msf_genie import *
 aa_mm = AAMatch(dbversion=3420)
-
 warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
 
+
+# flags for replicate and to create runMatchMC and matrix files and SFVT
+replicate = sys.argv[1]
+generateRunMatchMC = sys.argv[2]
+generateMatrix = sys.argv[3]
+generateSFVT = sys.argv[4]
+
+print ("Replicate: " + replicate + " RunMatchMC: " + generateRunMatchMC + " Matrix: " + generateMatrix + " SFVT " + generateSFVT)
+
+generateRunMatchMC = int(generateRunMatchMC)
+generateMatrix = int(generateMatrix)
+generateSFVT = int(generateSFVT)
+
+nloci = 9
 loci = ["A","C","B","DRB1","DRB345","DQA1","DQB1","DPA1","DPB1"]
-
-# loci = ["A","C","B","DRB1","DQA1","DQB1","DPA1","DPB1"]
-
 
 # set random seed
 random.seed("20180413") # had to change seed to avoid deleted C*13:01
 
-# flag to create runMatchMC files
-generateRunMatchMC = 0
-
-
-
-loci_value = 9
-loci_range_value = 10
-
 # SFVT file loading
+
+print ("Loading SFVT data")
 
 # load variant type information file
 SFVT_positions = {} # list of positions for each SFVT
@@ -263,168 +268,158 @@ SFVT_position_list= {} # positions where alleles diffe
 # TODO - from HLA transplant pair dataset, create array of mismatched allele pairs
 # TODO - SAP_position - list mismatched positions per pair 
 # TODO - SAP_directional - list actual AAs in donor and recip listing donor AA list A_A_
-# TODO - SAP pair - list actual AAS in donor and recip in sorted order
+# TODO - SAP_pair - list actual AAS in donor and recip in sorted order
+
+# testing HLAGenie functions
+def test_genie_functions():
+
+	allele1 = "A*02:01"
+	allele2 = "A*01:01"
 
 
+	print (allele1)
+	print(type(allele1))
+	print(type(44))
+	AA = genie.getAA(allele1,6)
+	print ("AA at Position 6: " + AA)
+
+	#AA_string = genie.seqs(allele1)
+	#print ("AAs for mature protein: " + str(AA_string))
+
+	AA_string_mature = {key: genie.seqs[key] for key in genie.seqs.keys()
+		& {"A*02:01"}}
+	print ("AAs for mature protein: " + str(AA_string_mature))
+
+	print("AAs for mature protein: ", len(AA_string_mature['A*02:01']))
+
+	AA_string_mature = {key: genie.seqs[key] for key in genie.seqs.keys()
+		& {"B*07:02"}}
+	print ("AAs for mature protein: " + str(AA_string_mature))
+	print("AAs for mature protein: ", len(AA_string_mature['B*07:02']))
+
+	AA_string_mature = {key: genie.seqs[key] for key in genie.seqs.keys()
+		& {"C*01:02"}}
+	print ("AAs for mature protein: " + str(AA_string_mature))
+	print("AAs for mature protein: ", len(AA_string_mature['C*01:02']))
+
+	AA_string_mature = {key: genie.seqs[key] for key in genie.seqs.keys()
+		& {"DRB1*01:01"}}
+	print ("AAs for mature protein: " + str(AA_string_mature))
+	print("AAs for mature protein: ", len(AA_string_mature['DRB1*01:01']))
+
+	AA_string_mature = {key: genie.seqs[key] for key in genie.seqs.keys()
+		& {"DRB3*01:01"}}
+	print ("AAs for mature protein: " + str(AA_string_mature))
+	print("AAs for mature protein: ", len(AA_string_mature['DRB3*01:01']))
+
+	AA_string_mature = {key: genie.seqs[key] for key in genie.seqs.keys()
+		& {"DRB4*01:01"}}
+	print ("AAs for mature protein: " + str(AA_string_mature))
+	print("AAs for mature protein: ", len(AA_string_mature['DRB4*01:01']))
+
+	AA_string_mature = {key: genie.seqs[key] for key in genie.seqs.keys()
+		& {"DRB5*01:01"}}
+	print ("AAs for mature protein: " + str(AA_string_mature))
+	print("AAs for mature protein: ", len(AA_string_mature['DRB5*01:01']))
+
+	AA_string_mature = {key: genie.seqs[key] for key in genie.seqs.keys()
+		& {"DQA1*01:01"}}
+	print ("AAs for mature protein: " + str(AA_string_mature))
+	print("AAs for mature protein: ", len(AA_string_mature['DQA1*01:01']))
+
+	AA_string_mature = {key: genie.seqs[key] for key in genie.seqs.keys()
+		& {"DQB1*05:01"}}
+	print ("AAs for mature protein: " + str(AA_string_mature))
+	print("AAs for mature protein: ", len(AA_string_mature['DQB1*05:01']))
+
+	AA_string_mature = {key: genie.seqs[key] for key in genie.seqs.keys()
+		& {"DPA1*01:03"}}
+	print ("AAs for mature protein: " + str(AA_string_mature))
+	print("AAs for mature protein: ", len(AA_string_mature['DPA1*01:03']))
+
+	AA_string_mature = {key: genie.seqs[key] for key in genie.seqs.keys()
+		& {"DPB1*01:01"}}
+	print ("AAs for mature protein: " + str(AA_string_mature))
+	print("AAs for mature protein: ", len(AA_string_mature['DPB1*01:01']))
+
+	AA_string_full = {key: genie.full_seqs[key] for key in genie.full_seqs.keys()
+		& {"A*02:01"}}
+	print ("AAs for full protein: " + str(AA_string_full))
+
+	#peptide_string = genie.getPeptide(allele1)
+	#print ("Peptide String: " + peptide_string)
 
 
-# testing the functions
+	ARD_string = genie.getARD(allele1)
+	print ("ARD: " + ARD_string)
 
-allele1 = "A*02:01"
-allele2 = "A*01:01"
+	epitope_string = genie.getEpitope(allele1,[1,3,5,8,10])
+	print ("Epitope for AA Position List [1,3,5,8,10]: " + epitope_string)
 
+	AA = genie.getAA(allele1,44)
+	print ("A*02:01 position 44: " + AA)
+	AA = genie.getAA(allele2,44)
+	print ("A*01:01 position 44: " + AA)
 
-print (allele1)
-print(type(allele1))
-print(type(44))
-AA = genie.getAA(allele1,6)
-print ("AA at Position 6: " + AA)
-
-#AA_string = genie.seqs(allele1)
-#print ("AAs for mature protein: " + str(AA_string))
-
-AA_string_mature = {key: genie.seqs[key] for key in genie.seqs.keys()
-       & {"A*02:01"}}
-print ("AAs for mature protein: " + str(AA_string_mature))
-
-print("AAs for mature protein: ", len(AA_string_mature['A*02:01']))
-
-AA_string_mature = {key: genie.seqs[key] for key in genie.seqs.keys()
-       & {"B*07:02"}}
-print ("AAs for mature protein: " + str(AA_string_mature))
-print("AAs for mature protein: ", len(AA_string_mature['B*07:02']))
-
-AA_string_mature = {key: genie.seqs[key] for key in genie.seqs.keys()
-       & {"C*01:02"}}
-print ("AAs for mature protein: " + str(AA_string_mature))
-print("AAs for mature protein: ", len(AA_string_mature['C*01:02']))
-
-AA_string_mature = {key: genie.seqs[key] for key in genie.seqs.keys()
-       & {"DRB1*01:01"}}
-print ("AAs for mature protein: " + str(AA_string_mature))
-print("AAs for mature protein: ", len(AA_string_mature['DRB1*01:01']))
-
-AA_string_mature = {key: genie.seqs[key] for key in genie.seqs.keys()
-       & {"DRB3*01:01"}}
-print ("AAs for mature protein: " + str(AA_string_mature))
-print("AAs for mature protein: ", len(AA_string_mature['DRB3*01:01']))
-
-AA_string_mature = {key: genie.seqs[key] for key in genie.seqs.keys()
-       & {"DRB4*01:01"}}
-print ("AAs for mature protein: " + str(AA_string_mature))
-print("AAs for mature protein: ", len(AA_string_mature['DRB4*01:01']))
-
-AA_string_mature = {key: genie.seqs[key] for key in genie.seqs.keys()
-       & {"DRB5*01:01"}}
-print ("AAs for mature protein: " + str(AA_string_mature))
-print("AAs for mature protein: ", len(AA_string_mature['DRB5*01:01']))
-
-AA_string_mature = {key: genie.seqs[key] for key in genie.seqs.keys()
-       & {"DQA1*01:01"}}
-print ("AAs for mature protein: " + str(AA_string_mature))
-print("AAs for mature protein: ", len(AA_string_mature['DQA1*01:01']))
-
-AA_string_mature = {key: genie.seqs[key] for key in genie.seqs.keys()
-       & {"DQB1*05:01"}}
-print ("AAs for mature protein: " + str(AA_string_mature))
-print("AAs for mature protein: ", len(AA_string_mature['DQB1*05:01']))
-
-AA_string_mature = {key: genie.seqs[key] for key in genie.seqs.keys()
-       & {"DPA1*01:03"}}
-print ("AAs for mature protein: " + str(AA_string_mature))
-print("AAs for mature protein: ", len(AA_string_mature['DPA1*01:03']))
-
-AA_string_mature = {key: genie.seqs[key] for key in genie.seqs.keys()
-       & {"DPB1*01:01"}}
-print ("AAs for mature protein: " + str(AA_string_mature))
-print("AAs for mature protein: ", len(AA_string_mature['DPB1*01:01']))
-
-AA_string_full = {key: genie.full_seqs[key] for key in genie.full_seqs.keys()
-       & {"A*02:01"}}
-print ("AAs for full protein: " + str(AA_string_full))
-
-#peptide_string = genie.getPeptide(allele1)
-#print ("Peptide String: " + peptide_string)
+	mismatched = genie.isPositionMismatched(allele1,allele2,44)
+	print ("Are A*02:01 and A*01:01 mismatched at position 44?: " + str(mismatched))
 
 
-ARD_string = genie.getARD(allele1)
-print ("ARD: " + ARD_string)
+	AA = genie.getAA(allele1,45)
+	print ("A*02:01 position 45: " + AA)
+	AA = genie.getAA(allele2,45)
+	print ("A*01:01 position 45: " + AA)
 
-epitope_string = genie.getEpitope(allele1,[1,3,5,8,10])
-print ("Epitope for AA Position List [1,3,5,8,10]: " + epitope_string)
+	mismatched = genie.isPositionMismatched(allele1,allele2,45)
+	print ("Are A*02:01 and A*01:01 mismatched at position 45?: " + str(mismatched))
 
-AA = genie.getAA(allele1,44)
-print ("A*02:01 position 44: " + AA)
-AA = genie.getAA(allele2,44)
-print ("A*01:01 position 44: " + AA)
+	mm_count = genie.countAAMismatchesAllele(allele1,allele1,allele2,allele2,44)
+	print ("# of Mismatches between A*02:01 homozygous donor and A*01:01 homozygous recip at position 44: " + str(mm_count))
 
-mismatched = genie.isPositionMismatched(allele1,allele2,44)
-print ("Are A*02:01 and A*01:01 mismatched at position 44?: " + str(mismatched))
+	AA1_donor = "Y"
+	AA2_donor = "Y"
+	AA1_recip = "D"
+	AA2_recip = "D"
+	#mm_count = genie.countAAMismatchesAllele(AA1_donor,AA2_donor,AA1_recip,AA2_recip)
+	#print ("# of Mismatches between YY AAs in donor and DD in recip: " + str(mm_count))
+	#AA1_recip = "Y"
+	#mm_count = genie.countAAMismatchesAllele(AA1_donor,AA2_donor,AA1_recip,AA2_recip)
+	#print ("# of Mismatches between YY AAs in donor and YD in recip: " + str(mm_count))
 
+	allele1_donor = "A*02:01"
+	allele2_donor = "A*01:01"
+	allele1_recip = "A*03:01"
+	allele2_recip = "A*66:01"
 
-AA = genie.getAA(allele1,45)
-print ("A*02:01 position 45: " + AA)
-AA = genie.getAA(allele2,45)
-print ("A*01:01 position 45: " + AA)
+	# loop through all the SFVT_IDs
+	for id in range(1,1000):
+		locus = "A"
+		seqf_name= "SFVT_" + locus + "_"  + str(id)
+		if (seqf_name not in SFVT_list):
+			continue	
+		
+		position_list = SFVT_positions[seqf_name]
+		positions = [int(x) for x in position_list.split(",")]
 
-mismatched = genie.isPositionMismatched(allele1,allele2,45)
-print ("Are A*02:01 and A*01:01 mismatched at position 45?: " + str(mismatched))
+		SFVT_MM_count = aa_mm.count_AA_Mismatches_SFVT(allele1_donor,allele2_donor,allele1_recip,allele2_recip,positions)
 
-mm_count = genie.countAAMismatchesAllele(allele1,allele1,allele2,allele2,44)
-print ("# of Mismatches between A*02:01 homozygous donor and A*01:01 homozygous recip at position 44: " + str(mm_count))
+		# print ("Sequence Feature Name: " + seqf_name + " Positions: " + position_list + " MM Count: " + str(SFVT_MM_count))
 
-AA1_donor = "Y"
-AA2_donor = "Y"
-AA1_recip = "D"
-AA2_recip = "D"
-#mm_count = genie.countAAMismatchesAllele(AA1_donor,AA2_donor,AA1_recip,AA2_recip)
-#print ("# of Mismatches between YY AAs in donor and DD in recip: " + str(mm_count))
-#AA1_recip = "Y"
-#mm_count = genie.countAAMismatchesAllele(AA1_donor,AA2_donor,AA1_recip,AA2_recip)
-#print ("# of Mismatches between YY AAs in donor and YD in recip: " + str(mm_count))
+	return (1)
 
-allele1_donor = "A*02:01"
-allele2_donor = "A*01:01"
-allele1_recip = "A*03:01"
-allele2_recip = "A*66:01"
-
-# loop through all the SFVT_IDs
-for id in range(1,1000):
-	locus = "A"
-	seqf_name= "SFVT_" + locus + "_"  + str(id)
-	if (seqf_name not in SFVT_list):
-		continue	
-	
-	position_list = SFVT_positions[seqf_name]
-	positions = [int(x) for x in position_list.split(",")]
-
-	SFVT_MM_count = aa_mm.count_AA_Mismatches_SFVT(allele1_donor,allele2_donor,allele1_recip,allele2_recip,positions)
-
-	# print ("Sequence Feature Name: " + seqf_name + " Positions: " + position_list + " MM Count: " + str(SFVT_MM_count))
+# success = test_genie_functions()
 
 # load SRTR HapLogic imputation output file and load probabilities for all subjects
-#all of these are 5 loci#
-#impute_outfilename = pathloc + "/srtr_impute_10000.stage"
-#impute_outfile = open(impute_outfilename, "rt")
-#impute_outfilename = pathloc + "/srtr_impute.stage.gz"
-#impute_outfile = gzip.open(impute_outfilename, "rt")
+pops = ['AFA','ASN','CAU','HIS','NAM','MLT']
 
-#join all ethnic data into one table
-#haplo = os.path.join("./kamoun_impute/", "impute_srtr.*.csv")
-#haplo = glob.glob(haplo)
-#haplo = pd.concat(map(pd.read_csv, haplo), ignore_index=FALSE)
-#haplo_matrix_filename = pathloc + "/impute_all_ethnicitys.csv"
-#haplo.to_csv(haplo_matrix_filename, index= FALSE)
+print ("Loading SRTR impute output files")
 
+# load SRTR HapLogic imputation output file and load probabilities for all subjects
 
 # compute cumulative genotype frequency totals per subject
 happair_id_total = {} # cumulative genotype frequency total
 happair_probs = {} # HLA probability distribution
 happair_hla = {} # HLA haplotype pair distribution
-
-# load SRTR HapLogic imputation output file and load probabilities for all subjects
-pops = ['AFA','ASN','CAU','HIS','NAM','MLT']
-
 for pop in pops:
 	srtr_impute_filename = "impute.srtr." + pop + ".csv.gz"
 	with gzip.open(srtr_impute_filename, 'rt') as impute_outfile:
@@ -444,7 +439,7 @@ for pop in pops:
 	impute_outfile.close()
 
 
-# Single genotype frequnecy already calculated for haplo pairs in 9loc impute data 
+# Renormalize distributions and load probabilities and happair lists
 for pop in pops:
 	srtr_impute_filename = "impute.srtr." + pop + ".csv.gz"
 	with gzip.open(srtr_impute_filename, 'rt') as impute_outfile:
@@ -470,13 +465,482 @@ for pop in pops:
 	impute_outfile.close()
 
 
+
+# load SRTR transplant pairs with both subject IDs
+
+# List missing IDs
+impute_err_filename = "impute_failed_ids.csv"
+impute_err_file = open(impute_err_filename, "w")
+impute_err_file.write("Type,ID\n")
+
+#  loop through 10 replicate random realizations for multiple imputation
+# for rep in tqdm(range(1,multiple_imputation_replicates+1)):
+print("Replicate: " + str(replicate))
+
+if (generateRunMatchMC == 1):
+	print ("Generating RunMatchMC")
+
+# tx_ki_hla.csv
+# ORG_TY,PERS_ID,PX_ID,REC_TX_DT,REC_HISTO_TX_ID,DON_TY,DON_RACE,DON_RACE_SRTR,DON_ETHNICITY_SRTR,DON_A1,DON_A2,DON_B1,DON_B2,DON_DR1,DON_DR2,REC_AGE_IN_MONTHS_AT_TX,CAN_RACE,CAN_RACE_SRTR,CAN_ETHNICITY_SRTR,REC_TX_TY,REC_A1,REC_A2,REC_B1,REC_B2,REC_DR1,REC_DR2,DONOR_ID,DON_C1,DON_C2,DON_DQ1,DON_DQ2,DON_DP1,DON_DP2,DON_DR51,DON_DR52,DON_DR53,REC_CW1,REC_CW2,REC_DPW1,REC_DPW2,REC_DQW1,REC_DQW2,REC_DRW51,REC_DRW52,REC_DRW53
+tx_hla_filename = "tx_ki_hla_9loc.csv"
+tx_hla_file = open(tx_hla_filename, "r")
+if (generateRunMatchMC == 1):
+	runmatch_filename = "out.runmatchMC." + str(replicate) + ".txt.gz"
+	runmatch_file = gzip.open(runmatch_filename, "wt")
+
+#happair_hla_filename = pathloc + "/happair_hla.csv"
+#happair_hla_file = open(happair_hla_filename, "r")
+#print(happair_hla)
+
+happair_selected_donor = {} # haplotype pair selected by weighted choice
+happair_selected_recip = {} # haplotype pair selected by weighted choice
+loci_pos = []
+for line in tx_hla_file:
+	(ORG_TY,PERS_ID,PX_ID,REC_TX_DT,REC_HISTO_TX_ID,DON_TY,DON_RACE,DON_RACE_SRTR,DON_ETHNICITY_SRTR,\
+		DON_A1,DON_A2,DON_B1,DON_B2,DON_DR1,DON_DR2,\
+		REC_AGE_IN_MONTHS_AT_TX,CAN_RACE,CAN_RACE_SRTR,CAN_ETHNICITY_SRTR,REC_TX_TY,\
+		REC_A1,REC_A2,REC_B1,REC_B2,REC_DR1,REC_DR2,\
+		DONOR_ID,DON_C1,DON_C2,DON_DQ1,DON_DQ2,DON_DP1,DON_DP2,\
+		DON_DR51,DON_DR52,DON_DR53,\
+		REC_CW1,REC_CW2,REC_DPW1,REC_DPW2,REC_DQW1,REC_DQW2,REC_DRW51,REC_DRW52,REC_DRW53,\
+		DON_DRB3_1,DON_DRB3_2,DON_DRB4_1,DON_DRB4_2,DON_DRB5_1,DON_DRB5_2,DON_DQA1,DON_DQA2,DON_DPA1,DON_DPA2,\
+		REC_DRB3_1,REC_DRB3_2,REC_DRB4_1,REC_DRB4_2,REC_DRB5_1,REC_DRB5_2,REC_DQA1,REC_DQA2,REC_DPA1,REC_DPA2) = line.split(',')
+	if (ORG_TY == "ORG_TY"):
+		continue
+
+	# DONOR - DONOR_ID
+	# RECIP - PERS_ID
+	# TRANSPLANT PAIR - PX_ID
+
+	SUBJECT_ID_RECIP = "R" + PX_ID
+	#print(SUBJECT_ID_RECIP)
+	SUBJECT_ID_DONOR = "D" + PX_ID
+
+	# check for missing imputation output
+	if (SUBJECT_ID_RECIP not in happair_hla):
+		# print ("Missing Recip ID: " + PERS_ID)
+		if (replicate == 1):
+			impute_err_file.write(SUBJECT_ID_RECIP + "\n")
+		continue
+
+	if (SUBJECT_ID_DONOR not in happair_hla):
+		# print ("Missing Donor ID: " + DONOR_ID)
+		if (replicate == 1):
+			impute_err_file.write(SUBJECT_ID_DONOR + "\n")
+		continue
+	
+	# select haplotype pair based on probability distribution
+	haplistR = happair_hla[SUBJECT_ID_RECIP]
+	problistR = happair_probs[SUBJECT_ID_RECIP]
+
+	happair_recip = aa_mm.weighted_choice(haplistR,problistR)
+	#print ("Random Recip HapPair: " + PERS_ID + " " + happair_recip)
+
+	haplistD = happair_hla[SUBJECT_ID_DONOR]
+	problistD = happair_probs[SUBJECT_ID_DONOR]
+
+	happair_donor = aa_mm.weighted_choice(haplistD,problistD)
+	#print ("Random Donor HapPair: " + DONOR_ID + " " + happair_donor)
+	(hap1_donor,hap2_donor) = happair_donor.split('+')
+	(a1_donor,c1_donor,b1_donor,drb345_1_donor,drb1_1_donor,dqa1_1_donor,dqb1_1_donor,dpa1_1_donor,dpb1_1_donor) = hap1_donor.split('~')
+	(a2_donor,c2_donor,b2_donor,drb345_2_donor,drb1_2_donor,dqa1_2_donor,dqb1_2_donor,dpa1_2_donor,dpb1_2_donor) = hap2_donor.split('~')
+
+	(hap1_recip,hap2_recip) = happair_recip.split('+')
+	(a1_recip,c1_recip,b1_recip,drb345_1_recip,drb1_1_recip,dqa1_1_recip,dqb1_1_recip,dpa1_1_recip,dpb1_1_recip) = hap1_recip.split('~')
+	(a2_recip,c2_recip,b2_recip,drb345_2_recip,drb1_2_recip,dqa1_2_recip,dqb1_2_recip,dpa1_2_recip,dpb1_2_recip) = hap2_recip.split('~')
+
+	# handle deleted / renamed alleles between IMGT/HLA 3.4 and 3.43
+
+	if (a1_donor == "A*23:19Q"):
+		a1_donor = "A*23:19N"
+	if (a2_donor == "A*23:19Q"):
+		a2_donor = "A*23:19N"
+	if (a1_recip == "A*23:19Q"):
+		a1_recip = "A*23:19N"
+	if (a2_recip == "A*23:19Q"):
+		a2_recip = "A*23:19N"
+
+	if (b1_donor == "B*15:22"):
+		b1_donor = "B*35:43"
+	if (b2_donor == "B*15:22"):
+		b2_donor = "B*35:43"
+	if (b1_recip == "B*15:22"):
+		b1_recip = "B*35:43"
+	if (b2_recip == "B*15:22"):
+		b2_recip = "B*35:43"
+
+	if (c1_donor == "C*15:20"):
+		c1_donor = "C*15:27"
+	if (c2_donor == "C*15:20"):
+		c2_donor = "C*15:27"
+	if (c1_recip == "C*15:20"):
+		c1_recip = "C*15:27"
+	if (c2_recip == "C*15:20"):
+		c2_recip = "C*15:27"
+
+	if (c1_donor == "C*05:02"):
+		c1_donor = "C*05:09"
+	if (c2_donor == "C*05:02"):
+		c2_donor = "C*05:09"
+	if (c1_recip == "C*05:02"):
+		c1_recip = "C*05:09"
+	if (c2_recip == "C*05:02"):
+		c2_recip = "C*05:09"
+
+	if (c1_donor == "C*03:12"):
+		c1_donor = "C*03:19"
+	if (c2_donor == "C*03:12"):
+		c2_donor = "C*03:19"
+	if (c1_recip == "C*03:12"):
+		c1_recip = "C*03:19"
+	if (c2_recip == "C*03:12"):
+		c2_recip = "C*03:19"
+
+	if (c1_donor == "C*03:23"):
+		c1_donor = "C*03:23N"
+	if (c2_donor == "C*03:23"):
+		c2_donor = "C*03:23N"
+	if (c1_recip == "C*03:23"):
+		c1_recip = "C*03:23N"
+	if (c2_recip == "C*03:23"):
+		c2_recip = "C*03:23N"
+
+	if (drb1_1_donor == "DRB1*07:02"):
+		drb1_1_donor = "DRB1*07:01"
+	if (drb1_2_donor == "DRB1*07:02"):
+		drb1_2_donor = "DRB1*07:01"
+	if (drb1_1_recip == "DRB1*07:02"):
+		drb1_1_recip = "DRB1*07:01"
+	if (drb1_2_recip == "DRB1*07:02"):
+		drb1_2_recip = "DRB1*07:01"
+
+	# C*13:01 was deleted long ago - not sure changing to 12:02 is the right move - imputation algorithm issue
+	if (c1_donor == "C*13:01"):
+		c1_donor = "C*12:02"
+	if (c2_donor == "C*13:01"):
+		c2_donor = "C*12:02"
+	if (c1_recip == "C*13:01"):
+		c1_recip = "C*12:02"
+	if (c2_recip == "C*13:01"):
+		c2_recip = "C*12:02"
+
+
+	if (dqa1_1_donor == "DQA1*01:07"):
+		dqa1_1_donor = "DQA1*01:07Q"
+	if (dqa1_2_donor == "DQA1*01:07"):
+		dqa1_2_donor = "DQA1*01:07Q"
+	if (dqa1_1_recip == "DQA1*01:07"):
+		dqa1_1_recip = "DQA1*01:07Q"
+	if (dqa1_2_recip == "DQA1*01:07"):
+		dqa1_2_recip = "DQA1*01:07Q"
+
+
+	# store chosen haplos based on PX_ID to merge into TX_KI later
+	hap1_donor_alleles = [a1_donor,c1_donor,b1_donor,drb345_1_donor,drb1_1_donor,dqa1_1_donor,dqb1_1_donor,dpa1_1_donor,dpb1_1_donor]
+	hap1_donor = '~'.join(hap1_donor_alleles)
+	hap2_donor_alleles = [a2_donor,c2_donor,b2_donor,drb345_2_donor,drb1_2_donor,dqa1_2_donor,dqb1_2_donor,dpa1_2_donor,dpb1_2_donor]
+	hap2_donor = '~'.join(hap2_donor_alleles)
+	happair_donor = hap1_donor + "+" + hap2_donor
+	hap1_recip_alleles = [a1_recip,c1_recip,b1_recip,drb345_1_recip,drb1_1_recip,dqa1_1_recip,dqb1_1_recip,dpa1_1_recip,dpb1_1_recip]
+	hap1_recip = '~'.join(hap1_recip_alleles)
+	hap2_recip_alleles = [a2_recip,c2_recip,b2_recip,drb345_2_recip,drb1_2_recip,dqa1_2_recip,dqb1_2_recip,dpa1_2_recip,dpb1_2_recip]
+	hap2_recip = '~'.join(hap2_recip_alleles)
+	happair_recip = hap1_recip + "+" + hap2_recip
+	#print(happair_recip)
+
+	happair_selected_recip[PX_ID] = happair_recip
+	happair_selected_donor[PX_ID] = happair_donor
+	# happair_selected_recip_df.append([PX_ID,happair_recip])
+	# happair_selected_donor_df.append([PX_ID,happair_donor])
+
+	# stop here if not writing runmatch files
+	if (generateRunMatchMC == 0):
+		continue
+
+
+	#print ("Multiple imputation replicate: " + runmatch_filename)
+
+	for loc in loci:
+		#print(loc)
+
+		if (loc == "A"):
+			allele1_donor = a1_donor
+			allele2_donor = a2_donor
+			allele1_recip = a1_recip
+			allele2_recip = a2_recip
+		if (loc == "C"):
+			allele1_donor = c1_donor
+			allele2_donor = c2_donor
+			allele1_recip = c1_recip
+			allele2_recip = c2_recip
+		if (loc == "B"):
+			allele1_donor = b1_donor
+			allele2_donor = b2_donor
+			allele1_recip = b1_recip
+			allele2_recip = b2_recip
+		if (loc == "DRB345"):
+			allele1_donor = drb345_1_donor
+			allele2_donor = drb345_2_donor
+			allele1_recip = drb345_1_recip
+			allele2_recip = drb345_2_recip
+		if (loc == "DRB1"):
+			allele1_donor = drb1_1_donor
+			allele2_donor = drb1_2_donor
+			allele1_recip = drb1_1_recip
+			allele2_recip = drb1_2_recip
+		if (loc == "DQA1"):
+			allele1_donor = dqa1_1_donor
+			allele2_donor = dqa1_2_donor
+			allele1_recip = dqa1_1_recip
+			allele2_recip = dqa1_2_recip
+		if (loc == "DQB1"):
+			allele1_donor = dqb1_1_donor
+			allele2_donor = dqb1_2_donor
+			allele1_recip = dqb1_1_recip
+			allele2_recip = dqb1_2_recip
+		if (loc == "DPA1"):
+			allele1_donor = dpa1_1_donor
+			allele2_donor = dpa1_2_donor
+			allele1_recip = dpa1_1_recip
+			allele2_recip = dpa1_2_recip
+		if (loc == "DPB1"):
+			allele1_donor = dpb1_1_donor
+			allele2_donor = dpb1_2_donor
+			allele1_recip = dpb1_1_recip
+			allele2_recip = dpb1_2_recip
+
+		full_start = aa_mm.full_start_pos[loc]
+		full_end = aa_mm.full_end_pos[loc]
+
+		# count mismatches for positions where there will be complete sequences
+		for pos in range(full_start,full_end):
+			# AA = getAAposition(HLA_seq,allele1_donor,pos)
+			# print (allele1_donor + " - " + str(pos) + AA)
+			mm_count = 0
+			if (allele1_recip == 'DRBX*NNNN' and allele2_recip == 'DRBX*NNNN'):
+				mm_count == 2
+			elif (allele1_donor == 'DRBX*NNNN' and allele2_donor == 'DRBX*NNNN' ):
+				mm_count == 2
+			else:
+				if (allele1_donor == 'DRBX*NNNN'):
+					allele1_donor = allele2_donor
+				if (allele2_donor == 'DRBX*NNNN'):
+					allele2_donor = allele1_donor
+				if (allele1_recip == 'DRBX*NNNN'):
+					allele1_recip = allele2_recip
+				if (allele2_recip == 'DRBX*NNNN'):
+					allele2_recip = allele1_recip
+				mm_count = genie.countAAMismatchesAllele(allele1_donor,allele2_donor,allele1_recip,allele2_recip,pos)
+			#print ("MM_count at position " + str(pos) + ": " + str(mm_count) + " - HLA - " + allele1_donor + " " + allele2_donor + " " + allele1_recip + " " + allele2_recip)
+
+			mm_count_0 = 0
+			mm_count_1 = 0
+			mm_count_2 = 0
+			if (mm_count == 0):
+				mm_count_0 = 1
+			if (mm_count == 1):
+				mm_count_1 = 1
+			if (mm_count == 2):
+				mm_count_2 = 1
+
+			#print (PX_ID + "|" + loc + "|" + str(pos) + "|" + str(mm_count_0) + "|" + str(mm_count_1) + "|" + str(mm_count_2))
+
+			# create 5-locus out.runmatchMC files on the fly
+			runmatch_file.write(PX_ID + "|" + loc + "|" + str(pos) + "|" + str(mm_count_0) + "|" + str(mm_count_1) + "|" + str(mm_count_2) + "\n")
+tx_hla_file.close()
+
+# DATA MATRIX FILE OUTPUT
+
+# stop here if not writing Matrix files
+if (generateMatrix == 0):
+	exit()
+
+
+
+print ("Data Matrix Output")
+
+# create dataframes from happair dictionaries
+happair_selected_recip_df = pd.DataFrame(list(happair_selected_recip.items()),columns=["PX_ID","HAPPAIR_RECIP"])
+happair_selected_donor_df = pd.DataFrame(list(happair_selected_donor.items()),columns=["PX_ID","HAPPAIR_DONOR"])
+
+happair_selected = happair_selected_recip_df.merge(happair_selected_donor_df,left_on="PX_ID",right_on="PX_ID")
+# happair_selected = pd.concat(happair_selected_donor_df,happair_selected_recip_df,axis=1)
+'''
+with pd.option_context("display.max_rows",None,"display.max_columns",None):
+	print (happair_selected)
+'''
+
+# create dataframes with additional HLA columns
+#print ("selected:", happair_selected_recip_df["HAPPAIR_RECIP"])
+
+# new data frame with split value columns for loci
+recip_haplos = happair_selected["HAPPAIR_RECIP"].str.split("+", n = 1, expand = True)
+donor_haplos = happair_selected["HAPPAIR_DONOR"].str.split("+", n = 1, expand = True)
+happair_selected["RECIP_HAP1"] = recip_haplos[0]
+happair_selected["RECIP_HAP2"] = recip_haplos[1]
+happair_selected["DONOR_HAP1"] = donor_haplos[0]
+happair_selected["DONOR_HAP2"] = donor_haplos[1]
+recip_alleles1 = happair_selected["RECIP_HAP1"].str.split("~", n = nloci, expand = True)
+recip_alleles2 = happair_selected["RECIP_HAP2"].str.split("~", n = nloci, expand = True)
+donor_alleles1 = happair_selected["DONOR_HAP1"].str.split("~", n = nloci, expand = True)
+donor_alleles2 = happair_selected["DONOR_HAP2"].str.split("~", n = nloci, expand = True)
+# happair_selected["RECIP_A1"] = recip_alleles1[0]
+# print (happair_selected)
+# print (recip_alleles1)
+
+print ("Creating Rows for AAMM")
+
+# create allele and initialize single AAMM and SFVT AAMM columns
+for i in range(1,nloci+1):
+	loc = loci[i-1]
+	print (loc)
+	recip_alleles1_column_name = "RECIP_" + loc + "_1"
+	recip_alleles2_column_name = "RECIP_" + loc + "_2"
+	donor_alleles1_column_name = "DONOR_" + loc + "_1"
+	donor_alleles2_column_name = "DONOR_" + loc + "_2"
+	recip_allele1 = recip_alleles1[i-1]
+	recip_allele2 = recip_alleles2[i-1]
+	donor_allele1 = donor_alleles1[i-1]
+	donor_allele2 = donor_alleles2[i-1]		
+	happair_selected[recip_alleles1_column_name] = recip_allele1
+	happair_selected[recip_alleles2_column_name] = recip_allele2
+	happair_selected[donor_alleles1_column_name] = donor_allele1
+	happair_selected[donor_alleles2_column_name] = donor_allele2
+
+	for i in range(1,nloci+1):
+		recip_allele1 = recip_alleles1[i-1]
+		loc = recip_allele1[0].split('*')[0]
+		if loc in ['DRB3', 'DRB4', 'DRB5', 'DRBX']:
+			loc = 'DRB345'
+			full_start = aa_mm.full_start_pos['DRB3']
+			full_end = aa_mm.full_end_pos['DRB3']
+		else:
+			full_start = aa_mm.full_start_pos[loc]
+			full_end = aa_mm.full_end_pos[loc]
+		for pos in range(full_start, full_end):
+			# initialize new columns with PX_ID data
+			mm_aa_column_name = "MM_"+loc+"_"+str(pos)
+			happair_selected[mm_aa_column_name] = happair_selected["PX_ID"]
+		if (generateSFVT == 0):
+			continue
+		for id in range(1,1000):
+			seqf_name= "SFVT_" + loc + "_"  + str(id)
+			if (seqf_name not in SFVT_list):
+				continue
+
+			# initialize new column for SFVT
+			happair_selected[seqf_name] = happair_selected["PX_ID"]
+
+print ("AAMM columns initialized")
+
+# compute AA mismatch columns and fill in data frame
+for i in range(1,nloci+1):
+	# df = df.apply(calculate_mm, axis=1)
+	recip_allele1 = recip_alleles1[i-1]
+	loc = recip_allele1[0].split('*')[0]
+	print(loc)
+	if loc in ['DRB3', 'DRB4', 'DRB5', 'DRBX']:
+		loc = 'DRB345'
+		full_start = aa_mm.full_start_pos['DRB3']
+		full_end = aa_mm.full_end_pos['DRB3']
+	else:
+		full_start = aa_mm.full_start_pos[loc]
+		full_end = aa_mm.full_end_pos[loc]		
+	#print("recip_alleles1: "+str(recip_alleles1)+"\n")
+	#print("recip_alleles2: "+str(recip_alleles2)+"\n")
+	#print("donor_alleles1: "+str(donor_alleles1)+"\n")
+	#print("donor_alleles2: "+str(donor_alleles2)+"\n")
+	recip_allele2 = recip_alleles2[i-1]
+	donor_allele1 = donor_alleles1[i-1]
+	donor_allele2 = donor_alleles2[i-1]
+
+	ctr = 0
+	for index,row in happair_selected.iterrows():
+
+		ctr = ctr + 1
+		# row status
+		if ((ctr % 10000) == 0):
+			print ("Row: " + str(ctr))
+
+		mm_loc_count = 0
+		mm_loc_sfvt_count = 0
+		for pos in range(full_start, full_end):
+			mm_aa_column_name = "MM_"+ loc+ "_" + str(pos)
+
+			if (recip_allele1[index] == 'DRBX*NNNN' and recip_allele2[index] == 'DRBX*NNNN'):
+				mm_pos_count == 2
+			elif (donor_allele1[index] == 'DRBX*NNNN' and donor_allele2[index] == 'DRBX*NNNN' ):
+				mm_pos_count == 2
+			else:
+				if (donor_allele1[index]  == 'DRBX*NNNN'):
+					donor_allele1[index]  = donor_allele2[index] 
+				if (donor_allele2[index]  == 'DRBX*NNNN'):
+					donor_allele2[index]  = donor_allele1[index] 
+				if (recip_allele1[index] == 'DRBX*NNNN'):
+					recip_allele1[index] = recip_allele2[index] 
+				if (recip_allele2[index]  == 'DRBX*NNNN'):
+					recip_allele2[index]  = recip_allele1[index]
+				mm_pos_count = genie.countAAMismatchesAllele(donor_allele1[index],donor_allele2[index],recip_allele1[index],recip_allele2[index],pos)
+			mm_loc_count += mm_pos_count
+
+			# TODO - update to concatenate a whole row of data to improve performance
+			# https://stackoverflow.com/questions/68292862/performancewarning-dataframe-is-highly-fragmented-this-is-usually-the-result-o
+			happair_selected.at[index,mm_aa_column_name] = mm_pos_count
+			# happair_selected.at[index,mm_aa_column_name] = count_AA_Mismatches_Allele(HLA_seq,donor_allele1[index],donor_allele2[index],recip_allele1[index],recip_allele2[index],pos)
+
+		# add columns for per-locus count
+		mm_loc_count_name = "MM_" + loc + "_COUNT"
+		happair_selected.at[index,mm_loc_count_name] = mm_loc_count
+	
+		# add SFVT columns
+		# loop through all the SFVT_IDs
+		if (generateSFVT == 0):
+			continue
+		for id in range(1,1000):
+			seqf_name= "SFVT_" + loc + "_"  + str(id)
+			if (seqf_name not in SFVT_list):
+				continue
+			
+			position_list = SFVT_positions[seqf_name]
+			positions = [int(x) for x in position_list.split(",")]
+	
+			if (recip_allele1[index] == 'DRBX*NNNN' and recip_allele2[index] == 'DRBX*NNNN'):
+				mm_pos_count == 2 * positions
+			elif (donor_allele1[index] == 'DRBX*NNNN' and donor_allele2[index] == 'DRBX*NNNN' ):
+				mm_pos_count == 2 * positions
+			else:
+				if (donor_allele1[index] == 'DRBX*NNNN'):
+					donor_allele1[index] = donor_allele2[index] 
+				if (donor_allele2[index] == 'DRBX*NNNN'):
+					donor_allele2[index] = donor_allele1[index] 
+				if (recip_allele1[index] == 'DRBX*NNNN'):
+					recip_allele1[index] = recip_allele2[index] 
+				if (recip_allele2[index] == 'DRBX*NNNN'):
+					recip_allele2[index] = recip_allele1[index]
+
+				mm_pos_count = genie.countAAMismatchesAllele(donor_allele1[index],donor_allele2[index],recip_allele1[index],recip_allele2[index],pos)
+
+			mm_loc_count += mm_pos_count
+
+			mm_pos_count = genie.countAAMismatchesAllele(donor_allele1[index],donor_allele2[index],recip_allele1[index],recip_allele2[index],positions)
+			mm_loc_sfvt_count = mm_loc_count + mm_pos_count
+			happair_selected.at[index,seqf_name] = mm_pos_count
+
+		# add columns for per-locus count
+		mm_loc_count_name = "MM_" + loc + "SFVT_COUNT"
+		happair_selected.at[index,mm_loc_count_name] = mm_loc_sfvt_count
+
+		# print ("Sequence Feature Name: " + seqf_name + " Positions: " + position_list + " MM Count: " + str(SFVT_MM_count))				
+
+print ("Merging SRTR TX_KI file for covariates")
+
 # load in outcomes data from TX_KI file (tab-delimited is best?)
 tx_ki_filename = "TX_KI_decoded.txt"
 tx_ki = pd.read_csv(tx_ki_filename, sep='\t', index_col=None, encoding='Latin-1', low_memory=False)
 
 # subset TX_KI columns to those used in previous study
 # TFL_ENDX became TFL_ENDTXFU in SRTR SAF since Keith's script
-tx_ki = tx_ki[["TX_ID","PX_ID","REC_TX_DT","ORG_TY","PERS_ID","TFL_DEATH_DT","REC_AGE_AT_TX",
+tx_ki = tx_ki[["TX_ID","PX_ID","REC_TX_DT","ORG_TY","PERS_ID","TFL_DEATH_DT","REC_AGE_AT_TX","REC_AGE_IN_MONTHS_AT_TX",
 						"REC_TX_ORG_TY","CAN_GENDER","CAN_DGN","CAN_RACE","REC_COLD_ISCH_TM","CAN_AGE_DIAB",
 						"CAN_DIAB","CAN_DIAB_TY","CAN_ABO","REC_PREV_KI","REC_PREV_KP","REC_HGT_CM",
 						"REC_WGT_KG","REC_A_MM_EQUIV_CUR","REC_B_MM_EQUIV_CUR","REC_DR_MM_EQUIV_CUR",
@@ -490,460 +954,31 @@ tx_ki = tx_ki[["TX_ID","PX_ID","REC_TX_DT","ORG_TY","PERS_ID","TFL_DEATH_DT","RE
 						"DON_RELATIONSHIP_TY","CAN_SOURCE","REC_CREAT",
 						"REC_PREV_PREG","REC_FIRST_WEEK_DIAL","DONOR_ID"]]
 # print (tx_ki)
-
-# load SRTR transplant pairs with both subject IDs
-
-impute_err_filename = "impute_failed_ids.csv"
-impute_err_file = open(impute_err_filename, "w")
-impute_err_file.write("Type,ID\n")
-
-#  loop through 10 replicate random realizations for multiple imputation
-multiple_imputation_replicates = 10
-for rep in tqdm(range(1,multiple_imputation_replicates+1)):
-	print("Replicate: " + str(rep))
-	# tx_ki_hla.csv
-	# ORG_TY,PERS_ID,PX_ID,REC_TX_DT,REC_HISTO_TX_ID,DON_TY,DON_RACE,DON_RACE_SRTR,DON_ETHNICITY_SRTR,DON_A1,DON_A2,DON_B1,DON_B2,DON_DR1,DON_DR2,REC_AGE_IN_MONTHS_AT_TX,CAN_RACE,CAN_RACE_SRTR,CAN_ETHNICITY_SRTR,REC_TX_TY,REC_A1,REC_A2,REC_B1,REC_B2,REC_DR1,REC_DR2,DONOR_ID,DON_C1,DON_C2,DON_DQ1,DON_DQ2,DON_DP1,DON_DP2,DON_DR51,DON_DR52,DON_DR53,REC_CW1,REC_CW2,REC_DPW1,REC_DPW2,REC_DQW1,REC_DQW2,REC_DRW51,REC_DRW52,REC_DRW53
-	tx_hla_filename = "tx_ki_hla_9loc.csv"
-	tx_hla_file = open(tx_hla_filename, "r")
-	runmatch_filename = "out.runmatchMC." + str(rep) + ".txt.gz"
-	runmatch_file = gzip.open(runmatch_filename, "wt")
-
-	#happair_hla_filename = pathloc + "/happair_hla.csv"
-	#happair_hla_file = open(happair_hla_filename, "r")
-	#print(happair_hla)
-
-	happair_selected_donor = {} # haplotype pair selected by weighted choice
-	happair_selected_recip = {} # haplotype pair selected by weighted choice
-	loci_pos = []
-	for line in tx_hla_file:
-		(ORG_TY,PERS_ID,PX_ID,REC_TX_DT,REC_HISTO_TX_ID,DON_TY,DON_RACE,DON_RACE_SRTR,DON_ETHNICITY_SRTR,\
-   			DON_A1,DON_A2,DON_B1,DON_B2,DON_DR1,DON_DR2,\
-			REC_AGE_IN_MONTHS_AT_TX,CAN_RACE,CAN_RACE_SRTR,CAN_ETHNICITY_SRTR,REC_TX_TY,\
-			REC_A1,REC_A2,REC_B1,REC_B2,REC_DR1,REC_DR2,\
-			DONOR_ID,DON_C1,DON_C2,DON_DQ1,DON_DQ2,DON_DP1,DON_DP2,\
-			DON_DR51,DON_DR52,DON_DR53,\
-			REC_CW1,REC_CW2,REC_DPW1,REC_DPW2,REC_DQW1,REC_DQW2,REC_DRW51,REC_DRW52,REC_DRW53,\
-			DON_DRB3_1,DON_DRB3_2,DON_DRB4_1,DON_DRB4_2,DON_DRB5_1,DON_DRB5_2,DON_DQA1,DON_DQA2,DON_DPA1,DON_DPA2,\
-			REC_DRB3_1,REC_DRB3_2,REC_DRB4_1,REC_DRB4_2,REC_DRB5_1,REC_DRB5_2,REC_DQA1,REC_DQA2,REC_DPA1,REC_DPA2) = line.split(',')
-		if (ORG_TY == "ORG_TY"):
-			continue
-
-		# DONOR - DONOR_ID
-		# RECIP - PERS_ID
-		# TRANSPLANT PAIR - PX_ID
-
-		SUBJECT_ID_RECIP = "R" + PX_ID
-		#print(SUBJECT_ID_RECIP)
-		SUBJECT_ID_DONOR = "D" + PX_ID
-
-		# check for missing imputation output
-		if (SUBJECT_ID_RECIP not in happair_hla):
-			# print ("Missing Recip ID: " + PERS_ID)
-			if (rep == 1):
-				impute_err_file.write(SUBJECT_ID_RECIP + "\n")
-			continue
-
-		if (SUBJECT_ID_DONOR not in happair_hla):
-			# print ("Missing Donor ID: " + DONOR_ID)
-			if (rep == 1):
-				impute_err_file.write(SUBJECT_ID_DONOR + "\n")
-			continue
 		
-		# select haplotype pair based on probability distribution
-		haplistR = happair_hla[SUBJECT_ID_RECIP]
-		problistR = happair_probs[SUBJECT_ID_RECIP]
+# make sure data types are the same for merge
+tx_ki['PX_ID'] = tx_ki['PX_ID'].astype('int64')
+happair_selected['PX_ID'] = happair_selected['PX_ID'].astype('int64')
 
-		happair_recip = aa_mm.weighted_choice(haplistR,problistR)
-		#print ("Random Recip HapPair: " + PERS_ID + " " + happair_recip)
+'''
+# show complete HLA table of positions and mismatches
+print ("HapPair_Selected")
+print (happair_selected)
 
-		haplistD = happair_hla[SUBJECT_ID_DONOR]
-		problistD = happair_probs[SUBJECT_ID_DONOR]
+print ('TX_KI')
+print (tx_ki)
+'''
+# merge in outcomes data from TX_KI file
+# tx_ki_design_matrix = pd.merge(tx_ki,happair_selected,how='inner',on='PX_ID')
+tx_ki_design_matrix = tx_ki.merge(happair_selected,how='right',left_on="PX_ID",right_on="PX_ID")
 
-		happair_donor = aa_mm.weighted_choice(haplistD,problistD)
-		#print ("Random Donor HapPair: " + DONOR_ID + " " + happair_donor)
-		(hap1_donor,hap2_donor) = happair_donor.split('+')
-		(a1_donor,c1_donor,b1_donor,drb345_1_donor,drb1_1_donor,dqa1_1_donor,dqb1_1_donor,dpa1_1_donor,dpb1_1_donor) = hap1_donor.split('~')
-		(a2_donor,c2_donor,b2_donor,drb345_2_donor,drb1_2_donor,dqa1_2_donor,dqb1_2_donor,dpa1_2_donor,dpb1_2_donor) = hap2_donor.split('~')
+'''
+print ("Design Matrix")
+with pd.option_context("display.max_rows",None,"display.max_columns",None):
+	print (tx_ki_design_matrix)
+'''
 
-		(hap1_recip,hap2_recip) = happair_recip.split('+')
-		(a1_recip,c1_recip,b1_recip,drb345_1_recip,drb1_1_recip,dqa1_1_recip,dqb1_1_recip,dpa1_1_recip,dpb1_1_recip) = hap1_recip.split('~')
-		(a2_recip,c2_recip,b2_recip,drb345_2_recip,drb1_2_recip,dqa1_2_recip,dqb1_2_recip,dpa1_2_recip,dpb1_2_recip) = hap2_recip.split('~')
-
-		# handle deleted / renamed alleles between IMGT/HLA 3.4 and 3.43
-
-		if (a1_donor == "A*23:19Q"):
-			a1_donor = "A*23:19N"
-		if (a2_donor == "A*23:19Q"):
-			a2_donor = "A*23:19N"
-		if (a1_recip == "A*23:19Q"):
-			a1_recip = "A*23:19N"
-		if (a2_recip == "A*23:19Q"):
-			a2_recip = "A*23:19N"
-
-		if (b1_donor == "B*15:22"):
-			b1_donor = "B*35:43"
-		if (b2_donor == "B*15:22"):
-			b2_donor = "B*35:43"
-		if (b1_recip == "B*15:22"):
-			b1_recip = "B*35:43"
-		if (b2_recip == "B*15:22"):
-			b2_recip = "B*35:43"
-
-		if (c1_donor == "C*15:20"):
-			c1_donor = "C*15:27"
-		if (c2_donor == "C*15:20"):
-			c2_donor = "C*15:27"
-		if (c1_recip == "C*15:20"):
-			c1_recip = "C*15:27"
-		if (c2_recip == "C*15:20"):
-			c2_recip = "C*15:27"
-
-		if (c1_donor == "C*05:02"):
-			c1_donor = "C*05:09"
-		if (c2_donor == "C*05:02"):
-			c2_donor = "C*05:09"
-		if (c1_recip == "C*05:02"):
-			c1_recip = "C*05:09"
-		if (c2_recip == "C*05:02"):
-			c2_recip = "C*05:09"
-
-		if (c1_donor == "C*03:12"):
-			c1_donor = "C*03:19"
-		if (c2_donor == "C*03:12"):
-			c2_donor = "C*03:19"
-		if (c1_recip == "C*03:12"):
-			c1_recip = "C*03:19"
-		if (c2_recip == "C*03:12"):
-			c2_recip = "C*03:19"
-
-		if (c1_donor == "C*03:23"):
-			c1_donor = "C*03:23N"
-		if (c2_donor == "C*03:23"):
-			c2_donor = "C*03:23N"
-		if (c1_recip == "C*03:23"):
-			c1_recip = "C*03:23N"
-		if (c2_recip == "C*03:23"):
-			c2_recip = "C*03:23N"
-
-		if (drb1_1_donor == "DRB1*07:02"):
-			drb1_1_donor = "DRB1*07:01"
-		if (drb1_2_donor == "DRB1*07:02"):
-			drb1_2_donor = "DRB1*07:01"
-		if (drb1_1_recip == "DRB1*07:02"):
-			drb1_1_recip = "DRB1*07:01"
-		if (drb1_2_recip == "DRB1*07:02"):
-			drb1_2_recip = "DRB1*07:01"
-
-		# C*13:01 was deleted long ago - not sure changing to 12:02 is the right move - imputation algorithm issue
-		if (c1_donor == "C*13:01"):
-			c1_donor = "C*12:02"
-		if (c2_donor == "C*13:01"):
-			c2_donor = "C*12:02"
-		if (c1_recip == "C*13:01"):
-			c1_recip = "C*12:02"
-		if (c2_recip == "C*13:01"):
-			c2_recip = "C*12:02"
-
-
-		if (dqa1_1_donor == "DQA1*01:07"):
-			dqa1_1_donor = "DQA1*01:07Q"
-		if (dqa1_2_donor == "DQA1*01:07"):
-			dqa1_2_donor = "DQA1*01:07Q"
-		if (dqa1_1_recip == "DQA1*01:07"):
-			dqa1_1_recip = "DQA1*01:07Q"
-		if (dqa1_2_recip == "DQA1*01:07"):
-			dqa1_2_recip = "DQA1*01:07Q"
-
-
-		# store chosen haplos based on PX_ID to merge into TX_KI later
-		hap1_donor_alleles = [a1_donor,c1_donor,b1_donor,drb345_1_donor,drb1_1_donor,dqa1_1_donor,dqb1_1_donor,dpa1_1_donor,dpb1_1_donor]
-		hap1_donor = '~'.join(hap1_donor_alleles)
-		hap2_donor_alleles = [a2_donor,c2_donor,b2_donor,drb345_2_donor,drb1_2_donor,dqa1_2_donor,dqb1_2_donor,dpa1_2_donor,dpb1_2_donor]
-		hap2_donor = '~'.join(hap2_donor_alleles)
-		happair_donor = hap1_donor + "+" + hap2_donor
-		hap1_recip_alleles = [a1_recip,c1_recip,b1_recip,drb345_1_recip,drb1_1_recip,dqa1_1_recip,dqb1_1_recip,dpa1_1_recip,dpb1_1_recip]
-		hap1_recip = '~'.join(hap1_recip_alleles)
-		hap2_recip_alleles = [a2_recip,c2_recip,b2_recip,drb345_2_recip,drb1_2_recip,dqa1_2_recip,dqb1_2_recip,dpa1_2_recip,dpb1_2_recip]
-		hap2_recip = '~'.join(hap2_recip_alleles)
-		happair_recip = hap1_recip + "+" + hap2_recip
-		#print(happair_recip)
-
-		happair_selected_recip[PX_ID] = happair_recip
-		happair_selected_donor[PX_ID] = happair_donor
-		# happair_selected_recip_df.append([PX_ID,happair_recip])
-		# happair_selected_donor_df.append([PX_ID,happair_donor])
-
-		# stop here if not writing runmatch files
-		if (generateRunMatchMC == 0):
-			continue
-
-		# runmatchMC file
-
-
-		#print ("Multiple imputation replicate: " + runmatch_filename)
-
-		for loc in loci:
-			#print(loc)
-
-			if (loc == "A"):
-				allele1_donor = a1_donor
-				allele2_donor = a2_donor
-				allele1_recip = a1_recip
-				allele2_recip = a2_recip
-			if (loc == "C"):
-				allele1_donor = c1_donor
-				allele2_donor = c2_donor
-				allele1_recip = c1_recip
-				allele2_recip = c2_recip
-			if (loc == "B"):
-				allele1_donor = b1_donor
-				allele2_donor = b2_donor
-				allele1_recip = b1_recip
-				allele2_recip = b2_recip
-			if (loc == "DRB345"):
-				allele1_donor = drb345_1_donor
-				allele2_donor = drb345_2_donor
-				allele1_recip = drb345_1_recip
-				allele2_recip = drb345_2_recip
-			if (loc == "DRB1"):
-				allele1_donor = drb1_1_donor
-				allele2_donor = drb1_2_donor
-				allele1_recip = drb1_1_recip
-				allele2_recip = drb1_2_recip
-			if (loc == "DQA1"):
-				allele1_donor = dqa1_1_donor
-				allele2_donor = dqa1_2_donor
-				allele1_recip = dqa1_1_recip
-				allele2_recip = dqa1_2_recip
-			if (loc == "DQB1"):
-				allele1_donor = dqb1_1_donor
-				allele2_donor = dqb1_2_donor
-				allele1_recip = dqb1_1_recip
-				allele2_recip = dqb1_2_recip
-			if (loc == "DPA1"):
-				allele1_donor = dpa1_1_donor
-				allele2_donor = dpa1_2_donor
-				allele1_recip = dpa1_1_recip
-				allele2_recip = dpa1_2_recip
-			if (loc == "DPB1"):
-				allele1_donor = dpb1_1_donor
-				allele2_donor = dpb1_2_donor
-				allele1_recip = dpb1_1_recip
-				allele2_recip = dpb1_2_recip
-
-			full_start = aa_mm.full_start_pos[loc]
-			full_end = aa_mm.full_end_pos[loc]
-
-			# count mismatches for positions where there will be complete sequences
-			for pos in range(full_start,full_end):
-				# AA = getAAposition(HLA_seq,allele1_donor,pos)
-				# print (allele1_donor + " - " + str(pos) + AA)
-				mm_count = 0
-				if (allele1_recip == 'DRBX*NNNN' and allele2_recip == 'DRBX*NNNN'):
-					mm_count == 2
-				elif (allele1_donor == 'DRBX*NNNN' and allele2_donor == 'DRBX*NNNN' ):
-					mm_count == 2
-				else:
-					if (allele1_donor  == 'DRBX*NNNN'):
-						allele1_donor  = allele2_donor
-					if (allele2_donor  == 'DRBX*NNNN'):
-						allele2_donor  = allele1_donor
-					if (allele1_recip == 'DRBX*NNNN'):
-						allele1_recip = allele2_recip
-					if (allele2_recip  == 'DRBX*NNNN'):
-						allele2_recip  = allele1_recip
-					mm_count = genie.countAAMismatchesAllele(allele1_donor,allele2_donor,allele1_recip,allele2_recip,pos)
-				#print ("MM_count at position " + str(pos) + ": " + str(mm_count) + " - HLA - " + allele1_donor + " " + allele2_donor + " " + allele1_recip + " " + allele2_recip)
-
-				mm_count_0 = 0
-				mm_count_1 = 0
-				mm_count_2 = 0
-				if (mm_count == 0):
-					mm_count_0 = 1
-				if (mm_count == 1):
-					mm_count_1 = 1
-				if (mm_count == 2):
-					mm_count_2 = 1
-
-
-				#print (PX_ID + "|" + loc + "|" + str(pos) + "|" + str(mm_count_0) + "|" + str(mm_count_1) + "|" + str(mm_count_2))
-
-				# create 5-locus out.runmatchMC files on the fly
-				runmatch_file.write(PX_ID + "|" + loc + "|" + str(pos) + "|" + str(mm_count_0) + "|" + str(mm_count_1) + "|" + str(mm_count_2) + "\n")
-	tx_hla_file.close()
-
-	# DATA MATRIX FILE OUTPUT
-
-	print ("Data Matrix Output")
-
-	# create dataframes from happair dictionaries
-	happair_selected_recip_df = pd.DataFrame(list(happair_selected_recip.items()),columns=["PX_ID","HAPPAIR_RECIP"])
-	happair_selected_donor_df = pd.DataFrame(list(happair_selected_donor.items()),columns=["PX_ID","HAPPAIR_DONOR"])
-
-	happair_selected = happair_selected_recip_df.merge(happair_selected_donor_df,left_on="PX_ID",right_on="PX_ID")
-	# happair_selected = pd.concat(happair_selected_donor_df,happair_selected_recip_df,axis=1)
-	'''
-	with pd.option_context("display.max_rows",None,"display.max_columns",None):
-		print (happair_selected)
-	'''
-
-	# create dataframes with additional HLA columns
-	#print ("selected:", happair_selected_recip_df["HAPPAIR_RECIP"])
-
-	# new data frame with split value columns for loci
-	recip_haplos = happair_selected["HAPPAIR_RECIP"].str.split("+", n = 1, expand = True)
-	donor_haplos = happair_selected["HAPPAIR_DONOR"].str.split("+", n = 1, expand = True)
-	happair_selected["RECIP_HAP1"] = recip_haplos[0]
-	happair_selected["RECIP_HAP2"] = recip_haplos[1]
-	happair_selected["DONOR_HAP1"] = donor_haplos[0]
-	happair_selected["DONOR_HAP2"] = donor_haplos[1]
-	recip_alleles1 = happair_selected["RECIP_HAP1"].str.split("~", n = loci_value, expand = True)
-	recip_alleles2 = happair_selected["RECIP_HAP2"].str.split("~", n = loci_value, expand = True)
-	donor_alleles1 = happair_selected["DONOR_HAP1"].str.split("~", n = loci_value, expand = True)
-	donor_alleles2 = happair_selected["DONOR_HAP2"].str.split("~", n = loci_value, expand = True)
-	# happair_selected["RECIP_A1"] = recip_alleles1[0]
-	# print (happair_selected)
-	# print (recip_alleles1)
-
-
-	# add allele columns
-	for i in range(1,loci_range_value):
-		loc = loci[i-1]
-		recip_alleles1_column_name = "RECIP_" + loc + "_1"
-		recip_alleles2_column_name = "RECIP_" + loc + "_2"
-		donor_alleles1_column_name = "DONOR_" + loc + "_1"
-		donor_alleles2_column_name = "DONOR_" + loc + "_2"
-		recip_allele1 = recip_alleles1[i-1]
-		recip_allele2 = recip_alleles2[i-1]
-		donor_allele1 = donor_alleles1[i-1]
-		donor_allele2 = donor_alleles2[i-1]		
-		happair_selected[recip_alleles1_column_name] = recip_allele1
-		happair_selected[recip_alleles2_column_name] = recip_allele2
-		happair_selected[donor_alleles1_column_name] = donor_allele1
-		happair_selected[donor_alleles2_column_name] = donor_allele2
-
-	# add AA mismatch columns
-	for i in range(1,loci_range_value):
-		recip_allele1 = recip_alleles1[i-1]
-		loc = recip_allele1[0].split('*')[0]
-		print(loc)
-		if loc in ['DRB3', 'DRB4', 'DRB5', 'DRBX']:
-			loc = 'DRB345'
-			full_start = aa_mm.full_start_pos['DRB3']
-			full_end = aa_mm.full_end_pos['DRB3']
-		else:
-			full_start = aa_mm.full_start_pos[loc]
-			full_end = aa_mm.full_end_pos[loc]		
-		#print("recip_alleles1: "+str(recip_alleles1)+"\n")
-		#print("recip_alleles2: "+str(recip_alleles2)+"\n")
-		#print("donor_alleles1: "+str(donor_alleles1)+"\n")
-		#print("donor_alleles2: "+str(donor_alleles2)+"\n")
-		recip_allele2 = recip_alleles2[i-1]
-		donor_allele1 = donor_alleles1[i-1]
-		donor_allele2 = donor_alleles2[i-1]	
-
-		for index,row in happair_selected.iterrows():
-			mm_loc_count = 0
-			mm_loc_sfvt_count = 0
-			for pos in range(full_start, full_end):
-				mm_aa_column_name = "MM_"+loc+"_"+str(pos)
-
-				# initialize new columns
-				happair_selected[mm_aa_column_name] = happair_selected["HAPPAIR_DONOR"]
-
-				if (recip_allele1[index] == 'DRBX*NNNN' and recip_allele2[index] == 'DRBX*NNNN'):
-					mm_pos_count == 2
-				elif (donor_allele1[index] == 'DRBX*NNNN' and donor_allele2[index] == 'DRBX*NNNN' ):
-					mm_pos_count == 2
-				else:
-					if (donor_allele1[index]  == 'DRBX*NNNN'):
-						donor_allele1[index]  = donor_allele2[index] 
-					if (donor_allele2[index]  == 'DRBX*NNNN'):
-						donor_allele2[index]  = donor_allele1[index] 
-					if (recip_allele1[index] == 'DRBX*NNNN'):
-						recip_allele1[index] = recip_allele2[index] 
-					if (recip_allele2[index]  == 'DRBX*NNNN'):
-						recip_allele2[index]  = recip_allele1[index]
-					mm_pos_count = genie.countAAMismatchesAllele(donor_allele1[index],donor_allele2[index],recip_allele1[index],recip_allele2[index],pos)
-				mm_loc_count += mm_pos_count
-
-				# TODO - update to concatenate a whole row of data to improve performance
-				# https://stackoverflow.com/questions/68292862/performancewarning-dataframe-is-highly-fragmented-this-is-usually-the-result-o
-				happair_selected.at[index,mm_aa_column_name] = mm_pos_count
-				# happair_selected.at[index,mm_aa_column_name] = count_AA_Mismatches_Allele(HLA_seq,donor_allele1[index],donor_allele2[index],recip_allele1[index],recip_allele2[index],pos)
-
-			# add columns for per-locus count
-			mm_loc_count_name = "MM_" + loc + "_COUNT"
-			happair_selected.at[index,mm_loc_count_name] = mm_loc_count
-		
-
-			# add SFVT columns
-			# loop through all the SFVT_IDs
-			for id in range(1,1000):
-				seqf_name= "SFVT_" + loc + "_"  + str(id)
-				if (seqf_name not in SFVT_list):
-					continue
-
-				# initialize new column for SFVT
-				happair_selected[seqf_name] = happair_selected["HAPPAIR_DONOR"]			
-				
-				position_list = SFVT_positions[seqf_name]
-				positions = [int(x) for x in position_list.split(",")]
-
-				
-				if (recip_allele1[index] == 'DRBX*NNNN' and recip_allele2[index] == 'DRBX*NNNN'):
-					mm_pos_count == 2 * positions
-				elif (donor_allele1[index] == 'DRBX*NNNN' and donor_allele2[index] == 'DRBX*NNNN' ):
-					mm_pos_count == 2 * positions
-				else:
-					if (donor_allele1[index]  == 'DRBX*NNNN'):
-						donor_allele1[index]  = donor_allele2[index] 
-					if (donor_allele2[index]  == 'DRBX*NNNN'):
-						donor_allele2[index]  = donor_allele1[index] 
-					if (recip_allele1[index] == 'DRBX*NNNN'):
-						recip_allele1[index] = recip_allele2[index] 
-					if (recip_allele2[index]  == 'DRBX*NNNN'):
-						recip_allele2[index]  = recip_allele1[index]
-
-					mm_pos_count = genie.countAAMismatchesAllele(donor_allele1[index],donor_allele2[index],recip_allele1[index],recip_allele2[index],pos)
-
-				mm_loc_count += mm_pos_count
-
-				mm_pos_count = genie.countAAMismatchesAllele(donor_allele1[index],donor_allele2[index],recip_allele1[index],recip_allele2[index],positions)
-				mm_loc_sfvt_count = mm_loc_count + mm_pos_count
-				happair_selected.at[index,seqf_name] = mm_pos_count
-
-			# add columns for per-locus count
-			mm_loc_count_name = "MM_" + loc + "SFVT_COUNT"
-			happair_selected.at[index,mm_loc_count_name] = mm_loc_sfvt_count
-
-			# print ("Sequence Feature Name: " + seqf_name + " Positions: " + position_list + " MM Count: " + str(SFVT_MM_count))				
-
-			
-	# make sure data types are the same for merge
-	tx_ki['PX_ID'] = tx_ki['PX_ID'].astype('int64')
-	happair_selected['PX_ID'] = happair_selected['PX_ID'].astype('int64')
-
-	'''
-	# show complete HLA table of positions and mismatches
-	print ("HapPair_Selected")
-	print (happair_selected)
-
-	print ('TX_KI')
-	print (tx_ki)
-	'''
-	# merge in outcomes data from TX_KI file
-	# tx_ki_design_matrix = pd.merge(tx_ki,happair_selected,how='inner',on='PX_ID')
-	tx_ki_design_matrix = tx_ki.merge(happair_selected,how='right',left_on="PX_ID",right_on="PX_ID")
-
-	'''
-	print ("Design Matrix")
-	with pd.option_context("display.max_rows",None,"display.max_columns",None):
-		print (tx_ki_design_matrix)
-	'''
-
-	# write SRTR design matrix
-	design_matrix_filename = "SRTR_AA_MM_9loc_matrix_" + str(rep) + ".txt"
-	tx_ki_design_matrix.to_csv(design_matrix_filename,index=False,sep="\t")
+# write SRTR design matrix
+design_matrix_filename = "SRTR_AA_MM_9loc_matrix_" + str(replicate) + ".txt.gz"
+tx_ki_design_matrix.to_csv(design_matrix_filename,index=False,sep="\t",compression='gzip')
 
 exit()

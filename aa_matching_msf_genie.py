@@ -340,8 +340,8 @@ class AAMatch:
                 r = requests.get(url)
                 with open(seq_filename, 'wb') as f:
                     f.write(r.content)
-            else: 
-                print("MSF files already downloaded")
+            # else: 
+                # print("MSF files already downloaded")
             multipleseq = AlignIO.read(seq_filename, format="msf")
             
             if locus == 'DRB345':
