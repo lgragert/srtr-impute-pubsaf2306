@@ -119,15 +119,129 @@ REC_DPA1_MM_EQUIV_CUR - DPA1 First-field MM
 REC_DPB1_MM_EQUIV_CUR - DPB1 allele mismatch
 ```
 
-Amino acid mismatch assignment:
-Needs to be modified to use HLAGenie to manage AA sequences
-    - https://github.com/gbiagini/hlagenie
-    - Replaces aa_matching_msf module
-Also needs to expand coordinates beyond ARD to full protein
+Amino acid coordinate info by locus - starts at 1:
 
 ```
-python3 aa_mm_biopython_runmatch_9loc.py
+aa_matching_msf_genie.py
+
+"A" : 341,
+"B" : 338,
+"C" : 342,
+"DRB1" : 237,
+"DRB3" : 237,
+"DRB4" : 237,
+"DRB5" : 237,
+"DRB345" : 237,			
+"DQA1" : 232,
+"DQB1" : 229,
+"DPA1" : 229,
+"DPB1" : 229
 ```
+
+Amino acid mismatch assignment:
+- Full protein coordinates
+- 9 loci
+- DRB3/4/5 rules are complex
+    - DRB3/4/5 genes are treated as if they were the same gene but different alleles. Each gene has the same number of 
+    - Genotypes with one missing DRB3/4/5 gene are treated as homozygotes.
+    - If recipient has no DRB3/4/5 genes, all DRB3/4/5 positions are assigned as mismatches when a DRB3/4/5 gene is present in the donor
+    - An alternative approach might count mismatches among up to 4 gene copies of DRB1/3/4/5 and have up to 4 mismatches per DRB gene position.
+    - Another alternative approach might consider DRB3/4/5 as separate genes and any DRB3/4/5 gene present in the donor that isn't in the recipient would cause mismatches at all positions.
+
+Running AAMM script:
+- Arguments are replicate, generateRunMatchMC, generateMatrix, generateSFVT
+- SFVT columns aren't included in runs
+
+RunMatch files generated with following commands:
+
+```
+python3 aa_mm_biopython_runmatch_genie_9loc.py 1 1 0 0
+python3 aa_mm_biopython_runmatch_genie_9loc.py 2 1 0 0
+python3 aa_mm_biopython_runmatch_genie_9loc.py 3 1 0 0
+python3 aa_mm_biopython_runmatch_genie_9loc.py 4 1 0 0
+python3 aa_mm_biopython_runmatch_genie_9loc.py 5 1 0 0
+python3 aa_mm_biopython_runmatch_genie_9loc.py 6 1 0 0
+python3 aa_mm_biopython_runmatch_genie_9loc.py 7 1 0 0
+python3 aa_mm_biopython_runmatch_genie_9loc.py 8 1 0 0
+python3 aa_mm_biopython_runmatch_genie_9loc.py 9 1 0 0
+python3 aa_mm_biopython_runmatch_genie_9loc.py 10 1 0 0
+```
+
+RunMatch file format (used as input to SAS):
+
+```
+PXID|Locus|Position|0MM|1MM|2MM
+886437|A|4|1|0|0
+```
+
+RunMatch file locations:
+
+```
+/project/kamoun_shared/data_shared/srtr_impute_output/
+out.runmatchMC.*.txt.gz
+```
+
+Running data matrix format:
+
+```
+python3 aa_mm_biopython_runmatch_genie_9loc.py 1 0 1 0
+python3 aa_mm_biopython_runmatch_genie_9loc.py 2 0 1 0
+python3 aa_mm_biopython_runmatch_genie_9loc.py 3 0 1 0
+python3 aa_mm_biopython_runmatch_genie_9loc.py 4 0 1 0
+python3 aa_mm_biopython_runmatch_genie_9loc.py 5 0 1 0
+python3 aa_mm_biopython_runmatch_genie_9loc.py 6 0 1 0
+python3 aa_mm_biopython_runmatch_genie_9loc.py 7 0 1 0
+python3 aa_mm_biopython_runmatch_genie_9loc.py 8 0 1 0
+python3 aa_mm_biopython_runmatch_genie_9loc.py 9 0 1 0
+python3 aa_mm_biopython_runmatch_genie_9loc.py 10 0 1 0
+```
+
+Output AAMM matrix files (w/o covariates):
+
+```
+SRTR_AA_MM_9loc_matrix_*.txt
+```
+
+Slurm script for generating all replicates in parallel on Tulane Cypress supercomputer:
+- Currently stalls because of pyARD MAC code download
+
+```
+aa_mm_biopython_runmatch_genie_9loc_RUN.sh
+```
+
+Joining with covariates and filtering dataset - SAS code should do this independently:
+
+- Censoring date: 2022-12-31
+- Transplant year starting 2005
+- Donor age >=9
+- Recipient age >=18
+- First transplant only
+
+Runs all 
+
+```
+gunzip SRTR_AA_MM_9loc_matrix_*.txt.gz
+python3 construct_outcomes_vars_9loc.py
+```
+
+Number of transplant pairs after filters applied:
+
+```
+Transplant Pairs with A, B, DRB1 typing for donor/recip: 359590
+Recipient Age >=18: 345363
+Donor Age >=9: 331745
+Transplant Date starting 2005: 212575
+First Transplant Only: 185693
+```
+
+Design matrix files for FIBERS input:
+- Each locus+position has its own column
+- 'grffail' column set to 1 if graft failed within the first year
+
+```
+SRTR_AA_MM_9loc_matrix_grffail_*.txt.gz
+```
+
 
 Decoding for DQA1 and DPA1 HLA data formats came from using UNOS APIs - example JSON API query:
 
