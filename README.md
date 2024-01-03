@@ -142,7 +142,7 @@ Amino acid mismatch assignment:
 - Full protein coordinates
 - 9 loci
 - DRB3/4/5 rules are complex
-    - DRB3/4/5 genes are treated as if they were the same gene but different alleles. Each gene has the same number of 
+    - DRB3/4/5 genes are treated as if they were the same gene but different alleles. Each gene has the same number of positions.
     - Genotypes with one missing DRB3/4/5 gene are treated as homozygotes.
     - If recipient has no DRB3/4/5 genes, all DRB3/4/5 positions are assigned as mismatches when a DRB3/4/5 gene is present in the donor
     - An alternative approach might count mismatches among up to 4 gene copies of DRB1/3/4/5 and have up to 4 mismatches per DRB gene position.
