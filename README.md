@@ -139,7 +139,7 @@ aa_matching_msf_genie.py
 ```
 
 Amino acid mismatch assignment:
-- Full protein coordinates
+- Mature protein coordinates
 - 9 loci
 - DRB3/4/5 rules are complex
     - DRB3/4/5 genes are treated as if they were the same gene but different alleles. Each gene has the same number of positions.
