@@ -1,11 +1,21 @@
 #!/usr/bin/env python
-import pandas
+import pandas as pd
 import numpy
 import re
 import gzip
-from aa_matching_msf import *
+from aa_matching_msf_genie import *
 
-aa_mm = AAMatch(dbversion=3420)
+
+# weighted choice from https://scaron.info/blog/python-weighted-choice.html
+def weighted_choice(seq, weights):
+	assert len(weights) == len(seq)
+	assert abs(1. - sum(weights)) < 1e-6
+
+	x = random.random()
+	for i, elmt in enumerate(seq):
+		if x <= weights[i]:
+			return elmt
+		x -= weights[i]
 
 # load imputation output data into a pair dictionary
 # impute.srtr.*.csv.gz
@@ -193,7 +203,7 @@ for rep in range(1,multiple_imputation_replicates+1):
 	antigen_mm_filename = "srtr_antigen_mm_" + str(rep) + ".csv"
 	antigen_mm_file = open(antigen_mm_filename, "w")
 
-	antigen_mm_file.write ("PX_ID,DON_C1,DON_C2,REC_C1,REC_C2,REC_C_MM_EQUIV_CUR,DON_DQ1,DON_DQ2,REC_DQ1,REC_DQ2,REC_DQ_MM_EQUIV_CUR,DON_DQA1,DON_DQA2,REC_DQA1,REC_DQA2,REC_DQA1_MM_EQUIV_CUR,DON_DPA1,DON_DPA2,REC_DPA1,REC_DPA2,REC_DPA1_MM_EQUIV_CUR,DON_DPB1,DON_DPB2,REC_DPB1,REC_DPB2,REC_DPB1_MM_EQUIV_CUR\n")
+	antigen_mm_file.write ("PX_ID,DON_A1,DON_A2,REC_A1,REC_A2,DON_B1,DON_B2,REC_B1,REC_B2,DON_C1,DON_C2,REC_C1,REC_C2,REC_C_MM_EQUIV_CUR,DON_DR1,DON_DR2,REC_DR1,REC_DR2,DON_DQ1,DON_DQ2,REC_DQ1,REC_DQ2,REC_DQ_MM_EQUIV_CUR,DON_DQA1,DON_DQA2,REC_DQA1,REC_DQA2,REC_DQA1_MM_EQUIV_CUR,DON_DPA1,DON_DPA2,REC_DPA1,REC_DPA2,REC_DPA1_MM_EQUIV_CUR,DON_DPB1,DON_DPB2,REC_DPB1,REC_DPB2,REC_DPB1_MM_EQUIV_CUR\n")
 
 
 	for PX_ID in PXID_list:
@@ -217,13 +227,13 @@ for rep in range(1,multiple_imputation_replicates+1):
 		haplistR = happair_hla[SUBJECT_ID_RECIP]
 		problistR = happair_probs[SUBJECT_ID_RECIP]
 
-		happair_recip = aa_mm.weighted_choice(haplistR,problistR)
+		happair_recip = weighted_choice(haplistR,problistR)
 		#print ("Random Recip HapPair: " + PERS_ID + " " + happair_recip)
 
 		haplistD = happair_hla[SUBJECT_ID_DONOR]
 		problistD = happair_probs[SUBJECT_ID_DONOR]
 
-		happair_donor = aa_mm.weighted_choice(haplistD,problistD)
+		happair_donor = weighted_choice(haplistD,problistD)
 		#print ("Random Donor HapPair: " + DONOR_ID + " " + happair_donor)
 		(hap1_donor,hap2_donor) = happair_donor.split('+')
 		(a1_donor,c1_donor,b1_donor,drb345_1_donor,drb1_1_donor,dqa1_1_donor,dqb1_1_donor,dpa1_1_donor,dpb1_1_donor) = hap1_donor.split('~')
@@ -249,8 +259,60 @@ for rep in range(1,multiple_imputation_replicates+1):
 
 
 		antigen_mm_file.write(','.join([PX_ID,\
+							a1_donor, a2_donor, a1_recip, a1_donor, b1_donor, b2_donor, b1_recip, b2_recip,\
 							c1_donor,c2_donor,c1_recip,c2_recip,str(REC_C_MM_EQUIV_CUR),\
+							drb1_1_donor, drb1_2_donor, drb1_1_recip, drb1_2_recip,\
 							dqb1_1_donor,dqb1_2_donor,dqb1_1_recip,dqb1_2_recip,str(REC_DQ_MM_EQUIV_CUR),\
 							dqa1_1_donor,dqa1_2_donor,dqa1_1_recip,dqa1_2_recip,str(REC_DQA1_MM_EQUIV_CUR),\
 							dpa1_1_donor,dpa1_2_donor,dpa1_1_recip,dpa1_2_recip,str(REC_DPA1_MM_EQUIV_CUR),\
 							dpb1_1_donor,dpb1_2_donor,dpb1_1_recip,dpb1_2_recip,str(REC_DPB1_MM_EQUIV_CUR)])+ "\n")
+
+
+# Add Allele mismatch for each loci in the antigen mismatch files
+# Add the SRTR computed HLA antigen mismatch for A, B, and DR from the TX_KI_decoded.txt
+srtr = pd.read_csv("TX_KI_decoded.txt", sep='\t')
+
+SRTR = srtr[['PX_ID', 'REC_A_MM_EQUIV_CUR', 'REC_B_MM_EQUIV_CUR', 'REC_DR_MM_EQUIV_CUR']]
+
+
+# Compute allele MM by comparing strings (should get 0, 1, 2), column name should be like REC_A_ALLELE_MM
+def allele_counting(AG_MM, letter):
+	donor = 'DON_' + letter
+	recp = 'REC_' + letter
+
+	if letter == 'DQA' or letter == 'DPA' or letter == 'DPB':
+		letter = letter + '1'
+
+	AG_MM['REC1_' + letter + '_ALLELE_MM'] = AG_MM[donor + '1'] != AG_MM[recp + '1']
+	AG_MM['REC2_' + letter + '_ALLELE_MM'] = AG_MM[donor + '2'] != AG_MM[recp + '2']
+	AG_MM['REC_' + letter + '_ALLELE_MM'] = AG_MM[['REC1_' + letter + '_ALLELE_MM', 'REC2_' + letter + '_ALLELE_MM']].sum(axis=1)
+
+	AG_MM = AG_MM.drop(['REC1_' + letter + '_ALLELE_MM', 'REC2_' + letter + '_ALLELE_MM'], axis=1)
+
+	return AG_MM
+
+
+letters = ['A', 'B', 'C', 'DR', 'DQ', 'DQA', 'DPA', 'DPB']
+for num in range(1, 11):
+	filename = "srtr_antigen_mm_" + str(num) + ".csv"
+	ag_file = pd.read_csv(filename)
+
+	# Merge the 3 loci from before with the other loci
+	ag_mm = pd.merge(ag_file, SRTR, how='inner', on='PX_ID')
+
+	ag_mm_allele = ag_mm
+
+	for allele in letters:
+		ag_mm_allele = allele_counting(ag_mm_allele, allele)
+
+	# Fix the format
+	ag_mm_allele = ag_mm_allele[['PX_ID', 'DON_A1', 'DON_A2', 'REC_A1', 'REC_A2', 'REC_A_MM_EQUIV_CUR', 'REC_A_ALLELE_MM',
+								 'DON_B1', 'DON_B2', 'REC_B1', 'REC_B2', 'REC_B_MM_EQUIV_CUR', 'REC_B_ALLELE_MM',
+								 'DON_C1', 'DON_C2', 'REC_C1', 'REC_C2', 'REC_C_MM_EQUIV_CUR', 'REC_C_ALLELE_MM',
+                                 'DON_DR1', 'DON_DR2', 'REC_DR1', 'REC_DR2', 'REC_DR_MM_EQUIV_CUR', 'REC_DR_ALLELE_MM',
+								 'DON_DQ1', 'DON_DQ2', 'REC_DQ1', 'REC_DQ2', 'REC_DQ_MM_EQUIV_CUR', 'REC_DQ_ALLELE_MM',
+                                 'DON_DQA1', 'DON_DQA2', 'REC_DQA1', 'REC_DQA2', 'REC_DQA1_MM_EQUIV_CUR', 'REC_DQA1_ALLELE_MM',
+								 'DON_DPA1', 'DON_DPA2', 'REC_DPA1', 'REC_DPA2', 'REC_DPA1_MM_EQUIV_CUR', 'REC_DPA1_ALLELE_MM',
+								 'DON_DPB1', 'DON_DPB2', 'REC_DPB1', 'REC_DPB2', 'REC_DPB1_MM_EQUIV_CUR', 'REC_DPB1_ALLELE_MM']]
+
+	ag_mm_allele.to_csv('srtr_ag_allele_mm_' + str(num) + '.csv', header=True, index=False)
