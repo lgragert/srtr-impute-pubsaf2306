@@ -363,9 +363,9 @@ tx_ki_all_hla['REC_DRB4_2'] = tx_ki_all_hla['REC_DRB4_2'].map(DRB4_DECODE_dict)
 tx_ki_all_hla['REC_DRB5_1'] = tx_ki_all_hla['REC_DRB5_1'].map(DRB5_DECODE_dict)
 tx_ki_all_hla['REC_DRB5_2'] = tx_ki_all_hla['REC_DRB5_2'].map(DRB5_DECODE_dict)
 
-print ("Unique values for DRB3/4/5")
-print(tx_ki_all_hla['DON_DRB3_1'].unique())
-print(tx_ki_all_hla['DON_DRB5_1'].unique())
+# print ("Unique values for DRB3/4/5")
+# print(tx_ki_all_hla['DON_DRB3_1'].unique())
+# print(tx_ki_all_hla['DON_DRB5_1'].unique())
 
 
 tx_ki_all_hla['DON_DQA1'] = tx_ki_all_hla['DON_DQA1'].map(DQA1_DECODE_dict)
@@ -378,9 +378,9 @@ tx_ki_all_hla['REC_DQA2'] = tx_ki_all_hla['REC_DQA2'].map(DQA1_DECODE_dict)
 tx_ki_all_hla['REC_DPA1'] = tx_ki_all_hla['REC_DPA1'].map(DPA1_DECODE_dict)
 tx_ki_all_hla['REC_DPA2'] = tx_ki_all_hla['REC_DPA2'].map(DPA1_DECODE_dict)
 
-print ("Unique values for DQA1 and DPA1")
-print(tx_ki_all_hla['DON_DQA1'].unique())
-print(tx_ki_all_hla['DON_DPA1'].unique())
+# print ("Unique values for DQA1 and DPA1")
+# print(tx_ki_all_hla['DON_DQA1'].unique())
+# print(tx_ki_all_hla['DON_DPA1'].unique())
 
 
 # after SAS formats decoding, HLA field look like "203: 0203"
