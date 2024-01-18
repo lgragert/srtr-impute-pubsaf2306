@@ -749,12 +749,13 @@ for line in tx_hla_file:
 			runmatch_file.write(PX_ID + "|" + loc + "|" + str(pos) + "|" + str(mm_count_0) + "|" + str(mm_count_1) + "|" + str(mm_count_2) + "\n")
 tx_hla_file.close()
 
+
 # DATA MATRIX FILE OUTPUT
 
 # stop here if not writing Matrix files
 if (generateMatrix == 0):
+	runmatch_file.close()
 	exit()
-
 
 
 print ("Data Matrix Output")
