@@ -181,6 +181,27 @@ RunMatch file locations:
 out.runmatchMC.*.txt.gz
 ```
 
+Checksum for runmatch files:
+
+```
+cksum out.runmatchMC.*.txt.gz
+518822487 2282406228 out.runmatchMC.10.txt.gz
+2122274254 2282406227 out.runmatchMC.1.txt.gz
+905538472 2282406227 out.runmatchMC.2.txt.gz
+779730381 2282406227 out.runmatchMC.3.txt.gz
+3968066763 2282406227 out.runmatchMC.4.txt.gz
+895451499 2282406227 out.runmatchMC.5.txt.gz
+3682748417 2282406227 out.runmatchMC.6.txt.gz
+3384646292 2282406227 out.runmatchMC.7.txt.gz
+3547371895 2282406227 out.runmatchMC.8.txt.gz
+943945379 2282406227 out.runmatchMC.9.txt.gz
+
+cksum out.runmatchMC.1.txt
+3001493808 18350441475 out.runmatchMC.1.txt
+```
+
+
+
 Running data matrix format:
 
 ```
