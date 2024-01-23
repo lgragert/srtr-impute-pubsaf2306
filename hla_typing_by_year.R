@@ -45,12 +45,38 @@ hla$rec_dp_typed <- fct_collapse(hla$REC_DPW1,
                                  group_other=TRUE
 )
 
+# Add dpa1 and dqa1
+hla$don_dqa1_typed <- fct_collapse(hla$DON_DQA1,
+                                 Missing=c(""),
+                                 group_other=TRUE
+)
+
+hla$rec_dqa1_typed <- fct_collapse(hla$REC_DQA1,
+                                 Missing=c(""),
+                                 group_other=TRUE
+)
+
+hla$don_dpa1_typed <- fct_collapse(hla$DON_DPA1,
+                                 Missing=c(""),
+                                 group_other=TRUE
+)
+
+hla$rec_dpa1_typed <- fct_collapse(hla$REC_DPA1,
+                                 Missing=c(""),
+                                 group_other=TRUE
+)
+
 hla$don_c_typed <- recode(hla$don_c_typed,'Other'="DON_C_TYPED")
 hla$rec_c_typed <- recode(hla$rec_c_typed,'Other'="REC_C_TYPED")
 hla$don_dq_typed <- recode(hla$don_dq_typed,'Other'="DON_DQ_TYPED")
 hla$rec_dq_typed <- recode(hla$rec_dq_typed,'Other'="REC_DQ_TYPED")
 hla$don_dp_typed <- recode(hla$don_dp_typed,'Other'="DON_DP_TYPED")
 hla$rec_dp_typed <- recode(hla$rec_dp_typed,'Other'="REC_DP_TYPED")
+
+hla$don_dqa1_typed <- recode(hla$don_dqa1_typed,'Other'="DON_DQA1_TYPED")
+hla$rec_dqa1_typed <- recode(hla$rec_dqa1_typed,'Other'="REC_DQA1_TYPED")
+hla$don_dpa1_typed <- recode(hla$don_dpa1_typed,'Other'="DON_DPA1_TYPED")
+hla$rec_dpa1_typed <- recode(hla$rec_dpa1_typed,'Other'="REC_DPA1_TYPED")
 
 
 fct_count(hla$DON_C1)
@@ -109,6 +135,42 @@ ggplot(rec_dp_prop,aes(x=REC_TX_YEAR, y=PROP_DP_TYPED, fill=rec_dp_typed)) +
 
 ggsave("SRTR_Recip_HLA-DP_Typed.jpg",width=6.25, height=4.20)
 
+# recip DQA1
+
+rec_dqa1_prop <- hla %>%
+  group_by(REC_TX_YEAR,rec_dqa1_typed) %>%
+  summarize(n=length(PERS_ID)) %>%
+  mutate(PROP_DQA1_TYPED = n / sum(n))
+
+ggplot(rec_dqa1_prop,aes(x=REC_TX_YEAR, y=PROP_DQA1_TYPED, fill=rec_dqa1_typed)) + 
+  geom_bar(stat="identity") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
+  theme(legend.title = element_blank()) +
+  theme(legend.position = "none") +
+  ggtitle ("Recipient HLA-DQA1 Typing Proportions by Year in SRTR SAF Kidney") + 
+  theme(plot.title = element_text(hjust = 0.5))
+
+ggsave("SRTR_Recip_HLA-DQA1_Typed.jpg",width=6.25, height=4.20)
+
+# recip DPA1
+
+rec_dpa1_prop <- hla %>%
+  group_by(REC_TX_YEAR,rec_dpa1_typed) %>%
+  summarize(n=length(PERS_ID)) %>%
+  mutate(PROP_DPA1_TYPED = n / sum(n))
+
+ggplot(rec_dpa1_prop,aes(x=REC_TX_YEAR, y=PROP_DPA1_TYPED, fill=rec_dpa1_typed)) + 
+  geom_bar(stat="identity") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
+  theme(legend.title = element_blank()) +
+  theme(legend.position = "none") +
+  ggtitle ("Recipient HLA-DPA1 Typing Proportions by Year in SRTR SAF Kidney") + 
+  theme(plot.title = element_text(hjust = 0.5))
+
+ggsave("SRTR_Recip_HLA-DPA1_Typed.jpg",width=6.25, height=4.20)
+
 
 # donor C
 
@@ -164,6 +226,43 @@ ggplot(don_dp_prop,aes(x=REC_TX_YEAR, y=PROP_DP_TYPED, fill=don_dp_typed)) +
   theme(plot.title = element_text(hjust = 0.5))
 
 ggsave("SRTR_Donor_HLA-DP_Typed.jpg",width=6.25, height=4.20)
+
+
+# donor DQA1
+
+don_dqa1_prop <- hla %>%
+  group_by(REC_TX_YEAR,don_dqa1_typed) %>%
+  summarize(n=length(PERS_ID)) %>%
+  mutate(PROP_DQA1_TYPED = n / sum(n))
+
+ggplot(don_dqa1_prop,aes(x=REC_TX_YEAR, y=PROP_DQA1_TYPED, fill=don_dqa1_typed)) + 
+  geom_bar(stat="identity") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
+  theme(legend.title = element_blank()) +
+  theme(legend.position = "none") +
+  ggtitle ("Donor HLA-DQA1 Typing Proportions by Year in SRTR SAF Kidney") + 
+  theme(plot.title = element_text(hjust = 0.5))
+
+ggsave("SRTR_Donor_HLA-DQA1_Typed.jpg",width=6.25, height=4.20)
+
+# donor DPA1
+
+don_dpa1_prop <- hla %>%
+  group_by(REC_TX_YEAR,don_dpa1_typed) %>%
+  summarize(n=length(PERS_ID)) %>%
+  mutate(PROP_DPA1_TYPED = n / sum(n))
+
+ggplot(don_dpa1_prop,aes(x=REC_TX_YEAR, y=PROP_DPA1_TYPED, fill=don_dpa1_typed)) + 
+  geom_bar(stat="identity") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
+  theme(legend.title = element_blank()) +
+  theme(legend.position = "none") +
+  ggtitle ("Donor HLA-DPA1 Typing Proportions by Year in SRTR SAF Kidney") + 
+  theme(plot.title = element_text(hjust = 0.5))
+
+ggsave("SRTR_Donor_HLA-DPA1_Typed.jpg",width=6.25, height=4.20)
 
 
 # broad / split DQ
