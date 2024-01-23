@@ -5,9 +5,9 @@ library(tidyr)
 library(dplyr)
 library(forcats)
 
-setwd("~/Box Sync/Malek_Outcome/kamoun_impute")
+setwd("./")
 
-hla<-read.csv("tx_ki_hla_all.csv")
+hla<-read.csv("tx_ki_hla_9loc.csv")
 
 # split transplant date to get year
 hla<-tidyr::separate(hla,"REC_TX_DT",c('REC_TX_YEAR','REC_TX_MONTH','REC_TX_DATE'))
@@ -71,7 +71,7 @@ ggplot(rec_c_prop,aes(x=REC_TX_YEAR, y=PROP_C_TYPED, fill=rec_c_typed)) +
   ggtitle ("Recipient HLA-C Typing Proportions by Year in SRTR SAF Kidney") + 
   theme(plot.title = element_text(hjust = 0.5))
 
-ggsave("SRTR_Recip_HLA-C_Typed.jpg",scale=0.5)
+ggsave("SRTR_Recip_HLA-C_Typed.jpg", width=6.25, height=4.20)
 
 # recip DQ
 
@@ -89,7 +89,7 @@ ggplot(rec_dq_prop,aes(x=REC_TX_YEAR, y=PROP_DQ_TYPED, fill=rec_dq_typed)) +
   ggtitle ("Recipient HLA-DQ Typing Proportions by Year in SRTR SAF Kidney") + 
   theme(plot.title = element_text(hjust = 0.5))
 
-ggsave("SRTR_Recip_HLA-DQ_Typed.jpg",scale=0.5)
+ggsave("SRTR_Recip_HLA-DQ_Typed.jpg",width=6.25, height=4.20)
 
 # recip DP
 
@@ -107,7 +107,7 @@ ggplot(rec_dp_prop,aes(x=REC_TX_YEAR, y=PROP_DP_TYPED, fill=rec_dp_typed)) +
   ggtitle ("Recipient HLA-DP Typing Proportions by Year in SRTR SAF Kidney") + 
   theme(plot.title = element_text(hjust = 0.5))
 
-ggsave("SRTR_Recip_HLA-DP_Typed.jpg",scale=0.5)
+ggsave("SRTR_Recip_HLA-DP_Typed.jpg",width=6.25, height=4.20)
 
 
 # donor C
@@ -126,7 +126,7 @@ ggplot(don_c_prop,aes(x=REC_TX_YEAR, y=PROP_C_TYPED, fill=don_c_typed)) +
   ggtitle ("Donor HLA-C Typing Proportions by Year in SRTR SAF Kidney") + 
   theme(plot.title = element_text(hjust = 0.5))
 
-ggsave("SRTR_Donor_HLA-C_Typed.jpg",scale=0.5)
+ggsave("SRTR_Donor_HLA-C_Typed.jpg",width=6.25, height=4.20)
 
 
 # donor DQ
@@ -145,7 +145,7 @@ ggplot(don_dq_prop,aes(x=REC_TX_YEAR, y=PROP_DQ_TYPED, fill=don_dq_typed)) +
   ggtitle ("Donor HLA-DQ Typing Proportions by Year in SRTR SAF Kidney") + 
   theme(plot.title = element_text(hjust = 0.5))
 
-ggsave("SRTR_Donor_HLA-DQ_Typed.jpg",scale=0.5)
+ggsave("SRTR_Donor_HLA-DQ_Typed.jpg",width=6.25, height=4.20)
 
 # donor DP
 
@@ -163,7 +163,7 @@ ggplot(don_dp_prop,aes(x=REC_TX_YEAR, y=PROP_DP_TYPED, fill=don_dp_typed)) +
   ggtitle ("Donor HLA-DP Typing Proportions by Year in SRTR SAF Kidney") + 
   theme(plot.title = element_text(hjust = 0.5))
 
-ggsave("SRTR_Donor_HLA-DP_Typed.jpg",scale=0.5)
+ggsave("SRTR_Donor_HLA-DP_Typed.jpg",width=6.25, height=4.20)
 
 
 # broad / split DQ
@@ -219,7 +219,7 @@ ggplot(don_dq_split_prop,aes(x=REC_TX_YEAR, y=PROP_DQ_TYPED, fill=don_dq_split))
   ggtitle ("Donor HLA-DQ Broad Split Typing Proportions by Year in SRTR SAF Kidney") + 
   theme(plot.title = element_text(hjust = 0.5,size=10))
 
-ggsave("SRTR_Donor_HLA-DQ_Broad_Split_Typed.jpg",scale=0.5)
+ggsave("SRTR_Donor_HLA-DQ_Broad_Split_Typed.jpg",width=6.25, height=4.20)
 
 ggplot(rec_dq_split_prop,aes(x=REC_TX_YEAR, y=PROP_DQ_TYPED, fill=rec_dq_split)) + 
   geom_bar(stat="identity") +
@@ -230,4 +230,4 @@ ggplot(rec_dq_split_prop,aes(x=REC_TX_YEAR, y=PROP_DQ_TYPED, fill=rec_dq_split))
   ggtitle ("Recipient HLA-DQ Broad Split Typing Proportions by Year in SRTR SAF Kidney") + 
   theme(plot.title = element_text(hjust = 0.5,size=10))
 
-ggsave("SRTR_Recip_HLA-DQ_Broad_Split_Typed.jpg",scale=0.5)
+ggsave("SRTR_Recip_HLA-DQ_Broad_Split_Typed.jpg",width=6.25, height=4.20)
