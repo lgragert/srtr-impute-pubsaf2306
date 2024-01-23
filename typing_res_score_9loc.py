@@ -38,7 +38,7 @@ pops_NEMO = ['AFA','API','CAU','HIS','NAM','AAFA','AFB','CARB','SCAMB','AINDI','
 pops_US = ['AFA','API','CAU','HIS','NAM','DEC','MLT','OTH','UNK','AAFA','AFB','CARB','SCAMB','AINDI','FILII','HAWI','JAPI','KORI','NCHI','SCSEAI','VIET','EURCAU','MENAFC','CARHIS','MSWHIS','SCAHIS','AISC','ALANAM','AMIND','CARIBI']
 pops_GLOBAL = ['US','DE','BR','IL','GB','PL','CN','TR','IN','ES','JP','CA','PT','NL','IT','FR','TH','AR','GR','SE','CY','CH','AU','SG','CL','CZ','SA','MX','AT','BE','HR','DK','RO','FI','IR','ZA','AM','NO','RU','SI','IE','SK','LT','NZ','RS','HU','BG','MK','UY','NG','GLOBAL']
 pops_CPRA = ['AFA','CAU','HIS','NAM','ASN','HPI','MLT','HISETH']
-pops_ALL = ['AFA','ASN','CAU','HIS','NAM']  # ['NAM']
+pops_ALL = ['AFA','ASN','CAU','HIS','MLT','NAM']  # ['NAM']
 patient = ['recip','donor']
 
 trs = []
