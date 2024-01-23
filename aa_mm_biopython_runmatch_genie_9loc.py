@@ -38,7 +38,8 @@ nloci = 9
 loci = ["A","C","B","DRB1","DRB345","DQA1","DQB1","DPA1","DPB1"]
 
 # set random seed
-random.seed("20180413") # had to change seed to avoid deleted C*13:01
+seed = "20180413" + str(replicate)
+random.seed(seed) # had to change seed to avoid deleted C*13:01
 
 # SFVT file loading
 
