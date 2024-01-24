@@ -105,18 +105,29 @@ Output of imputation pipelines - list of haplotype pairs and probabilities for e
 impute.srtr.*.csv.gz 
 ```
 
-Antigen mismatch assignment:
+Antigen and allele mismatch assignment:
 
 ```
 python3 srtr_hla_antigen_mm.py
 
-srtr_antigen_mm_*.csv
+srtr_ag_allele_mm_*.csv
 
+REC_A_MM_EQUIV_CUR - Aw antigen MM
+REC_A_ALLELE_MM - Aw allele MM
+REC_B_MM_EQUIV_CUR - Bw antigen MM
+REC_B_ALLELE_MM - Bw allele MM
 REC_C_MM_EQUIV_CUR - Cw antigen MM
+REC_C_ALLELE_MM - Cw allele MM
+REC_DR_MM_EQUIV_CUR - DR antigen MM
+REC_DR_ALLELE_MM - DR allele MM
 REC_DQ_MM_EQUIV_CUR - DQ antigen MM
+REC_DQ_ALLELE_MM - DQ allele MM
 REC_DQA1_MM_EQUIV_CUR - DQA1 First-field MM
+REC_DQA1_ALLELE_MM - DQA1 allele MM
 REC_DPA1_MM_EQUIV_CUR - DPA1 First-field MM
+REC_DPA1_ALLELE_MM - DPA1 allele MM
 REC_DPB1_MM_EQUIV_CUR - DPB1 allele mismatch
+REC_DPB1_ALLELE_MM - DPB1 allele MM
 ```
 
 Amino acid coordinate info by locus - starts at 1:
@@ -287,3 +298,28 @@ Previous version for working with pubsaf1812 extracts are located here:
 https://github.com/lgragert/srtr-impute
 
 Includes many .sas extract scripts that are no longer needed.
+
+
+Typing Resolution Score (TRS) at varying specificities.
+
+TRS per population per 9 loci.
+
+```
+python3 typing_res_score_9loc.py
+
+Input: impute.srtr.*.csv.gz
+
+Output: trs_9loc_matrix.csv
+```
+TRS by loci by year.
+```
+hla_typing_by_year.R
+
+Input: tx_ki_hla_9loc.csv
+
+Output:
+
+SRTR_Donor_HLA-*_Typed.jpg
+SRTR_Recip_HLA-*_Typed.jpg
+* = C, DP, DQ, DQA1, DPA1, DQ_Broad_Split
+```
