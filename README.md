@@ -323,3 +323,15 @@ SRTR_Donor_HLA-*_Typed.jpg
 SRTR_Recip_HLA-*_Typed.jpg
 * = C, DP, DQ, DQA1, DPA1, DQ_Broad_Split
 ```
+
+
+Sets of two-field DQA1 distinguished in typing data used to generate reference haplotype frequencies:
+
+For every pair of two-field DQA1 alleles, these files provide the number of times both alleles appear in the same genotype list within each reference population dataset.
+
+Recruit HLA typing at Class II was at exons 2 and 3 between 2015 and 2020 and exon 2 only since 2020.
+
+```
+/project/kamoun_shared/code_shared/srtr-impute-pubsaf2306/
+DQA1_two_field_distinguished.*.csv
+```
