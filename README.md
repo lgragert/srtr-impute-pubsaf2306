@@ -196,19 +196,16 @@ Checksum for runmatch files:
 
 ```
 cksum out.runmatchMC.*.txt.gz
-518822487 2282406228 out.runmatchMC.10.txt.gz
-2122274254 2282406227 out.runmatchMC.1.txt.gz
-905538472 2282406227 out.runmatchMC.2.txt.gz
-779730381 2282406227 out.runmatchMC.3.txt.gz
-3968066763 2282406227 out.runmatchMC.4.txt.gz
-895451499 2282406227 out.runmatchMC.5.txt.gz
-3682748417 2282406227 out.runmatchMC.6.txt.gz
-3384646292 2282406227 out.runmatchMC.7.txt.gz
-3547371895 2282406227 out.runmatchMC.8.txt.gz
-943945379 2282406227 out.runmatchMC.9.txt.gz
-
-cksum out.runmatchMC.1.txt
-3001493808 18350441475 out.runmatchMC.1.txt
+2833675127 2282407225 out.runmatchMC.10.txt.gz
+3237487127 2282388320 out.runmatchMC.1.txt.gz
+1084479331 2282397054 out.runmatchMC.2.txt.gz
+889681964 2282399244 out.runmatchMC.3.txt.gz
+3626347104 2282415570 out.runmatchMC.4.txt.gz
+1168757679 2282367246 out.runmatchMC.5.txt.gz
+2243227244 2282395818 out.runmatchMC.6.txt.gz
+3863366620 2282401535 out.runmatchMC.7.txt.gz
+4126057148 2282388548 out.runmatchMC.8.txt.gz
+2644694899 2282377504 out.runmatchMC.9.txt.gz
 ```
 
 
