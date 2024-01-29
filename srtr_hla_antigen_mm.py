@@ -3,8 +3,13 @@ import pandas as pd
 import numpy
 import re
 import gzip
-from aa_matching_msf_genie import *
+import random
+import pyard
 
+# Compute the Ag MM and Allele MM for two-field and ARD level typing
+
+max_cache_size = 1_000_000
+ard = pyard.init('3420', cache_size=max_cache_size)  # ard.redux(allele, 'lgx')
 
 # weighted choice from https://scaron.info/blog/python-weighted-choice.html
 def weighted_choice(seq, weights):
@@ -188,6 +193,28 @@ def antigen_mm(locus,don_typ1,don_typ2,rec_typ1,rec_typ2):
 	return mm_count
 
 
+# allele mismatch count
+def allele_mm(don_typ1,don_typ2,rec_typ1,rec_typ2):
+	if (don_typ1 == "MISSING"):
+		return "NA"
+	if (rec_typ1 == "MISSING"):
+		return "NA"
+
+	donor_homoz = 0
+	if (don_typ1 == don_typ2):
+		donor_homoz = 1
+
+	almm_count = 0
+	if ((don_typ1 != rec_typ1) & (don_typ1 != rec_typ2)):
+		almm_count += 1
+
+	if ((don_typ2 != rec_typ1) & (don_typ2 != rec_typ2)):
+		almm_count += 1
+
+	if ((almm_count == 2) & (donor_homoz == 1)):
+		almm_count = 1
+
+	return almm_count
 
 # output donor imputation input file
 
@@ -199,11 +226,12 @@ impute_err_file.write("Type,ID")
 
 multiple_imputation_replicates = 10
 for rep in range(1,multiple_imputation_replicates+1):
+	print('Antigen MM for ', rep)
 
-	antigen_mm_filename = "srtr_antigen_mm_" + str(rep) + ".csv"
+	antigen_mm_filename = "srtr_ag_allele_mm_" + str(rep) + ".csv"
 	antigen_mm_file = open(antigen_mm_filename, "w")
 
-	antigen_mm_file.write ("PX_ID,DON_A1,DON_A2,REC_A1,REC_A2,DON_B1,DON_B2,REC_B1,REC_B2,DON_C1,DON_C2,REC_C1,REC_C2,REC_C_MM_EQUIV_CUR,DON_DR1,DON_DR2,REC_DR1,REC_DR2,DON_DQ1,DON_DQ2,REC_DQ1,REC_DQ2,REC_DQ_MM_EQUIV_CUR,DON_DQA1,DON_DQA2,REC_DQA1,REC_DQA2,REC_DQA1_MM_EQUIV_CUR,DON_DPA1,DON_DPA2,REC_DPA1,REC_DPA2,REC_DPA1_MM_EQUIV_CUR,DON_DPB1,DON_DPB2,REC_DPB1,REC_DPB2,REC_DPB1_MM_EQUIV_CUR\n")
+	antigen_mm_file.write("PX_ID,DON_A1,DON_A2,REC_A1,REC_A2,REC_A_ALLELE_MM,DON_B1,DON_B2,REC_B1,REC_B2,REC_B_ALLELE_MM,DON_C1,DON_C2,REC_C1,REC_C2,REC_C_MM_EQUIV_CUR,REC_C_ALLELE_MM,DON_DR1,DON_DR2,REC_DR1,REC_DR2,REC_DR_ALLELE_MM,DON_DQ1,DON_DQ2,REC_DQ1,REC_DQ2,REC_DQ_MM_EQUIV_CUR,REC_DQ_ALLELE_MM,DON_DQA1,DON_DQA2,REC_DQA1,REC_DQA2,REC_DQA1_MM_EQUIV_CUR,REC_DQA1_ALLELE_MM,DON_DPA1,DON_DPA2,REC_DPA1,REC_DPA2,REC_DPA1_MM_EQUIV_CUR,REC_DPA1_ALLELE_MM,DON_DPB1,DON_DPB2,REC_DPB1,REC_DPB2,REC_DPB1_MM_EQUIV_CUR,REC_DPB1_ALLELE_MM,ARD_DON_A1,ARD_DON_A2,ARD_REC_A1,ARD_REC_A2,ARD_A_ALLELE_MM,ARD_DON_B1,ARD_DON_B2,ARD_REC_B1,ARD_REC_B2,ARD_B_ALLELE_MM,ARD_DON_C1,ARD_DON_C2,ARD_REC_C1,ARD_REC_C2,ARD_C_ALLELE_MM,ARD_DON_DR1,ARD_DON_DR2,ARD_REC_DR1,ARD_REC_DR2,ARD_DR_ALLELE_MM,ARD_DON_DQ1,ARD_DON_DQ2,ARD_REC_DQ1,ARD_REC_DQ2,ARD_DQ_ALLELE_MM,ARD_DON_DQA1,ARD_DON_DQA2,ARD_REC_DQA1,ARD_REC_DQA2,ARD_DQA1_ALLELE_MM,ARD_DON_DPA1,ARD_DON_DPA2,ARD_REC_DPA1,ARD_REC_DPA2,ARD_DPA1_ALLELE_MM,ARD_DON_DPB1,ARD_DON_DPB2,ARD_REC_DPB1,ARD_REC_DPB2,ARD_DPB1_ALLELE_MM\n")
 
 
 	for PX_ID in PXID_list:
@@ -243,76 +271,127 @@ for rep in range(1,multiple_imputation_replicates+1):
 		(a1_recip,c1_recip,b1_recip,drb345_1_recip,drb1_1_recip,dqa1_1_recip,dqb1_1_recip,dpa1_1_recip,dpb1_1_recip) = hap1_recip.split('~')
 		(a2_recip,c2_recip,b2_recip,drb345_2_recip,drb1_2_recip,dqa1_2_recip,dqb1_2_recip,dpa1_2_recip,dpb1_2_recip) = hap2_recip.split('~')
 
+		# Allele MM Count
+		REC_A_ALLELE_MM = allele_mm(a1_donor, a2_donor, a1_recip, a2_recip)
+		REC_B_ALLELE_MM = allele_mm(b1_donor, b2_donor, b1_recip, b2_recip)
+		REC_C_ALLELE_MM = allele_mm(c1_donor, c2_donor, c1_recip, c2_recip)
+		REC_DR_ALLELE_MM = allele_mm(drb1_1_donor, drb1_2_donor, drb1_1_recip, drb1_2_recip)
+		REC_DQ_ALLELE_MM = allele_mm(dqb1_1_donor, dqb1_2_donor, dqb1_1_recip, dqb1_2_recip)
+		REC_DQA1_ALLELE_MM = allele_mm(dqa1_1_donor, dqa1_2_donor, dqa1_1_recip, dqa1_2_recip)
+		REC_DPA1_ALLELE_MM = allele_mm(dpa1_1_donor, dpa1_2_donor, dpa1_1_recip, dpa1_2_recip)
+		REC_DPB1_ALLELE_MM = allele_mm(dpb1_1_donor, dpb1_2_donor, dpb1_1_recip, dpb1_2_recip)
 
 		# print (ID)
-		# print ("C Antigens - DONOR: " + DON_C1 + " " + DON_C2 + " RECIP: " + REC_C1 + " " + REC_C2)
+		# Antigen MM Count
 		REC_C_MM_EQUIV_CUR = antigen_mm("C",c1_donor,c2_donor,c1_recip,c2_recip)
-		# print ("C Antigen MM: " + str(REC_C_MM_EQUIV_CUR))
-		# print ("DQ Antigens - DONOR: " + DON_DQ1 + " " + DON_DQ2 + " RECIP: " + REC_DQ1 + " " + REC_DQ2)
 		REC_DQ_MM_EQUIV_CUR = antigen_mm("DQ",dqb1_1_donor,dqb1_2_donor,dqb1_1_recip,dqb1_2_recip)
-		# print ("DQ Antigen MM: " + str(REC_DQ_MM_EQUIV_CUR))
 		REC_DQA1_MM_EQUIV_CUR = antigen_mm("DQA1",dqa1_1_donor,dqa1_2_donor,dqa1_1_recip,dqa1_2_recip)
-
 		REC_DPA1_MM_EQUIV_CUR = antigen_mm("DPA1",dpa1_1_donor,dpa1_2_donor,dpa1_1_recip,dpa1_2_recip)
-
 		REC_DPB1_MM_EQUIV_CUR = antigen_mm("DPB1",dpb1_1_donor,dpb1_2_donor,dpb1_1_recip,dpb1_2_recip)
 
+		# Reduce two-field typing to ARD level
+		ARD_DON_A1 = ard.redux(a1_donor, 'lgx')
+		ARD_DON_A2 = ard.redux(a2_donor, 'lgx')
+		ARD_REC_A1 = ard.redux(a1_recip, 'lgx')
+		ARD_REC_A2 = ard.redux(a2_recip, 'lgx')
+		ARD_DON_B1 = ard.redux(b1_donor, 'lgx')
+		ARD_DON_B2 = ard.redux(b2_donor, 'lgx')
+		ARD_REC_B1 = ard.redux(b1_recip, 'lgx')
+		ARD_REC_B2 = ard.redux(b2_recip, 'lgx')
+		ARD_DON_C1 = ard.redux(c1_donor, 'lgx')
+		ARD_DON_C2 = ard.redux(c2_donor, 'lgx')
+		ARD_REC_C1 = ard.redux(c1_recip, 'lgx')
+		ARD_REC_C2 = ard.redux(c2_recip, 'lgx')
+		ARD_DON_DR1 = ard.redux(drb1_1_donor, 'lgx')
+		ARD_DON_DR2 = ard.redux(drb1_2_donor, 'lgx')
+		ARD_REC_DR1 = ard.redux(drb1_1_recip, 'lgx')
+		ARD_REC_DR2 = ard.redux(drb1_2_recip, 'lgx')
+		ARD_DON_DQ1 = ard.redux(dqb1_1_donor, 'lgx')
+		ARD_DON_DQ2 = ard.redux(dqb1_2_donor, 'lgx')
+		ARD_REC_DQ1 = ard.redux(dqb1_1_recip, 'lgx')
+		ARD_REC_DQ2 = ard.redux(dqb1_2_recip, 'lgx')
+		if dqa1_1_recip == 'DQA1*01:07':
+			dqa1_1_recip = 'DQA1*01:07Q'
+		if dqa1_2_recip == 'DQA1*01:07':
+			dqa1_2_recip = 'DQA1*01:07Q'
+		if dqa1_1_donor == 'DQA1*01:07':
+			dqa1_1_donor = 'DQA1*01:07Q'
+		if dqa1_2_donor == 'DQA1*01:07':
+			dqa1_2_donor = 'DQA1*01:07Q'
+		ARD_DON_DQA1 = ard.redux(dqa1_1_donor, 'lgx')
+		ARD_DON_DQA2 = ard.redux(dqa1_2_donor, 'lgx')
+		ARD_REC_DQA1 = ard.redux(dqa1_1_recip, 'lgx')
+		ARD_REC_DQA2 = ard.redux(dqa1_2_recip, 'lgx')
+		ARD_DON_DPA1 = ard.redux(dpa1_1_donor, 'lgx')
+		ARD_DON_DPA2 = ard.redux(dpa1_2_donor, 'lgx')
+		ARD_REC_DPA1 = ard.redux(dpa1_1_recip, 'lgx')
+		ARD_REC_DPA2 = ard.redux(dpa1_2_recip, 'lgx')
+		ARD_DON_DPB1 = ard.redux(dpb1_1_donor, 'lgx')
+		ARD_DON_DPB2 = ard.redux(dpb1_2_donor, 'lgx')
+		ARD_REC_DPB1 = ard.redux(dpb1_1_recip, 'lgx')
+		ARD_REC_DPB2 = ard.redux(dpb1_2_recip, 'lgx')
 
-		antigen_mm_file.write(','.join([PX_ID,\
-							a1_donor, a2_donor, a1_recip, a1_donor, b1_donor, b2_donor, b1_recip, b2_recip,\
-							c1_donor,c2_donor,c1_recip,c2_recip,str(REC_C_MM_EQUIV_CUR),\
-							drb1_1_donor, drb1_2_donor, drb1_1_recip, drb1_2_recip,\
-							dqb1_1_donor,dqb1_2_donor,dqb1_1_recip,dqb1_2_recip,str(REC_DQ_MM_EQUIV_CUR),\
-							dqa1_1_donor,dqa1_2_donor,dqa1_1_recip,dqa1_2_recip,str(REC_DQA1_MM_EQUIV_CUR),\
-							dpa1_1_donor,dpa1_2_donor,dpa1_1_recip,dpa1_2_recip,str(REC_DPA1_MM_EQUIV_CUR),\
-							dpb1_1_donor,dpb1_2_donor,dpb1_1_recip,dpb1_2_recip,str(REC_DPB1_MM_EQUIV_CUR)])+ "\n")
+		# ARD level allele MM
+		ARD_A_ALLELE_MM = allele_mm(ARD_DON_A1, ARD_DON_A2, ARD_REC_A1, ARD_REC_A2)
+		ARD_B_ALLELE_MM = allele_mm(ARD_DON_B1, ARD_DON_B2, ARD_REC_B1, ARD_REC_B2)
+		ARD_C_ALLELE_MM = allele_mm(ARD_DON_C1, ARD_DON_C2, ARD_REC_C1, ARD_REC_C2)
+		ARD_DR_ALLELE_MM = allele_mm(ARD_DON_DR1, ARD_DON_DR2, ARD_REC_DR1, ARD_REC_DR2)
+		ARD_DQ_ALLELE_MM = allele_mm(ARD_DON_DQ1, ARD_DON_DQ2, ARD_REC_DQ1, ARD_REC_DQ2)
+		ARD_DQA1_ALLELE_MM = allele_mm(ARD_DON_DQA1, ARD_DON_DQA2, ARD_REC_DQA1, ARD_REC_DQA2)
+		ARD_DPA1_ALLELE_MM = allele_mm(ARD_DON_DPA1, ARD_DON_DPA2, ARD_REC_DPA1, ARD_REC_DPA2)
+		ARD_DPB1_ALLELE_MM = allele_mm(ARD_DON_DPB1, ARD_DON_DPB2, ARD_REC_DPB1, ARD_REC_DPB2)
 
 
-# Add Allele mismatch for each loci in the antigen mismatch files
+		antigen_mm_file.write(','.join([PX_ID,a1_donor,a2_donor,a1_recip,a1_donor,str(REC_A_ALLELE_MM),
+										b1_donor,b2_donor, b1_recip,b2_recip,str(REC_B_ALLELE_MM),
+										c1_donor,c2_donor,c1_recip,c2_recip,str(REC_C_MM_EQUIV_CUR),str(REC_C_ALLELE_MM),
+										drb1_1_donor, drb1_2_donor, drb1_1_recip, drb1_2_recip,str(REC_DR_ALLELE_MM),
+										dqb1_1_donor,dqb1_2_donor,dqb1_1_recip,dqb1_2_recip,str(REC_DQ_MM_EQUIV_CUR),str(REC_DQ_ALLELE_MM),
+										dqa1_1_donor,dqa1_2_donor,dqa1_1_recip,dqa1_2_recip,str(REC_DQA1_MM_EQUIV_CUR),str(REC_DQA1_ALLELE_MM),
+										dpa1_1_donor,dpa1_2_donor,dpa1_1_recip,dpa1_2_recip,str(REC_DPA1_MM_EQUIV_CUR),str(REC_DPA1_ALLELE_MM),
+										dpb1_1_donor,dpb1_2_donor,dpb1_1_recip,dpb1_2_recip,str(REC_DPB1_MM_EQUIV_CUR),str(REC_DPB1_ALLELE_MM),
+										ARD_DON_A1,ARD_DON_A2,ARD_REC_A1,ARD_REC_A2,str(ARD_A_ALLELE_MM),
+										ARD_DON_B1,ARD_DON_B2,ARD_REC_B1,ARD_REC_B2,str(ARD_B_ALLELE_MM),
+										ARD_DON_C1,ARD_DON_C2,ARD_REC_C1,ARD_REC_C2,str(ARD_C_ALLELE_MM),
+										ARD_DON_DR1,ARD_DON_DR2,ARD_REC_DR1,ARD_REC_DR2,str(ARD_DR_ALLELE_MM),
+										ARD_DON_DQ1,ARD_DON_DQ2,ARD_REC_DQ1,ARD_REC_DQ2,str(ARD_DQ_ALLELE_MM),
+										ARD_DON_DQA1,ARD_DON_DQA2,ARD_REC_DQA1,ARD_REC_DQA2,str(ARD_DQA1_ALLELE_MM),
+										ARD_DON_DPA1,ARD_DON_DPA2,ARD_REC_DPA1,ARD_REC_DPA2,str(ARD_DPA1_ALLELE_MM),
+										ARD_DON_DPB1,ARD_DON_DPB2,ARD_REC_DPB1,ARD_REC_DPB2,str(ARD_DPB1_ALLELE_MM)])+ "\n")
+
+	antigen_mm_file.close()
+
+
 # Add the SRTR computed HLA antigen mismatch for A, B, and DR from the TX_KI_decoded.txt
 srtr = pd.read_csv("TX_KI_decoded.txt", sep='\t')
 
 SRTR = srtr[['PX_ID', 'REC_A_MM_EQUIV_CUR', 'REC_B_MM_EQUIV_CUR', 'REC_DR_MM_EQUIV_CUR']]
 
-
-# Compute allele MM by comparing strings (should get 0, 1, 2), column name should be like REC_A_ALLELE_MM
-def allele_counting(AG_MM, letter):
-	donor = 'DON_' + letter
-	recp = 'REC_' + letter
-
-	if letter == 'DQA' or letter == 'DPA' or letter == 'DPB':
-		letter = letter + '1'
-
-	AG_MM['REC1_' + letter + '_ALLELE_MM'] = AG_MM[donor + '1'] != AG_MM[recp + '1']
-	AG_MM['REC2_' + letter + '_ALLELE_MM'] = AG_MM[donor + '2'] != AG_MM[recp + '2']
-	AG_MM['REC_' + letter + '_ALLELE_MM'] = AG_MM[['REC1_' + letter + '_ALLELE_MM', 'REC2_' + letter + '_ALLELE_MM']].sum(axis=1)
-
-	AG_MM = AG_MM.drop(['REC1_' + letter + '_ALLELE_MM', 'REC2_' + letter + '_ALLELE_MM'], axis=1)
-
-	return AG_MM
-
-
-letters = ['A', 'B', 'C', 'DR', 'DQ', 'DQA', 'DPA', 'DPB']
 for num in range(1, 11):
-	filename = "srtr_antigen_mm_" + str(num) + ".csv"
+	filename = "srtr_ag_allele_mm_" + str(num) + ".csv"
 	ag_file = pd.read_csv(filename)
+	print('Merge SRTR HLA-A,-B,-DR Ag MM Data: ', filename)
 
 	# Merge the 3 loci from before with the other loci
 	ag_mm = pd.merge(ag_file, SRTR, how='inner', on='PX_ID')
 
-	ag_mm_allele = ag_mm
-
-	for allele in letters:
-		ag_mm_allele = allele_counting(ag_mm_allele, allele)
-
 	# Fix the format
-	ag_mm_allele = ag_mm_allele[['PX_ID', 'DON_A1', 'DON_A2', 'REC_A1', 'REC_A2', 'REC_A_MM_EQUIV_CUR', 'REC_A_ALLELE_MM',
-								 'DON_B1', 'DON_B2', 'REC_B1', 'REC_B2', 'REC_B_MM_EQUIV_CUR', 'REC_B_ALLELE_MM',
-								 'DON_C1', 'DON_C2', 'REC_C1', 'REC_C2', 'REC_C_MM_EQUIV_CUR', 'REC_C_ALLELE_MM',
-                                 'DON_DR1', 'DON_DR2', 'REC_DR1', 'REC_DR2', 'REC_DR_MM_EQUIV_CUR', 'REC_DR_ALLELE_MM',
-								 'DON_DQ1', 'DON_DQ2', 'REC_DQ1', 'REC_DQ2', 'REC_DQ_MM_EQUIV_CUR', 'REC_DQ_ALLELE_MM',
-                                 'DON_DQA1', 'DON_DQA2', 'REC_DQA1', 'REC_DQA2', 'REC_DQA1_MM_EQUIV_CUR', 'REC_DQA1_ALLELE_MM',
-								 'DON_DPA1', 'DON_DPA2', 'REC_DPA1', 'REC_DPA2', 'REC_DPA1_MM_EQUIV_CUR', 'REC_DPA1_ALLELE_MM',
-								 'DON_DPB1', 'DON_DPB2', 'REC_DPB1', 'REC_DPB2', 'REC_DPB1_MM_EQUIV_CUR', 'REC_DPB1_ALLELE_MM']]
+	ag_mm_allele = ag_mm[['PX_ID', 'DON_A1', 'DON_A2', 'REC_A1', 'REC_A2', 'REC_A_MM_EQUIV_CUR', 'REC_A_ALLELE_MM',
+						'DON_B1', 'DON_B2', 'REC_B1', 'REC_B2', 'REC_B_MM_EQUIV_CUR', 'REC_B_ALLELE_MM',
+						'DON_C1', 'DON_C2', 'REC_C1', 'REC_C2', 'REC_C_MM_EQUIV_CUR', 'REC_C_ALLELE_MM',
+						'DON_DR1', 'DON_DR2', 'REC_DR1', 'REC_DR2', 'REC_DR_MM_EQUIV_CUR', 'REC_DR_ALLELE_MM',
+						'DON_DQ1', 'DON_DQ2', 'REC_DQ1', 'REC_DQ2', 'REC_DQ_MM_EQUIV_CUR', 'REC_DQ_ALLELE_MM',
+						'DON_DQA1', 'DON_DQA2', 'REC_DQA1', 'REC_DQA2', 'REC_DQA1_MM_EQUIV_CUR', 'REC_DQA1_ALLELE_MM',
+						'DON_DPA1', 'DON_DPA2', 'REC_DPA1', 'REC_DPA2', 'REC_DPA1_MM_EQUIV_CUR', 'REC_DPA1_ALLELE_MM',
+						'DON_DPB1', 'DON_DPB2', 'REC_DPB1', 'REC_DPB2', 'REC_DPB1_MM_EQUIV_CUR', 'REC_DPB1_ALLELE_MM',
+						'ARD_DON_A1', 'ARD_DON_A2', 'ARD_REC_A1','ARD_REC_A2','ARD_A_ALLELE_MM',
+						'ARD_DON_B1', 'ARD_DON_B2', 'ARD_REC_B1', 'ARD_REC_B2', 'ARD_B_ALLELE_MM',
+						'ARD_DON_C1', 'ARD_DON_C2', 'ARD_REC_C1', 'ARD_REC_C2', 'ARD_C_ALLELE_MM',
+						'ARD_DON_DR1', 'ARD_DON_DR2', 'ARD_REC_DR1', 'ARD_REC_DR2', 'ARD_DR_ALLELE_MM',
+						'ARD_DON_DQ1', 'ARD_DON_DQ2', 'ARD_REC_DQ1', 'ARD_REC_DQ2', 'ARD_DQ_ALLELE_MM',
+						'ARD_DON_DQA1', 'ARD_DON_DQA2', 'ARD_REC_DQA1', 'ARD_REC_DQA2', 'ARD_DQA1_ALLELE_MM',
+						'ARD_DON_DPA1', 'ARD_DON_DPA2', 'ARD_REC_DPA1', 'ARD_REC_DPA2', 'ARD_DPA1_ALLELE_MM',
+						'ARD_DON_DPB2', 'ARD_REC_DPB1', 'ARD_REC_DPB2', 'ARD_DPB1_ALLELE_MM']]
 
 	ag_mm_allele.to_csv('srtr_ag_allele_mm_' + str(num) + '.csv', header=True, index=False)
+
