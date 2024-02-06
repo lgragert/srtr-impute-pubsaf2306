@@ -5,29 +5,30 @@ from collections import defaultdict
 import hlagenie
 genie = hlagenie.init("3510")
 
-loci = ["A", "B", "C", "DR345", "DRB1", "DQA1", "DQB1", "DPA1", "DPB1"]
+loci = ["A", "B", "C", "DRB345", "DRB1", "DQA1", "DQB1", "DPA1", "DPB1"]
 
-ard_start_pos = {
+full_start_pos = {
     "A" : 1,
     "B" : 1,
     "C" : 1,
-    "DR345" : 1,
+    "DRB345" : 1,
     "DRB1" : 1,
     "DQA1" : 1,
     "DQB1" : 1,
     "DPA1" : 1,
     "DPB1" : 1,
 }
-ard_end_pos = {
-    "A" : 182,
-    "B" : 182,
-    "C" : 182,
-    "DR345" : 95,
-    "DRB1" : 94,
-    "DQA1" : 87,
-    "DQB1" : 94,
-    "DPA1" : 84,
-    "DPB1" : 92,
+
+full_end_pos = {
+    "A": 341,
+    "B": 338,
+    "C": 342,
+    "DRB1": 237,
+    "DRB345": 237,
+    "DQA1": 232,
+    "DQB1": 229,  # increased by 1
+    "DPA1": 229,
+    "DPB1": 229,
 }
 
 
@@ -176,7 +177,7 @@ for subject_id in happair_hla:
             if (locus == "C"):
                 allele1 = c1
                 allele2 = c2
-            if (locus == "DR345"):
+            if (locus == "DRB345"):
                 allele1 = dr345_1
                 allele2 = dr345_2
             if (locus == "DRB1"):
@@ -201,26 +202,31 @@ for subject_id in happair_hla:
             # get appropriate position range per locus
             # lots of incomplete sequences in IMGT/HLA that are filled in - use only ARD positions
             # for position in DRB1_AA_positions_selected:
-            for position in range(ard_start_pos[locus], ard_end_pos[locus]):
+            for position in range(full_start_pos[locus], full_end_pos[locus]):
                 # print (locus)
                 # print ("DRB1 allele-level genotypes: " + drb1_1 + "+" + drb1_2)
-                if allele1 == "DRBX*NNNN" or allele2 == "DRBX*NNNN":
-                    continue
+                if allele1 == "DRBX*NNNN":
+                    AA1 = 'None'
                 else:
                     AA1 = genie.getAA(allele1, position)
+
+                if allele2 == "DRBX*NNNN":
+                    AA2 = 'None'
+                else:
                     AA2 = genie.getAA(allele2, position)
-                    (AA1, AA2) = sorted([AA1, AA2])  # alpha sort positions
-                    AA_geno = AA1 + "+" + AA2
-                    # print ("AA position: " + str(position))
-                    # print ("AA-level genotype: " + AA_geno)
-                    # print ("Hap Pair Prob: " + str(happair_prob))
-                    AA_geno_probs[locus][position][AA_geno] += happair_prob
+
+                (AA1, AA2) = sorted([AA1, AA2])  # alpha sort positions
+                AA_geno = AA1 + "+" + AA2
+                # print ("AA position: " + str(position))
+                # print ("AA-level genotype: " + AA_geno)
+                # print ("Hap Pair Prob: " + str(happair_prob))
+                AA_geno_probs[locus][position][AA_geno] += happair_prob
 
     for locus in loci:
         # for locus in loci_selected:
         # print (locus)
         # for position in DRB1_AA_positions_selected:
-        for position in range(ard_start_pos[locus], ard_end_pos[locus]):
+        for position in range(full_start_pos[locus], full_end_pos[locus]):
             # print ("AA position: " + str(position))
             TRS = 0
             for AA_geno in AA_geno_probs[locus][position]:
@@ -272,8 +278,8 @@ ethnicity_list = list(nsubject_ethnicity.keys())
 print (ethnicity_list)
 print ("Number of donors: " + str(nsubject_donor))
 print ("Number of recipients: " + str(nsubject_recip))
-print ("Number of NAM donors: " + str(nsubject_donor_ethnicity["NAM"]))
-print ("Number of NAM recips: " + str(nsubject_recip_ethnicity["NAM"]))
+print ("Number of MLT donors: " + str(nsubject_donor_ethnicity["MLT"]))
+print ("Number of MLT recips: " + str(nsubject_recip_ethnicity["MLT"]))
 
 # compute averages TRS per position for donors/recips
 # compute averages TRS per position by race/ethnicity
@@ -297,7 +303,7 @@ for subject_id in subject_ID_ethnicity_study:
 
     for locus in loci:
         # for locus in loci_selected:
-        for position in range(ard_start_pos[locus], ard_end_pos[locus]):
+        for position in range(full_start_pos[locus], full_end_pos[locus]):
             # for position in DRB1_AA_positions_selected:
             TRS = TRS_dict[subject_id][locus][position]
             # print (locus + " " + str(position) + " " + str(TRS))
@@ -327,12 +333,11 @@ TRS_average_out_file = open(TRS_average_out_filename, "w")
 TRS_average_out_file.write("Subject_Type,Ethnicity,Locus,AA_Position,TRS_Average\n")
 for donor_or_recip in ["SUBJECT", "DONOR", "RECIP"]:
     for ethnicity in ethnicity_list:
-        print(donor_or_recip + " " + ethnicity)
         # for locus in loci_selected:
         for locus in loci:
-            for position in range(ard_start_pos[locus], ard_end_pos[locus]):
+            for position in range(full_start_pos[locus], full_end_pos[locus]):
                 # for position in DRB1_AA_positions_selected:
-                # print(donor_or_recip + " " + ethnicity + " " + locus + " " + str(position))
+                print(donor_or_recip + " " + ethnicity + " " + locus + " " + str(position))
 
                 # UNK recip has 0 cases, so TRS should be NA
                 TRS = ""
