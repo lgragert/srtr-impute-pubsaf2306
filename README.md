@@ -159,6 +159,30 @@ Amino acid mismatch assignment:
     - An alternative approach might count mismatches among up to 4 gene copies of DRB1/3/4/5 and have up to 4 mismatches per DRB gene position.
     - Another alternative approach might consider DRB3/4/5 as separate genes and any DRB3/4/5 gene present in the donor that isn't in the recipient would cause mismatches at all positions.
 
+Restricting Class II AAMM Coordinate to Exons Typed in Reference Data used for imputation:
+
+The reference NMDP haplotype frequencies used for imputation is based on HLA Class II typing that did not extend beyond exons 2 and 3.
+
+Exon 2 of Class II encodes the antigen recognition domain (ARD), and we are extending to exon 3 to get to what we call the "XRD".
+
+This file can be used to get the range of amino acid coordinates for HLA Class II positions where the predictions are better supported by reference data.
+
+The coordinates were determined by inspecting nucleotide sequence alignments for Exon 2 and 3 from the IMGT/HLA alignment tool.
+
+```
+aa_coords_classII_XRD.csv
+
+locus,start_pos,end_pos
+DRB1,6,188
+DRB3,6,188
+DRB4,6,188
+DRB5,6,184
+DQA1,6,181
+DQB1,6,188
+DPA1,4,178
+DPB1,6,186
+```
+
 Running AAMM script:
 - Arguments are replicate, generateRunMatchMC, generateMatrix, generateSFVT
 - SFVT columns aren't included in runs
