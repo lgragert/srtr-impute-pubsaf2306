@@ -169,14 +169,14 @@ This file can be used to get the range of amino acid coordinates for HLA Class I
 
 The coordinates were determined by inspecting nucleotide sequence alignments for Exon 2 and 3 from the IMGT/HLA alignment tool.
 
+DRB345 coordinates are based on DRB5.
+
 ```
 aa_coords_classII_XRD.csv
 
 locus,start_pos,end_pos
 DRB1,6,188
-DRB3,6,188
-DRB4,6,188
-DRB5,6,184
+DRB345,6,184
 DQA1,6,181
 DQB1,6,188
 DPA1,4,178
