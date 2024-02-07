@@ -1,8 +1,6 @@
 hla_locus,start_pos,end_pos
 DRB1,6,188
-DRB3,6,188
-DRB4,6,188
-DRB5,6,184
+DRB345,6,184
 DQA1,6,181
 DQB1,6,188
 DPA1,4,178
