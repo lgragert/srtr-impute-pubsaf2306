@@ -2,6 +2,7 @@
 
 import gzip
 from collections import defaultdict
+import sys
 import hlagenie
 genie = hlagenie.init("3510")
 
@@ -39,14 +40,15 @@ def multi_dict(K, type):
     else:
         return defaultdict(lambda: multi_dict(K-1, type))
 
-pops = ['AFA', 'ASN', 'CAU', 'HIS', 'MLT', 'NAM']
+pop = sys.argv[1]  # Loop through population groups in slurm script: AFA ASN CAU HIS MLT NAM
+pops = [pop]  # ['AFA', 'ASN', 'CAU', 'HIS', 'MLT', 'NAM']
 happair_probs = {}  # HLA probability distribution
 happair_hla = {}  # HLA haplotype pair distribution
 happair_id_total = {}  # cumulative genotype frequency total
 subject_ID_ethnicity_study = {}
-for pop in pops:
+for popn in pops:
     # load SRTR HapLogic imputation output file and load probabilities for all subjects
-    impute_outfilename = "./impute.srtr." + pop + ".csv.gz"
+    impute_outfilename = "./impute.srtr." + popn + ".csv.gz"
     impute_outfile = gzip.open(impute_outfilename, "rt")
     # compute cumulative genotype frequency totals per subject
 
@@ -57,7 +59,7 @@ for pop in pops:
 
         happair_freq = 0
 
-        subject_ID_ethnicity_study[subject_id] = pop
+        subject_ID_ethnicity_study[subject_id] = popn
 
         if (hap1 == hap2):
             happair_freq = float(freq)
@@ -249,7 +251,7 @@ TRS_average = multi_dict(4, float)  # Average TRS per donor/recip per race per l
 
 
 nsubjects = len(subject_ID_ethnicity_study)
-print ("Number of subjects in the impute.srtr.*.csv.gz file: " + str(nsubjects))
+print ("Number of subjects in the impute.srtr." + pop + ".csv.gz file: " + str(nsubjects))
 
 # compute the number of subjects by category to get denominators for averages
 
@@ -278,8 +280,8 @@ ethnicity_list = list(nsubject_ethnicity.keys())
 print (ethnicity_list)
 print ("Number of donors: " + str(nsubject_donor))
 print ("Number of recipients: " + str(nsubject_recip))
-print ("Number of MLT donors: " + str(nsubject_donor_ethnicity["MLT"]))
-print ("Number of MLT recips: " + str(nsubject_recip_ethnicity["MLT"]))
+print ("Number of " + pop + " donors: " + str(nsubject_donor_ethnicity[pop]))
+print ("Number of " + pop + " recips: " + str(nsubject_recip_ethnicity[pop]))
 
 # compute averages TRS per position for donors/recips
 # compute averages TRS per position by race/ethnicity
@@ -313,13 +315,13 @@ for subject_id in subject_ID_ethnicity_study:
             # print ("nrecips: " + str(nsubject_recip))
             # print ("ndonors of ethnicity " + ethnicity + " : " + str(nsubject_donor_ethnicity[ethnicity]))
             # print ("nrecips of ethnicity " + ethnicity + " : " + str(nsubject_recip_ethnicity[ethnicity]))
-            TRS_average["SUBJECT"]["ALL"][locus][position] += (TRS / nsubjects)
+            # TRS_average["SUBJECT"]["ALL"][locus][position] += (TRS / nsubjects)
             TRS_average["SUBJECT"][ethnicity][locus][position] += (TRS / nsubject_ethnicity[ethnicity])
             if (donor_or_recip == "DONOR"):
-                TRS_average["DONOR"]["ALL"][locus][position] += (TRS / nsubject_donor)
+                # TRS_average["DONOR"]["ALL"][locus][position] += (TRS / nsubject_donor)
                 TRS_average["DONOR"][ethnicity][locus][position] += (TRS / nsubject_donor_ethnicity[ethnicity])
             else:
-                TRS_average["RECIP"]["ALL"][locus][position] += (TRS / nsubject_recip)
+                # TRS_average["RECIP"]["ALL"][locus][position] += (TRS / nsubject_recip)
                 TRS_average["RECIP"][ethnicity][locus][position] += (TRS / nsubject_recip_ethnicity[ethnicity])
             # print ("Ethnicity: " + ethnicity)
             # print ("TRS Average for ALL Subjects Ethnicity: " + str(TRS_average["ALL_SUBJECTS"][ethnicity][locus][position]))
@@ -327,8 +329,7 @@ for subject_id in subject_ID_ethnicity_study:
             #     exit()
 
 # print summary table
-ethnicity_list.append("ALL")
-TRS_average_out_filename = "SRTR_HLA_AA_TRS_Average.csv"
+TRS_average_out_filename = "SRTR_HLA_AA_TRS_Average_" + pop + ".csv"
 TRS_average_out_file = open(TRS_average_out_filename, "w")
 TRS_average_out_file.write("Subject_Type,Ethnicity,Locus,AA_Position,TRS_Average\n")
 for donor_or_recip in ["SUBJECT", "DONOR", "RECIP"]:
