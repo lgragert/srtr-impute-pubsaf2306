@@ -355,5 +355,6 @@ for donor_or_recip in ["SUBJECT", "DONOR", "RECIP"]:
 # rows in each tables are donor/recip-ethnicity combo
 # columns are positions
 
+TRS_average_out_file.close()
 
 exit()
