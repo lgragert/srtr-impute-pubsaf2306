@@ -332,7 +332,27 @@ Input: impute.srtr.*.csv.gz
 
 Output: trs_9loc_matrix.csv
 ```
-TRS by loci by year.
+
+Typing resolution score by amino acid position:
+
+```
+python3 typing_res_score_9loc_AA.py CAU
+python3 typing_res_score_9loc_AA.py AFA
+python3 typing_res_score_9loc_AA.py ASN
+python3 typing_res_score_9loc_AA.py HIS
+python3 typing_res_score_9loc_AA.py NAM
+python3 typing_res_score_9loc_AA.py MLT
+
+Input: impute.srtr.*.csv.gz
+
+Output: SRTR_HLA_AA_TRS_Average_*.csv
+
+sbatch --array=1-6 ./run_slurm_TRS_9loc_AA.sh
+```
+
+
+Fraction of typings at each locus by year:
+
 ```
 hla_typing_by_year.R
 
