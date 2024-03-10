@@ -1,0 +1,1 @@
+sbatch --array=1-6 ./run_slurm_TRS_9loc_AA.sh 

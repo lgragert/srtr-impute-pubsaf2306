@@ -6,6 +6,10 @@ import sys
 import hlagenie
 genie = hlagenie.init("3510")
 
+pop = sys.argv[1]  # Loop through population groups in slurm script: AFA ASN CAU HIS MLT NAM
+pops = [pop]  # ['AFA', 'ASN', 'CAU', 'HIS', 'MLT', 'NAM']
+
+
 loci = ["A", "B", "C", "DRB345", "DRB1", "DQA1", "DQB1", "DPA1", "DPB1"]
 
 full_start_pos = {
@@ -27,7 +31,7 @@ full_end_pos = {
     "DRB1": 237,
     "DRB345": 237,
     "DQA1": 232,
-    "DQB1": 229,  # increased by 1
+    "DQB1": 229,
     "DPA1": 229,
     "DPB1": 229,
 }
@@ -40,8 +44,7 @@ def multi_dict(K, type):
     else:
         return defaultdict(lambda: multi_dict(K-1, type))
 
-pop = sys.argv[1]  # Loop through population groups in slurm script: AFA ASN CAU HIS MLT NAM
-pops = [pop]  # ['AFA', 'ASN', 'CAU', 'HIS', 'MLT', 'NAM']
+
 happair_probs = {}  # HLA probability distribution
 happair_hla = {}  # HLA haplotype pair distribution
 happair_id_total = {}  # cumulative genotype frequency total
@@ -50,10 +53,10 @@ for popn in pops:
     # load SRTR HapLogic imputation output file and load probabilities for all subjects
     impute_outfilename = "./impute.srtr." + popn + ".csv.gz"
     impute_outfile = gzip.open(impute_outfilename, "rt")
-    # compute cumulative genotype frequency totals per subject
 
+    # compute cumulative genotype frequency totals per subject
     for line in impute_outfile:
-        (subject_id, rank, hap1, hap2, freq) = line.split(',')
+        (subject_id, rank, hap1, hap2, prob) = line.split(',')
         if (subject_id == "PX_ID"):  # skip header row
             continue
 
@@ -61,40 +64,39 @@ for popn in pops:
 
         subject_ID_ethnicity_study[subject_id] = popn
 
-        if (hap1 == hap2):
-            happair_freq = float(freq)
-        else:
-            happair_freq = 2 * float(freq)
-
         if subject_id not in happair_id_total:
             happair_id_total[subject_id] = 0
-        happair_id_total[subject_id] += float(happair_freq)
+        happair_id_total[subject_id] += float(prob)
 
-        # print (subject_id + " " + hap1 + "+" + hap2 + " " + str(happair_id_total[subject_id]))
+        # print ("Running probability total for normalization: " + subject_id + " " + hap1 + "+" + hap2 + " " + str(happair_id_total[subject_id]))
     impute_outfile.close()
 
     impute_outfile = gzip.open(impute_outfilename, "rt")
 
-    # compute probabilties for each haplotype pair
+    # compute probabilties for each haplotype pair with normalization
     for line in impute_outfile:
-        (subject_id, rank, hap1, hap2, freq) = line.split(',')
+        (subject_id, rank, hap1, hap2, prob) = line.split(',')
         if (subject_id == "PX_ID"):  # skip header row
             continue
 
         happair = hap1 + "+" + hap2
-
-        happair_freq = 0
-        happair_total = 0
-        happair_freq = float(freq)
+        happair_freq = float(prob)
 
         if subject_id not in happair_probs:
             happair_probs[subject_id] = list()
+
+        # compute probability after renormalization
         happair_probs[subject_id].append(happair_freq / happair_id_total[subject_id])
+
         if subject_id not in happair_hla:
             happair_hla[subject_id] = list()
         happair_hla[subject_id].append(happair)
-        # print (subject_id + " " + happair + " " + str(happair_freq))
+        
+    impute_outfile.close()
 
+exit
+
+print ("Haplotype pair probabilities loaded")
 
 # compute probabilities for each AA-level genotype
 TRS_dict = multi_dict(3, float)  # TRS per subject per locus per position
@@ -239,6 +241,7 @@ for subject_id in happair_hla:
                 TRS_increment = AA_geno_prob * AA_geno_prob
                 # print ("AA genotype contribution to TRS: " + str(TRS_increment))
             TRS_dict[subject_id][locus][position] = TRS
+            # print ("TRS for " + subject_id + " Locus " + locus + " Position " + str(position) + " : " + str(TRS))
 
     # print("The time difference is :", timeit.default_timer() - starttime)
     subject_counter += 1
