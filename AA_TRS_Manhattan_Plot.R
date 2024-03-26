@@ -8,7 +8,6 @@ if (!require('ggplot2'))
 if (!require('ggrepel'))
   install.packages('ggrepel')
 
-
 # Start by dividing out the population groups then take the AA positions
 setwd("./")
 
@@ -46,7 +45,7 @@ nam_donor = trs_NAM %>% filter((Subject_Type =='DONOR') & (Ethnicity == 'NAM'))
 
 
 # GGplot function found on https://r-graph-gallery.com/101_Manhattan_plot.html
-manhattan_plot <- function(sub_typ, ethnicity, subj, tolerance=0.075) {
+manhattan_plot <- function(sub_typ, ethnicity, subj, tolerance=0.04) {
   # Make Loci names L1, L2, L3,... so that you can have it in genomic order
   sub_typ$lgroup <- 'NA'
   sub_typ[is.element(sub_typ$Locus,'A'),"lgroup"] <- 'L1'
@@ -58,7 +57,6 @@ manhattan_plot <- function(sub_typ, ethnicity, subj, tolerance=0.075) {
   sub_typ[is.element(sub_typ$Locus,'DQB1'),"lgroup"] <- 'L7'
   sub_typ[is.element(sub_typ$Locus,'DPA1'),"lgroup"] <- 'L8'
   sub_typ[is.element(sub_typ$Locus,'DPB1'),"lgroup"] <- 'L9'
-  
   # Prepare the data
   don <- sub_typ %>%
     
@@ -85,7 +83,7 @@ manhattan_plot <- function(sub_typ, ethnicity, subj, tolerance=0.075) {
     group_by(Locus) %>%
     summarize(center=(max(Loci) + min(Loci)) / 2)
   
-  max_y_val <- max(1-don$TRS_Average)
+  max_y_val <- 0.33
   
   # Plot the data
   ggplot(don, aes(x=Loci, y=(1-TRS_Average))) +
@@ -114,48 +112,48 @@ manhattan_plot <- function(sub_typ, ethnicity, subj, tolerance=0.075) {
 
 # AFA population
 manhattan_plot(afa_subjs, "AFA", "Donors and Recipients")
-ggsave("AA_TRS_Manhattan_AFAsubjs.jpg", width=14.00, height=8.00)
+ggsave("AA_TRS_Manhattan_AFAsubj.jpg", width=18.00, height=4.00)
 manhattan_plot(afa_donor, 'AFA', "Donors")
-ggsave("AA_TRS_Manhattan_AFAdonors.jpg",width=14.00, height=8.00)
+ggsave("AA_TRS_Manhattan_AFAdonors.jpg",width=18.00, height=4.00)
 manhattan_plot(afa_recip, 'AFA', 'Recipients')
-ggsave("AA_TRS_Manhattan_AFArecips.jpg",width=14.00, height=8.00)
+ggsave("AA_TRS_Manhattan_AFArecips.jpg",width=18.00, height=4.00)
 
 # ASN population
 manhattan_plot(asn_subjs, "ASN", "Donors and Recipients")
-ggsave("AA_TRS_Manhattan_ASNsubj.jpg", width=14.00, height=8.00)
+ggsave("AA_TRS_Manhattan_ASNsubj.jpg", width=18.00, height=4.00)
 manhattan_plot(asn_donor, 'ASN', "Donors")
-ggsave("AA_TRS_Manhattan_ASNdonors.jpg",width=14.00, height=8.00)
+ggsave("AA_TRS_Manhattan_ASNdonors.jpg",width=18.00, height=4.00)
 manhattan_plot(asn_recip, 'ASN', 'Recipients')
-ggsave("AA_TRS_Manhattan_ASNrecips.jpg",width=14.00, height=8.00)
+ggsave("AA_TRS_Manhattan_ASNrecips.jpg",width=18.00, height=4.00)
 
 # CAU population
 manhattan_plot(cau_subjs, "CAU", "Donors and Recipients")
-ggsave("AA_TRS_Manhattan_CAUsubj.jpg", width=14.00, height=8.00)
+ggsave("AA_TRS_Manhattan_CAUsubj.jpg", width=18.00, height=4.00)
 manhattan_plot(cau_donor, 'CAU', "Donors")
-ggsave("AA_TRS_Manhattan_CAUdonors.jpg",width=14.00, height=8.00)
+ggsave("AA_TRS_Manhattan_CAUdonors.jpg",width=18.00, height=4.00)
 manhattan_plot(cau_recip, 'CAU', 'Recipients')
-ggsave("AA_TRS_Manhattan_CAUrecips.jpg",width=14.00, height=8.00)
+ggsave("AA_TRS_Manhattan_CAUrecips.jpg",width=18.00, height=4.00)
 
 # HIS population
 manhattan_plot(his_subjs, "HIS", "Donors and Recipients")
-ggsave("AA_TRS_Manhattan_HISsubj.jpg", width=14.00, height=8.00)
+ggsave("AA_TRS_Manhattan_HISsubj.jpg", width=18.00, height=4.00)
 manhattan_plot(his_donor, 'HIS', "Donors")
-ggsave("AA_TRS_Manhattan_HISdonors.jpg",width=14.00, height=8.00)
+ggsave("AA_TRS_Manhattan_HISdonors.jpg",width=18.00, height=4.00)
 manhattan_plot(his_recip, 'HIS', 'Recipients')
-ggsave("AA_TRS_Manhattan_HISrecips.jpg",width=14.00, height=8.00)
+ggsave("AA_TRS_Manhattan_HISrecips.jpg",width=18.00, height=4.00)
 
 # MLT population
 manhattan_plot(mlt_subjs, "MLT", "Donors and Recipients")
-ggsave("AA_TRS_Manhattan_MLTsubj.jpg", width=14.00, height=8.00)
+ggsave("AA_TRS_Manhattan_MLTsubj.jpg", width=18.00, height=4.00)
 manhattan_plot(mlt_donor, 'MLT', "Donors")
-ggsave("AA_TRS_Manhattan_MLTdonors.jpg",width=14.00, height=8.00)
+ggsave("AA_TRS_Manhattan_MLTdonors.jpg",width=18.00, height=4.00)
 manhattan_plot(mlt_recip, 'MLT', 'Recipients')
-ggsave("AA_TRS_Manhattan_MLTrecips.jpg",width=14.00, height=8.00)
+ggsave("AA_TRS_Manhattan_MLTrecips.jpg",width=18.00, height=4.00)
 
 # NAM population
 manhattan_plot(nam_subjs, "NAM", "Donors and Recipients")
-ggsave("AA_TRS_Manhattan_NAMsubj.jpg", width=14.00, height=8.00)
+ggsave("AA_TRS_Manhattan_NAMsubj.jpg", width=18.00, height=4.00)
 manhattan_plot(nam_donor, 'NAM', "Donors")
-ggsave("AA_TRS_Manhattan_NAMdonors.jpg",width=14.00, height=8.00)
+ggsave("AA_TRS_Manhattan_NAMdonors.jpg",width=18.00, height=4.00)
 manhattan_plot(nam_recip, 'NAM', 'Recipients')
-ggsave("AA_TRS_Manhattan_NAMrecips.jpg",width=14.00, height=8.00)
+ggsave("AA_TRS_Manhattan_NAMrecips.jpg",width=18.00, height=4.00)
