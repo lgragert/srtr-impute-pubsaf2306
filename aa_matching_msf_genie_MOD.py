@@ -497,8 +497,10 @@ class AAMatch:
                                 allele3_recip,allele4_recip,position):
         donor_homoz = 0
         if (allele1_donor == allele2_donor):
-            donor_homoz = 1
-        # ????
+            donor_homoz+=1
+        if (allele3_donor == allele4_donor):
+            donor_homoz+=1
+        
         aa1_donor = self.getAAposition(allele1_donor,position)
         aa2_donor = self.getAAposition(allele2_donor,position)
         aa3_donor = self.getAAposition(allele3_donor,position)
@@ -511,7 +513,9 @@ class AAMatch:
         mm_count = self.count_AA_Mismatches(aa1_donor,aa2_donor,aa3_donor,aa4_donor,aa1_recip,aa2_recip,aa3_recip,aa4_recip)
 
         if (donor_homoz == 1):
-            mm_count = mm_count - 1
+            mm_count-=1
+        if (donor_homoz == 2):
+            mm_count-=2
 
         return mm_count
 
