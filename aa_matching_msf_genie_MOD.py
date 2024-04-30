@@ -476,9 +476,9 @@ class AAMatch:
 
 #############################
 
-    # count number of mismatches at position between donor and recip
+    # count number of mismatches at position between donor and recip for DR
     # getTruth function from runMatchMC
-    def count_AA_Mismatches(self, aa1_donor,aa2_donor,aa3_donor,aa4_donor,aa1_recip,aa2_recip,aa3_recip,aa4_recip):
+    def count_AA_Mismatches_DR(self, aa1_donor,aa2_donor,aa3_donor,aa4_donor,aa1_recip,aa2_recip,aa3_recip,aa4_recip):
         mm_count = 0
         if ((aa1_donor != aa1_recip) & (aa1_donor != aa2_recip) & (aa1_donor != aa3_recip) & (aa1_donor != aa4_recip)):
             mm_count+=1
@@ -492,7 +492,7 @@ class AAMatch:
 
     # Count number of mismatches between alleles at a given position, considering 
     # homologous gene copies DRB1/3/4/5
-    def count_AA_Mismatches_DR(self, allele1_donor,allele2_donor,allele3_donor,
+    def count_AA_Mismatches_Allele_DR(self, allele1_donor,allele2_donor,allele3_donor,
                                 allele4_donor,allele1_recip,allele2_recip,
                                 allele3_recip,allele4_recip,position):
         donor_homoz = 0
@@ -500,8 +500,8 @@ class AAMatch:
             donor_homoz+=1
         if (allele3_donor == allele4_donor):
             donor_homoz+=1
-        return(donor_homoz)
-        
+        print ("Number of homozygous donor loci: " + str(donor_homoz))
+
         aa1_donor = self.getAAposition(allele1_donor,position)
         aa2_donor = self.getAAposition(allele2_donor,position)
         aa3_donor = self.getAAposition(allele3_donor,position)
@@ -520,14 +520,15 @@ class AAMatch:
         print(aa3_recip)
         print(aa4_recip)
 
-        mm_count = self.count_AA_Mismatches(aa1_donor,aa2_donor,aa3_donor,aa4_donor,aa1_recip,aa2_recip,aa3_recip,aa4_recip)
+        mm_count = self.count_AA_Mismatches_DR(aa1_donor,aa2_donor,aa3_donor,aa4_donor,aa1_recip,aa2_recip,aa3_recip,aa4_recip)
 
         if (donor_homoz == 1):
             mm_count-=1
         if (donor_homoz == 2):
             mm_count-=2
+        print ("Number of AAMM at position " + str(position) + " : " + str(mm_count))
 
-        return mm_count
+        return (donor_homoz, mm_count)
 
 #############################
 
