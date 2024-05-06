@@ -1,3 +1,4 @@
+import pandas as pd
 from aa_matching_msf_genie_MOD import *
 
 # test DR amino acid mismatch computation, considering both DRB1 and DRB3/4/5 loci as homologous
@@ -17,3 +18,17 @@ aa_mm = AAMatch(dbversion=3420)
 aam = aa_mm.count_AA_Mismatches_Allele_DR(allele1_donor,allele2_donor,allele3_donor,allele4_donor,allele1_recip,allele2_recip,allele3_recip,allele4_recip,position)
 
 print(aam)
+
+# DRB1345 test cases
+
+testinput = pd.read_csv('SRTR_AA_MM_9loc_matrix_1_EXTR.txt', delimiter='\t')
+
+testinput['AA_MM_DRB1345_COUNT'] = testinput.apply(lambda row: aa_mm.count_AA_Mismatches_Allele_DR(row['DONOR_DRB1_1'], row['DONOR_DRB1_2'],
+                                                                                                   row['DONOR_DRB345_1'], row['DONOR_DRB345_2'],
+                                                                                                   row['RECIP_DRB1_1'], row['RECIP_DRB1_2'],
+                                                                                                   row['RECIP_DRB345_1'], row['RECIP_DRB345_2'],
+                                                                                                   position), axis=1)
+
+testinput
+
+# testinput.to_csv('SRTR_AA_MM_9loc_matrix_1_EXTR_DRBoutput.txt', index=False, sep='\t')
