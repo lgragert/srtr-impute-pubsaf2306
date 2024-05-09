@@ -23,12 +23,34 @@ print(aam)
 
 testinput = pd.read_csv('SRTR_AA_MM_9loc_matrix_1_EXTR.txt', delimiter='\t')
 
-testinput['AA_MM_DRB1345_COUNT'] = testinput.apply(lambda row: aa_mm.count_AA_Mismatches_Allele_DR(row['DONOR_DRB1_1'], row['DONOR_DRB1_2'],
-                                                                                                   row['DONOR_DRB345_1'], row['DONOR_DRB345_2'],
-                                                                                                   row['RECIP_DRB1_1'], row['RECIP_DRB1_2'],
-                                                                                                   row['RECIP_DRB345_1'], row['RECIP_DRB345_2'],
-                                                                                                   position), axis=1)
+testinput['DRB1345_P13'] = testinput.apply(lambda row: aa_mm.count_AA_Mismatches_Allele_DR(row['DONOR_DRB1_1'], row['DONOR_DRB1_2'],
+                                                                                           row['DONOR_DRB345_1'], row['DONOR_DRB345_2'],
+                                                                                           row['RECIP_DRB1_1'], row['RECIP_DRB1_2'],
+                                                                                           row['RECIP_DRB345_1'], row['RECIP_DRB345_2'],
+                                                                                           position), axis=1)
 
 testinput
+
+def summary_statistics(testinput):
+  # Convert tuples to strings in [DRB1345_P13] column
+  # Extract number of mismatches from [DRB1345_P13] column
+  testinput['DRB1345_P13_COUNT'] = testinput['DRB1345_P13'].apply(lambda x: int(str(x).split(',')[1].strip(')')))
+
+  # Summary statistics (overall)
+  SS_overall = testinput['DRB1345_P13_COUNT'].value_counts().sort_index()
+
+  # Summary statistics (by recipient population category in [CAN_RACE] column)
+  SS_rpop = testinput.groupby('CAN_RACE')['DRB1345_P13_COUNT'].value_counts().unstack(fill_value=0).sort_index()
+
+  # Print overall summary
+  print("Overall Summary Statistics:")
+  print(SS_overall)
+
+  # Print summary by recipient population category
+  print("\nSummary Statistics by Recipient Population Category:")
+  print(SS_rpop)
+
+# Call the function with the DataFrame
+summary_statistics(testinput)
 
 # testinput.to_csv('SRTR_AA_MM_9loc_matrix_1_EXTR_DRBoutput.txt', index=False, sep='\t')
