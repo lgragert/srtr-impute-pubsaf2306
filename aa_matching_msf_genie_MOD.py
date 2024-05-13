@@ -542,6 +542,8 @@ class AAMatch:
 
         print ("Number of AAMM at position " + str(position) + " : " + str(mm_count))
 
+        print ("__________")
+
         return (mm_count)
 
     # Count number of mismatches at position between donor and recip for DQ
