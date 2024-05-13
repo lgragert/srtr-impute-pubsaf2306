@@ -542,7 +542,8 @@ class AAMatch:
 
         print ("Number of AAMM at position " + str(position) + " : " + str(mm_count))
 
-        print ("__________")
+        print()
+        print('==========')
 
         return (mm_count)
 
