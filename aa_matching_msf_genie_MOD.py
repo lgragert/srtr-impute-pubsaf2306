@@ -478,57 +478,71 @@ class AAMatch:
 
     # count number of mismatches at position between donor and recip for DR
     # getTruth function from runMatchMC
-    def count_AA_Mismatches_DR(self, aa1_donor,aa2_donor,aa3_donor,aa4_donor,aa1_recip,aa2_recip,aa3_recip,aa4_recip):
-        mm_count = 0
-        if ((aa1_donor != aa1_recip) & (aa1_donor != aa2_recip) & (aa1_donor != aa3_recip) & (aa1_donor != aa4_recip)):
-            mm_count+=1
-        if ((aa2_donor != aa1_recip) & (aa2_donor != aa2_recip) & (aa2_donor != aa3_recip) & (aa2_donor != aa4_recip)):
-            mm_count+=1
-        if ((aa3_donor != aa1_recip) & (aa3_donor != aa2_recip) & (aa3_donor != aa3_recip) & (aa3_donor != aa4_recip)):
-            mm_count+=1
-        if ((aa4_donor != aa1_recip) & (aa4_donor != aa2_recip) & (aa4_donor != aa3_recip) & (aa4_donor != aa4_recip)):
-            mm_count+=1
+    def count_AA_Mismatches_DR(self, drb345_1_donor,drb345_2_donor,drb1_1_donor,drb1_2_donor,drb345_1_recip,drb345_2_recip,drb1_1_recip,drb1_2_recip,donor_homoz_drb345,donor_homoz_drb1):
+        mm_count_drb345 = 0
+        mm_count_drb1 = 0
+
+        # DRB345 mismatches - the donor DRB345 AA is not found in any recip DRB1 or DRB345 alleles
+        if ((drb345_1_donor != drb345_1_recip) & (drb345_1_donor != drb345_2_recip) & (drb345_1_donor != drb1_1_recip) & (drb345_1_donor != drb1_2_recip)):
+            mm_count_drb345+=1
+        if ((drb345_2_donor != drb345_1_recip) & (drb345_2_donor != drb345_2_recip) & (drb345_2_donor != drb1_1_recip) & (drb345_2_donor != drb1_2_recip)):
+            mm_count_drb345+=1
+
+        if ((mm_count_drb345 == 2) & (donor_homoz_drb345 == 1)):
+            mm_count_drb345 = 1
+
+        # DRB1 mismatches - the donor DRB1 AA is not found in any recip DRB1 or DRB345 alleles
+        if ((drb1_1_donor != drb345_1_recip) & (drb1_1_donor != drb345_2_recip) & (drb1_1_donor != drb1_1_recip) & (drb1_1_donor != drb1_2_recip)):
+            mm_count_drb1+=1
+        if ((drb1_2_donor != drb345_1_recip) & (drb1_2_donor != drb345_2_recip) & (drb1_2_donor != drb1_1_recip) & (drb1_2_donor != drb1_2_recip)):
+            mm_count_drb1+=1
+
+        if ((mm_count_drb1 == 2) & (donor_homoz_drb1 == 1)):
+            mm_count_drb1 = 1
+
+        mm_count = mm_count_drb345 + mm_count_drb1
+            
         return mm_count
 
     # Count number of mismatches between alleles at a given position, considering 
     # homologous gene copies DRB1/3/4/5
-    def count_AA_Mismatches_Allele_DR(self, allele1_donor,allele2_donor,allele3_donor,
-                                allele4_donor,allele1_recip,allele2_recip,
-                                allele3_recip,allele4_recip,position):
-        donor_homoz = 0
-        if (allele1_donor == allele2_donor):
-            donor_homoz+=1
-        if (allele3_donor == allele4_donor):
-            donor_homoz+=1
+    def count_AA_Mismatches_Allele_DR(self, drb345_1_donor,drb345_2_donor,drb1_1_donor,
+                                drb1_2_donor,drb345_1_recip,drb345_2_recip,
+                                drb1_1_recip,drb1_2_recip,position):
+        donor_homoz_drb345 = 0
+        if (drb345_1_donor == drb345_2_donor):
+            donor_homoz_drb345+=1
+        donor_homoz_drb1 = 0
+        if (drb1_1_donor == drb1_2_donor):
+            donor_homoz_drb1+=1
+
+        donor_homoz = donor_homoz_drb1 + donor_homoz_drb345
+
         print ("Number of homozygous donor loci: " + str(donor_homoz))
 
-        aa1_donor = self.getAAposition(allele1_donor,position)
-        aa2_donor = self.getAAposition(allele2_donor,position)
-        aa3_donor = self.getAAposition(allele3_donor,position)
-        aa4_donor = self.getAAposition(allele4_donor,position)
-        aa1_recip = self.getAAposition(allele1_recip,position)
-        aa2_recip = self.getAAposition(allele2_recip,position)
-        aa3_recip = self.getAAposition(allele3_recip,position)
-        aa4_recip = self.getAAposition(allele4_recip,position)
+        drb345_aa1_donor = self.getAAposition(drb345_1_donor,position)
+        drb345_aa2_donor = self.getAAposition(drb345_2_donor,position)
+        drb1_aa1_donor = self.getAAposition(drb1_1_donor,position)
+        drb1_aa2_donor = self.getAAposition(drb1_2_donor,position)
+        drb345_aa1_recip = self.getAAposition(drb345_1_recip,position)
+        drb345_aa2_recip = self.getAAposition(drb345_2_recip,position)
+        drb1_aa1_recip = self.getAAposition(drb1_1_recip,position)
+        drb1_aa2_recip = self.getAAposition(drb1_2_recip,position)
 
-        print(aa1_donor)
-        print(aa2_donor)
-        print(aa3_donor)
-        print(aa4_donor)
-        print(aa1_recip)
-        print(aa2_recip)
-        print(aa3_recip)
-        print(aa4_recip)
+        print(drb345_aa1_donor)
+        print(drb345_aa2_donor)
+        print(drb1_aa1_donor)
+        print(drb1_aa2_donor)
+        print(drb345_aa1_recip)
+        print(drb345_aa2_recip)
+        print(drb1_aa1_recip)
+        print(drb1_aa2_recip)
 
-        mm_count = self.count_AA_Mismatches_DR(aa1_donor,aa2_donor,aa3_donor,aa4_donor,aa1_recip,aa2_recip,aa3_recip,aa4_recip)
+        mm_count = self.count_AA_Mismatches_DR(drb345_aa1_donor,drb345_aa2_donor,drb1_aa1_donor,drb1_aa2_donor,drb345_aa1_recip,drb345_aa2_recip,drb1_aa1_recip,drb1_aa2_recip, donor_homoz_drb345, donor_homoz_drb1)
 
-        if (donor_homoz == 1):
-            mm_count-=1
-        if (donor_homoz == 2):
-            mm_count-=2
         print ("Number of AAMM at position " + str(position) + " : " + str(mm_count))
 
-        return (donor_homoz, mm_count)
+        return (mm_count)
 
     # Count number of mismatches at position between donor and recip for DQ
     def count_AA_Mismatches_DQ(self, aa1_donor,aa2_donor,aa3_donor,aa4_donor,aa1_recip,aa2_recip,aa3_recip,aa4_recip):
