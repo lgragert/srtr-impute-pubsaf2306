@@ -547,73 +547,108 @@ class AAMatch:
 
         return (mm_count)
 
+    # Dictionary of eplet positions listed in Eplet_Registry_DQ.txt
+    DQ_eplet_positions_all = {}
+    for eplet_polymorphism in eplet_DQ['Polymorphic']:
+        eplet_positions = re.findall(r'\d+', eplet_polymorphism)
+    for position in eplet_positions:
+        DQ_eplet_positions_all[position] = 1
+    
     # Count number of mismatches at position between donor and recip for DQ
-    def count_AA_Mismatches_DQ(self, aa1_donor,aa2_donor,aa3_donor,aa4_donor,aa1_recip,aa2_recip,aa3_recip,aa4_recip):
-        mm_count = 0
-        if (aa1_donor != aa1_recip):
-            mm_count+=1
-        if (aa2_donor != aa2_recip):
-            mm_count+=1
-        if (aa1_donor != aa2_recip):
-            mm_count+=1
-        if (aa2_donor != aa1_recip):
-            mm_count+=1
-        if (aa3_donor != aa3_recip):
-            mm_count+=1
-        if (aa4_donor != aa4_recip):
-            mm_count+=1
-        if (aa3_donor != aa4_recip):
-            mm_count+=1
-        if (aa4_donor != aa3_recip):
-            mm_count+=1
-        return mm_count    
+    def count_AA_Mismatches_DQ(self,
+                           DQA1_aa1_donor,DQA1_aa2_donor,
+                           DQB1_aa1_donor,DQB1_aa2_donor,
+                           DQA1_aa1_recip,DQA1_aa2_recip,
+                           DQB1_aa1_recip,DQB1_aa2_recip,
+                           donor_homoz_DQA1,donor_homoz_DQB1):
+        mm_count_DQA1 = 0
+        mm_count_DQB1 = 0
+        
+        # DQA1 mismatches - the donor DQA1 AA is not found in any recip DQA1 alleles
+        if (DQA1_aa1_donor != DQA1_aa1_recip):
+            mm_count_DQA1+=1
+        if (DQA1_aa2_donor != DQA1_aa2_recip):
+            mm_count_DQA1+=1
+        if (DQA1_aa1_donor != DQA1_aa2_recip):
+            mm_count_DQA1+=1
+        if (DQA1_aa2_donor != DQA1_aa1_recip):
+            mm_count_DQA1+=1
+            
+        if (donor_homoz_DQA1 == 1):
+            mm_count_DQA1-=2
+        if ((mm_count_DQA1 < 0) & (donor_homoz_DQA1 == 1)):
+            mm_count_DQA1 = 0
+
+        # DQB1 mismatches - the donor DQB1 AA is not found in any recip DQB1 alleles
+        if (DQB1_aa1_donor != DQB1_aa1_recip):
+            mm_count_DQB1+=1
+        if (DQB1_aa2_donor != DQB1_aa2_recip):
+            mm_count_DQB1+=1
+        if (DQB1_aa1_donor != DQB1_aa2_recip):
+            mm_count_DQB1+=1
+        if (DQB1_aa2_donor != DQB1_aa1_recip):
+            mm_count_DQB1+=1
+            
+        if (donor_homoz_DQB1 == 1):
+            mm_count_DQB1-=2
+        if ((mm_count_DQB1 < 0) & (donor_homoz_DQB1 == 1)):
+            mm_count_DQB1 = 0
+        
+        mm_count = mm_count_DQA1 + mm_count_DQB1
+        
+        return mm_count 
 
     # Count number of mismatches between alleles at a given position, considering
     # DQA1 and DQB1 combinations
     def count_AA_Mismatches_Allele_DQ(self,
-                                allele1_donor,allele2_donor,allele3_donor,allele4_donor,
-                                allele1_recip,allele2_recip,allele3_recip,allele4_recip,
-                                position):
-        donor_homoz = 0
-        if (allele1_donor == allele2_donor):
-            donor_homoz+=1
-        if (allele3_donor == allele4_donor):
-            donor_homoz+=1
+                                  DQA1_1_donor,DQA1_2_donor,
+                                  DQB1_1_donor,DQB1_2_donor,
+                                  DQA1_1_recip,DQA1_2_recip,
+                                  DQB1_1_recip,DQB1_2_recip,
+                                  position):
+        donor_homoz_DQA1 = 0
+        if (DQA1_1_donor == DQA1_2_donor):
+            donor_homoz_DQA1+=1
+        donor_homoz_DQB1 = 0
+        if (DQB1_1_donor == DQB1_2_donor):
+            donor_homoz_DQB1+=1
+            
+        donor_homoz = donor_homoz_DQA1 + donor_homoz_DQB1
+        
         print ("Number of homozygous donor loci: " + str(donor_homoz))
 
-        aa1_donor = self.getAAposition(allele1_donor,position)
-        aa2_donor = self.getAAposition(allele2_donor,position)
-        aa3_donor = self.getAAposition(allele3_donor,position)
-        aa4_donor = self.getAAposition(allele4_donor,position)
-        aa1_recip = self.getAAposition(allele1_recip,position)
-        aa2_recip = self.getAAposition(allele2_recip,position)
-        aa3_recip = self.getAAposition(allele3_recip,position)
-        aa4_recip = self.getAAposition(allele4_recip,position)
+        DQA1_aa1_donor = self.getAAposition(DQA1_1_donor,position)
+        DQA1_aa2_donor = self.getAAposition(DQA1_2_donor,position)
+        DQB1_aa1_donor = self.getAAposition(DQB1_1_donor,position)
+        DQB1_aa2_donor = self.getAAposition(DQB1_2_donor,position)
+        DQA1_aa1_recip = self.getAAposition(DQA1_1_recip,position)
+        DQA1_aa2_recip = self.getAAposition(DQA1_2_recip,position)
+        DQB1_aa1_recip = self.getAAposition(DQB1_1_recip,position)
+        DQB1_aa2_recip = self.getAAposition(DQB1_2_recip,position)
+        
+        print(DQA1_aa1_donor)
+        print(DQA1_aa2_donor)
+        print(DQB1_aa1_donor)
+        print(DQB1_aa2_donor)
+        print(DQA1_aa1_recip)
+        print(DQA1_aa2_recip)
+        print(DQB1_aa1_recip)
+        print(DQB1_aa2_recip)
 
-        print(aa1_donor)
-        print(aa2_donor)
-        print(aa3_donor)
-        print(aa4_donor)
-        print(aa1_recip)
-        print(aa2_recip)
-        print(aa3_recip)
-        print(aa4_recip)
-                
-        mm_count = self.count_AA_Mismatches_DQ(aa1_donor,aa2_donor,aa3_donor,aa4_donor,aa1_recip,aa2_recip,aa3_recip,aa4_recip)
-
-        if (donor_homoz == 1):
-            mm_count-=2
-        if (donor_homoz == 2):
-            mm_count-=4
-        print ("Number of AAMM at position " + str(position) + " : " + str(mm_count))
-
+        mm_count = self.count_AA_Mismatches_DQ(DQA1_aa1_donor,DQA1_aa2_donor,
+                                               DQB1_aa1_donor,DQB1_aa2_donor,
+                                               DQA1_aa1_recip,DQA1_aa2_recip,
+                                               DQB1_aa1_recip,DQB1_aa2_recip,
+                                               donor_homoz_DQA1,donor_homoz_DQB1)
+        
+        global DQ_eplet_positions_all
         if mm_count == 0:
             pass
         elif mm_count >= 1:
             if position in DQ_eplet_positions_all:
-                return position
-            else:
                 pass
+            else:
+                return position
 
 #############################
 
