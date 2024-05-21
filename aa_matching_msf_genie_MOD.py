@@ -547,13 +547,7 @@ class AAMatch:
 
         return (mm_count)
 
-    # Dictionary of eplet positions listed in Eplet_Registry_DQ.txt
-    DQ_eplet_positions_all = {}
-    for eplet_polymorphism in eplet_DQ['Polymorphic']:
-        eplet_positions = re.findall(r'\d+', eplet_polymorphism)
-    for position in eplet_positions:
-        DQ_eplet_positions_all[position] = 1
-    
+
     # Count number of mismatches at position between donor and recip for DQ
     def count_AA_Mismatches_DQ(self,
                            DQA1_aa1_donor,DQA1_aa2_donor,

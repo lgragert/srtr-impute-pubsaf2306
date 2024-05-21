@@ -4,20 +4,25 @@ from aa_matching_msf_genie_MOD import *
 
 eplet_DQ = pd.read_csv("Eplet_Registry_DQ.txt", sep='\t') 
 
-DQ_eplet_positions_all = {}
+DQ_eplet_positions_all = {}  # all positions in eplet registry
+DQ_eplet_positions_calculator = {}  # all positions used by eplet MM calculator
 
 for eplet_polymorphism in eplet_DQ['Polymorphic']:
   eplet_positions = re.findall(r'\d+', eplet_polymorphism)
   for position in eplet_positions:
     DQ_eplet_positions_all[position] = 1
+    # TODO - check if is in hlaR reference data
+    # if statement then DQ_eplet_positions_calculator[position] = 1
 
 # Created a dictionary of eplet positions listed in Eplet_Registry_DQ.txt
 # Key of AA position
 # Value of 1 if it has been seen
-DQ_eplet_positions_all
+print(DQ_eplet_positions_all)
 
 # Test DQ AAMM computation, considering DQA1B1 combinations at all positions
 
+# TODO - rename these to DQA1_1_donor to agree with input variables when you call the function below
+# input variables do not need to agree with the variable names in the function definition
 allele1_donor = "DQA1*01:01"
 allele2_donor = "DQA1*03:01"
 allele3_donor = "DQB1*05:01"
