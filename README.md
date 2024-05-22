@@ -127,7 +127,7 @@ REC_DQA1_ALLELE_MM - DQA1 allele MM
 REC_DPA1_MM_EQUIV_CUR - DPA1 First-field MM
 REC_DPA1_ALLELE_MM - DPA1 allele MM
 REC_DPB1_MM_EQUIV_CUR - DPB1 allele MM (not using the recognized DPw1-6 specificities )
-REC_DPB1_ALLELE_MM - DPB1 allele MM
+REC_DPB1_ALLELE_MM - DPB1 allele MM (currently redundant with REC_DPB1_MM_EQUIV_CUR)
 ```
 
 Amino acid coordinate info by locus - starts at 1:
