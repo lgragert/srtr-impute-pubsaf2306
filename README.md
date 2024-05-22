@@ -112,16 +112,16 @@ python3 srtr_hla_antigen_mm.py
 
 srtr_ag_allele_mm_*.csv
 
-REC_A_MM_EQUIV_CUR - Aw antigen MM
-REC_A_ALLELE_MM - Aw allele MM
-REC_B_MM_EQUIV_CUR - Bw antigen MM
-REC_B_ALLELE_MM - Bw allele MM
-REC_C_MM_EQUIV_CUR - Cw antigen MM
-REC_C_ALLELE_MM - Cw allele MM
+REC_A_MM_EQUIV_CUR - A antigen MM
+REC_A_ALLELE_MM - A allele MM
+REC_B_MM_EQUIV_CUR - B antigen MM
+REC_B_ALLELE_MM - B allele MM
+REC_C_MM_EQUIV_CUR - Cw antigen MM and C12-18 two-digit specificities
+REC_C_ALLELE_MM - C allele MM
 REC_DR_MM_EQUIV_CUR - DR antigen MM
-REC_DR_ALLELE_MM - DR allele MM
+REC_DR_ALLELE_MM - DRB1 allele MM
 REC_DQ_MM_EQUIV_CUR - DQ antigen MM
-REC_DQ_ALLELE_MM - DQ allele MM
+REC_DQ_ALLELE_MM - DQB1 allele MM
 REC_DQA1_MM_EQUIV_CUR - DQA1 First-field MM
 REC_DQA1_ALLELE_MM - DQA1 allele MM
 REC_DPA1_MM_EQUIV_CUR - DPA1 First-field MM
