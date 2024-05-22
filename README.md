@@ -118,7 +118,7 @@ REC_B_MM_EQUIV_CUR - B antigen MM
 REC_B_ALLELE_MM - B allele MM
 REC_C_MM_EQUIV_CUR - Cw antigen MM and C12-18 two-digit specificities
 REC_C_ALLELE_MM - C allele MM
-REC_DR_MM_EQUIV_CUR - DR antigen MM
+REC_DR_MM_EQUIV_CUR - DR antigen MM (based on the DRB1 locus only - excludes DRB345)
 REC_DR_ALLELE_MM - DRB1 allele MM
 REC_DQ_MM_EQUIV_CUR - DQ antigen MM
 REC_DQ_ALLELE_MM - DQB1 allele MM
