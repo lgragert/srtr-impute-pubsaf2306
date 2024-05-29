@@ -168,7 +168,63 @@ class AAMatch:
             "DPA1" : 84, # DPA1*01:03:02
             "DPB1" : 92, # DPB1*01:01:03
         }
-
+        
+        # Initialize dictionary for DQ eplet positions used in calculator
+        DQ_eplet_positions_calculator = {
+          2: 1,
+          34: 1,
+          40: 1,
+          41: 1,
+          47: 1,
+          48: 1,
+          49: 1,
+          52: 1,
+          53: 1,
+          61: 1,
+          62: 1,
+          69: 1,
+          75: 1,
+          76: 1,
+          129: 1,
+          130: 1,
+          160: 1,
+          161: 1,
+          162: 1,
+          3: 1,
+          23: 1,
+          26: 1,
+          30: 1,
+          37: 1,
+          38: 1,
+          45: 1,
+          46: 1,
+          55: 1,
+          56: 1,
+          57: 1,
+          66: 1,
+          67: 1,
+          68: 1,
+          70: 1,
+          71: 1,
+          74: 1,
+          77: 1,
+          78: 1,
+          84: 1,
+          85: 1,
+          86: 1,
+          87: 1,
+          116: 1,
+          125: 1,
+          126: 1,
+          135: 1,
+          140: 1,
+          141: 1,
+          167: 1,
+          182: 1,
+          185: 1
+        }
+        self.DQ_eplet_positions_calculator = DQ_eplet_positions_calculator
+        
         self.refseq_full = refseq_full
         self.refseq = refseq
         self.full_start_pos = full_start_pos
@@ -634,12 +690,14 @@ class AAMatch:
                                                DQA1_aa1_recip,DQA1_aa2_recip,
                                                DQB1_aa1_recip,DQB1_aa2_recip,
                                                donor_homoz_DQA1,donor_homoz_DQB1)
+
+        print ("Number of AAMM at position " + str(position) + " : " + str(mm_count))
         
-        global DQ_eplet_positions_all
+        global DQ_eplet_positions_calculator
         if mm_count == 0:
             pass
         elif mm_count >= 1:
-            if position in DQ_eplet_positions_all:
+            if position in self.DQ_eplet_positions_calculator:
                 pass
             else:
                 return position

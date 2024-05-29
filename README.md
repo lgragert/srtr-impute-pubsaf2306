@@ -112,22 +112,22 @@ python3 srtr_hla_antigen_mm.py
 
 srtr_ag_allele_mm_*.csv
 
-REC_A_MM_EQUIV_CUR - Aw antigen MM
-REC_A_ALLELE_MM - Aw allele MM
-REC_B_MM_EQUIV_CUR - Bw antigen MM
-REC_B_ALLELE_MM - Bw allele MM
-REC_C_MM_EQUIV_CUR - Cw antigen MM
-REC_C_ALLELE_MM - Cw allele MM
-REC_DR_MM_EQUIV_CUR - DR antigen MM
-REC_DR_ALLELE_MM - DR allele MM
+REC_A_MM_EQUIV_CUR - A antigen MM
+REC_A_ALLELE_MM - A allele MM
+REC_B_MM_EQUIV_CUR - B antigen MM
+REC_B_ALLELE_MM - B allele MM
+REC_C_MM_EQUIV_CUR - Cw antigen MM and C12-18 two-digit specificities
+REC_C_ALLELE_MM - C allele MM
+REC_DR_MM_EQUIV_CUR - DR antigen MM (based on the DRB1 locus only - excludes DRB345)
+REC_DR_ALLELE_MM - DRB1 allele MM
 REC_DQ_MM_EQUIV_CUR - DQ antigen MM
-REC_DQ_ALLELE_MM - DQ allele MM
+REC_DQ_ALLELE_MM - DQB1 allele MM
 REC_DQA1_MM_EQUIV_CUR - DQA1 First-field MM
 REC_DQA1_ALLELE_MM - DQA1 allele MM
 REC_DPA1_MM_EQUIV_CUR - DPA1 First-field MM
 REC_DPA1_ALLELE_MM - DPA1 allele MM
-REC_DPB1_MM_EQUIV_CUR - DPB1 allele mismatch
-REC_DPB1_ALLELE_MM - DPB1 allele MM
+REC_DPB1_MM_EQUIV_CUR - DPB1 allele MM (not using the recognized DPw1-6 specificities )
+REC_DPB1_ALLELE_MM - DPB1 allele MM (currently redundant with REC_DPB1_MM_EQUIV_CUR)
 ```
 
 Amino acid coordinate info by locus - starts at 1:
