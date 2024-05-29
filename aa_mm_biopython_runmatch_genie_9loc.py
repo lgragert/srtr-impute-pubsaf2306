@@ -38,8 +38,8 @@ nloci = 9
 loci = ["A","C","B","DRB1","DRB345","DQA1","DQB1","DPA1","DPB1"]
 
 # set random seed
-seed = "20180413" + str(replicate)
-random.seed(seed) # had to change seed to avoid deleted C*13:01
+seed = int("20180413" + str(replicate))
+random.seed(seed)
 
 # SFVT file loading
 
@@ -49,7 +49,6 @@ print ("Loading SFVT data")
 SFVT_positions = {} # list of positions for each SFVT
 SFVT_list = {} # list of SFVTs
 seqf_name_ID = {} # sequence feature ID for each sequence feature name - to join to feature_2_name
-#seqf_filename = "/Users/gracewager/dev/kidney-outcomes-sfvt/variant_type.bcp"
 seqf_filename = "variant_type.bcp" 
 seqf_file = open (seqf_filename,'r')
 for line in seqf_file:
@@ -550,7 +549,7 @@ for line in tx_hla_file:
 	(a1_recip,c1_recip,b1_recip,drb345_1_recip,drb1_1_recip,dqa1_1_recip,dqb1_1_recip,dpa1_1_recip,dpb1_1_recip) = hap1_recip.split('~')
 	(a2_recip,c2_recip,b2_recip,drb345_2_recip,drb1_2_recip,dqa1_2_recip,dqb1_2_recip,dpa1_2_recip,dpb1_2_recip) = hap2_recip.split('~')
 
-	# handle deleted / renamed alleles between IMGT/HLA 3.4 and 3.43
+	# handle deleted / renamed alleles since IMGT/HLA 3.4 frequency reference used for imputation
 
 	if (a1_donor == "A*23:19Q"):
 		a1_donor = "A*23:19N"
@@ -614,16 +613,6 @@ for line in tx_hla_file:
 		drb1_1_recip = "DRB1*07:01"
 	if (drb1_2_recip == "DRB1*07:02"):
 		drb1_2_recip = "DRB1*07:01"
-
-	# C*13:01 was deleted long ago - not sure changing to 12:02 is the right move - imputation algorithm issue
-	if (c1_donor == "C*13:01"):
-		c1_donor = "C*12:02"
-	if (c2_donor == "C*13:01"):
-		c2_donor = "C*12:02"
-	if (c1_recip == "C*13:01"):
-		c1_recip = "C*12:02"
-	if (c2_recip == "C*13:01"):
-		c2_recip = "C*12:02"
 
 
 	if (dqa1_1_donor == "DQA1*01:07"):
