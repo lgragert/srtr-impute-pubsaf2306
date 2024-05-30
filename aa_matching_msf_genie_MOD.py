@@ -615,32 +615,24 @@ class AAMatch:
         mm_count_DQB1 = 0
         
         # DQA1 mismatches - the donor DQA1 AA is not found in any recip DQA1 alleles
-        if (DQA1_aa1_donor != DQA1_aa1_recip):
+        if ((DQA1_aa1_donor != DQA1_aa1_recip) & (DQA1_aa1_donor != DQA1_aa2_recip)):
             mm_count_DQA1+=1
-        if (DQA1_aa2_donor != DQA1_aa2_recip):
-            mm_count_DQA1+=1
-        if (DQA1_aa1_donor != DQA1_aa2_recip):
-            mm_count_DQA1+=1
-        if (DQA1_aa2_donor != DQA1_aa1_recip):
+        if ((DQA1_aa2_donor != DQA1_aa1_recip) & (DQB1_aa2_donor != DQA1_aa2_recip)):
             mm_count_DQA1+=1
             
-        if (donor_homoz_DQA1 == 1):
-            mm_count_DQA1-=2
+        if ((mm_count_DQA1 == 2) & (donor_homoz_DQA1 == 1)):
+            mm_count_DQA1 = 1
         if ((mm_count_DQA1 < 0) & (donor_homoz_DQA1 == 1)):
             mm_count_DQA1 = 0
 
         # DQB1 mismatches - the donor DQB1 AA is not found in any recip DQB1 alleles
-        if (DQB1_aa1_donor != DQB1_aa1_recip):
+        if ((DQB1_aa1_donor != DQB1_aa1_recip) & (DQB1_aa1_donor != DQB1_aa2_recip)):
             mm_count_DQB1+=1
-        if (DQB1_aa2_donor != DQB1_aa2_recip):
-            mm_count_DQB1+=1
-        if (DQB1_aa1_donor != DQB1_aa2_recip):
-            mm_count_DQB1+=1
-        if (DQB1_aa2_donor != DQB1_aa1_recip):
+        if ((DQB1_aa2_donor != DQB1_aa1_recip) & (DQB1_aa2_donor != DQB1_aa2_recip)):
             mm_count_DQB1+=1
             
-        if (donor_homoz_DQB1 == 1):
-            mm_count_DQB1-=2
+        if ((mm_count_DQB1 == 2) & (donor_homoz_DQB1 == 1)):
+            mm_count_DQB1 = 1
         if ((mm_count_DQB1 < 0) & (donor_homoz_DQB1 == 1)):
             mm_count_DQB1 = 0
         
@@ -649,7 +641,7 @@ class AAMatch:
         return mm_count 
 
     # Count number of mismatches between alleles at a given position, considering
-    # DQA1 and DQB1 combinations
+    # DQA1 and DQB1        
     def count_AA_Mismatches_Allele_DQ(self,
                                   DQA1_1_donor,DQA1_2_donor,
                                   DQB1_1_donor,DQB1_2_donor,
@@ -692,7 +684,10 @@ class AAMatch:
                                                donor_homoz_DQA1,donor_homoz_DQB1)
 
         print ("Number of AAMM at position " + str(position) + " : " + str(mm_count))
-        
+
+        print()
+        print('==========')
+
         global DQ_eplet_positions_calculator
         if mm_count == 0:
             pass
