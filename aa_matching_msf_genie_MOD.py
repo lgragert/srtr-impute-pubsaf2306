@@ -223,7 +223,12 @@ class AAMatch:
           182: 1,
           185: 1
         }
+        # Initialize list for DQ eplet positions not found in Eplet Registry
+        # Only in hlaR
+        hlaR_only_eps = [34, 49, 62, 162, 68, 141]
+        
         self.DQ_eplet_positions_calculator = DQ_eplet_positions_calculator
+        self.hlaR_only_eps = hlaR_only_eps
         
         self.refseq_full = refseq_full
         self.refseq = refseq
@@ -689,12 +694,15 @@ class AAMatch:
         print('==========')
 
         global DQ_eplet_positions_calculator
+        global hlaR_only_eps
         if mm_count == 0:
-            pass
+            return None
         elif mm_count >= 1:
-            if position in self.DQ_eplet_positions_calculator:
-                pass
-            else:
+            if (position in self.DQ_eplet_positions_calculator) & (position not in self.hlaR_only_eps):
+                return None
+            elif (position in self.DQ_eplet_positions_calculator) & (position in self.hlaR_only_eps):
+                return position
+            else (position not in self.DQ_eplet_positions_calculator):
                 return position
 
 #############################
