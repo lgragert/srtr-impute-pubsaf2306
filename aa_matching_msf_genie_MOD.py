@@ -702,7 +702,7 @@ class AAMatch:
                 return None
             elif (position in self.DQ_eplet_positions_calculator) & (position in self.hlaR_only_eps):
                 return position
-            else (position not in self.DQ_eplet_positions_calculator):
+            else:
                 return position
 
 #############################
