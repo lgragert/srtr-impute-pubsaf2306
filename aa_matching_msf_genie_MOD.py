@@ -622,7 +622,7 @@ class AAMatch:
         # DQA1 mismatches - the donor DQA1 AA is not found in any recip DQA1 alleles
         if ((DQA1_aa1_donor != DQA1_aa1_recip) & (DQA1_aa1_donor != DQA1_aa2_recip)):
             mm_count_DQA1+=1
-        if ((DQA1_aa2_donor != DQA1_aa1_recip) & (DQB1_aa2_donor != DQA1_aa2_recip)):
+        if ((DQA1_aa2_donor != DQA1_aa1_recip) & (DQA1_aa2_donor != DQA1_aa2_recip)):
             mm_count_DQA1+=1
             
         if ((mm_count_DQA1 == 2) & (donor_homoz_DQA1 == 1)):
@@ -662,6 +662,7 @@ class AAMatch:
             
         donor_homoz = donor_homoz_DQA1 + donor_homoz_DQB1
         
+        print('==========')
         print ("Number of homozygous donor loci: " + str(donor_homoz))
 
         DQA1_aa1_donor = self.getAAposition(DQA1_1_donor,position)
@@ -689,9 +690,6 @@ class AAMatch:
                                                donor_homoz_DQA1,donor_homoz_DQB1)
 
         print ("Number of AAMM at position " + str(position) + " : " + str(mm_count))
-
-        print()
-        print('==========')
 
         global DQ_eplet_positions_calculator
         global hlaR_only_eps
