@@ -1,4 +1,4 @@
-# Get 10 random ids from the impute files
+# Get 10 random ids from the impute files to create a small sample dataset for tests
 import pandas as pd
 
 pops = ['AFA', 'ASN', 'CAU', 'HIS', 'MLT', 'NAM']
@@ -14,9 +14,9 @@ recip_list = srtr[srtr[0].str.startswith('R')]
 donor_list = srtr[srtr[0].str.startswith('D')]
 
 nodupes_recip = recip_list[0].drop_duplicates()
-nodupes_donor = donor_list[0].drop_duplicates()
 
-nodupes_recip = nodupes_recip.sample(n=100, random_state=6042024)
+n_sample = 10  # change this number if you want a larger or smaller dataset
+nodupes_recip = nodupes_recip.sample(n=n_sample, random_state=6042024)
 split_recip = nodupes_recip.str.split('R', expand=True)
 split_recip = split_recip[1].str.split('-', expand=True)
 
@@ -26,10 +26,10 @@ only_recips = only_recips[only_recips.str.strip().astype(bool)].reset_index(drop
 recips_10 = recip_list[recip_list[0].isin(nodupes_recip)]
 
 donors_10 = pd.DataFrame()
-for id in range(0,100):
+for id in range(0,n_sample):
     one_donor = donor_list[donor_list[0].str.endswith(only_recips.iloc[id])]
     donors_10 = pd.concat([donors_10, one_donor])
 
 small_samp = pd.concat([recips_10, donors_10])
 
-small_samp.to_csv('impute.srtr.AFA.100.csv.gz', index=False, header=False)
+small_samp.to_csv('impute.srtr.' + str(n_sample) + '.csv.gz', index=False, header=False)
