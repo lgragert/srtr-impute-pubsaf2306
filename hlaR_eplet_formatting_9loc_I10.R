@@ -33,7 +33,7 @@ command_args <- commandArgs(trailingOnly = TRUE)
 ARRAY_ID<-paste0(split <- command_args[1])
 print(paste0("SLURMARRAYID: ",ARRAY_ID))
 
-filename <- paste0("./hlaR_9loc_matrix_", ARRAY_ID, ".txt")
+filename <- paste0("./SRTR_AA_MM_9loc_matrix_", ARRAY_ID, ".txt")
 print(paste0("filename:",filename ))
 
 
@@ -53,11 +53,11 @@ print(colnames(SRTR))
 
 #Select Imputed Genotype of D|R and format for hlaR functions
 #Columns selected in order for hlaR classII renaming
-recip <- SRTR[, c("PX_ID","RECIP_DRW1_1","RECIP_DRW1_2","RECIP_DRB1_1","RECIP_DRB1_2",
+recip <- SRTR[, c("PX_ID","RECIP_DRB345_1","RECIP_DRB345_2","RECIP_DRB1_1","RECIP_DRB1_2",
                           "RECIP_DQA1_1","RECIP_DQA1_2","RECIP_DQB1_1","RECIP_DQB1_2",
                           "RECIP_DPA1_1","RECIP_DPA1_2","RECIP_DPB1_1","RECIP_DPB1_2")]
 
-DONOR <- SRTR[, c("PX_ID","DONOR_DRW1_1","DONOR_DRW1_2","DONOR_DRB1_1","DONOR_DRB1_2",
+DONOR <- SRTR[, c("PX_ID","DONOR_DRB345_1","DONOR_DRB345_2","DONOR_DRB1_1","DONOR_DRB1_2",
                           "DONOR_DQA1_1","DONOR_DQA1_2","DONOR_DQB1_1","DONOR_DQB1_2",
                           "DONOR_DPA1_1","DONOR_DPA1_2","DONOR_DPB1_1","DONOR_DPB1_2")]
 
@@ -108,7 +108,7 @@ ls <- setNames(split(classII, rep(myrep, each = myeach)), paste("hlaRClassIIForm
 #how to extract and save sublists with specific names as dataframes from a list
 for (nameframe in names(ls)){
   print(nameframe)
-  formated<-as.data.frame(ls[[nameframe]])
-  write.table(formated,file=paste0("./Imp_",ARRAY_ID,"_",nameframe,".csv"), sep = ",", row.names = T)
+  formatted<-as.data.frame(ls[[nameframe]])
+  write.table(formatted,file=paste0("./Imp_",ARRAY_ID,"_",nameframe,".csv"), sep = ",", row.names = T)
 }
 
