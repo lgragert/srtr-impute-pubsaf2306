@@ -2,7 +2,6 @@
 import pandas as pd
 import itertools
 
-
 # Create an input file format that has a list of HLA category combos
 # Column headers as HLA categories
 # Rows will have indicator variables (0,1)
@@ -27,6 +26,8 @@ def is_valid_combo(row):
             return False
         if row[locus + '_1AgMM'] == 1 and row[locus + '_2AgMM'] == 1:
             return False
+        if row[locus + '_0AgMM'] == 0 and row[locus + '_1AgMM'] == 0 and row[locus + '_2AgMM'] == 0:  # one of the categories has to exist
+            return False
 
         # cannot have these for Allele MM
         if row[locus + '_0AlleleMM'] == 1 and row[locus + '_1AlleleMM'] == 1:
@@ -34,6 +35,8 @@ def is_valid_combo(row):
         if row[locus + '_0AlleleMM'] == 1 and row[locus + '_2AlleleMM'] == 1:
             return False
         if row[locus + '_1AlleleMM'] == 1 and row[locus + '_2AlleleMM'] == 1:
+            return False
+        if row[locus + '_0AlleleMM'] == 0 and row[locus + '_1AlleleMM'] == 0 and row[locus + '_2AlleleMM'] == 0:  # one of the categories has to exist
             return False
 
     return True
