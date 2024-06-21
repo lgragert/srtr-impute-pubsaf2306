@@ -856,6 +856,7 @@ for i in range(1,nloci+1):
 		mm_loc_count = 0
 		mm_loc_sfvt_count = 0
 		for pos in range(full_start, full_end):
+			mm_pos_count = 0
 			mm_aa_column_name = "MM_"+ loc+ "_" + str(pos)
 
 			if (recip_allele1[index] == 'DRBX*NNNN' and recip_allele2[index] == 'DRBX*NNNN'):
