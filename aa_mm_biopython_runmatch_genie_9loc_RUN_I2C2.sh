@@ -24,7 +24,6 @@ echo ${LSB_JOBINDEX} $replicate $runmatch $matrix $sfvt
 
 SECONDS=0
 
-module add python/3.7
 cd /project/kamoun_shared/code_shared/srtr-impute-pubsaf2306/
 export CONDA_ENVS_PATH="/project/kamoun_shared/apaynter/local/conda-envs/"
 source activate apR
@@ -32,7 +31,7 @@ unset PYTHONPATH
 
 echo "Environment set - Executing Python script"
 
-python3.7 aa_mm_biopython_runmatch_genie_9loc.py $replicate $runmatch $matrix $sfvt
+python aa_mm_biopython_runmatch_genie_9loc.py $replicate $runmatch $matrix $sfvt
 
 ELAPSED="Elapsed US: $(($SECONDS / 3600))hrs $((($SECONDS / 60) % 60))min $(($SECONDS % 60))sec"
 echo $ELAPSED
