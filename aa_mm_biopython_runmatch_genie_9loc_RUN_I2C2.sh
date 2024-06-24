@@ -1,7 +1,7 @@
 #!/bin/bash
 #BSUB -J AAMM_RM[1-20]                  ### Job Name with array specficied
-#BSUB -o /project/kamoun_shared/apaynter/logs/AAMM_RM_%I.out         ### File in which to store job output
-#BSUB -e /project/kamoun_shared/apaynter/logs/AAMM_RM_%I.err         ### File in which to store job error messages
+#BSUB -oo /project/kamoun_shared/apaynter/logs/AAMM_RM_%I.out         ### File in which to store job output
+#BSUB -eo /project/kamoun_shared/apaynter/logs/AAMM_RM_%I.err         ### File in which to store job error messages
 #BSUB -q i2c2_normal                    ### Quality of Service
 #BSUB -M 128000                         ### Memory limit per-process (KB)
 #BSUB -n 1                              ### sets the core
@@ -26,7 +26,8 @@ SECONDS=0
 
 cd /project/kamoun_shared/code_shared/srtr-impute-pubsaf2306/
 export CONDA_ENVS_PATH="/project/kamoun_shared/apaynter/local/conda-envs/"
-source activate apR
+module load miniconda
+conda activate apR
 unset PYTHONPATH
 
 echo "Environment set - Executing Python script"
