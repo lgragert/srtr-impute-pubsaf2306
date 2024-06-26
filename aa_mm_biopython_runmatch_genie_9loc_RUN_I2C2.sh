@@ -24,11 +24,8 @@ echo ${LSB_JOBINDEX} $replicate $runmatch $matrix $sfvt
 
 SECONDS=0
 
-cd /project/kamoun_shared/code_shared/srtr-impute-pubsaf2306/
-export CONDA_ENVS_PATH="/project/kamoun_shared/apaynter/local/conda-envs/"
-module load miniconda
-conda activate apR
-unset PYTHONPATH
+source activate /project/kamoun_shared/apaynter/conda-envs/apR
+cd /project/kamoun_shared/code_shared/srtr-impute-pubsaf2306
 
 echo "Environment set - Executing Python script"
 
