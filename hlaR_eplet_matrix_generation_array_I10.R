@@ -48,7 +48,7 @@ if (!require("readr"))
 #Step 1 fetch all necessary files and filter for
   #hlaR output only for Specific Loci of interest
 
-
+# Load required arguments for processing files
 #fetch hlaR files
 command_args <- commandArgs(trailingOnly = TRUE)
 IMP_ID<-paste0(split <- command_args[1])
@@ -61,13 +61,15 @@ Format_ID<-paste0(split <- command_args[2])
 # eplets <- do.call(`rbind`,lapply(hlaRDDCII, read.table, header=T, sep=","))
 # colnames(eplets)[which(names(eplets) == "pair_id")] <- "PX_ID"
 
+# Define the file name based on IMP_ID and Format_ID
 filename <- paste0("./hlaR_March23/Imp_",IMP_ID , "_hlaRepletsListclassIIA_", Format_ID, ".csv")
 print(paste0("filename:",filename ))
 
+# Read the eplet data
 eplets <- read.table(filename, sep = ',',header = TRUE)
 colnames(eplets)[which(names(eplets) == "pair_id")] <- "PX_ID"
 
-
+# Extract unique patient IDs
 id_list <- unique(as.list(eplets$PX_ID))
 myvalue <- as.numeric(length(id_list))
 
@@ -138,10 +140,12 @@ colnames(DRW_3list)[1] = "Eplets"
 
 PX <- "PX_ID"
 
-
+# Combine all eplet lists into a single dataframe
 eplet_cols <- rbind(PX,DQA_3list,DQB_3list,DRB_3list,DRW_3list)
 my.names <- eplet_cols[,1]
 epletvalue <- as.numeric(nrow(eplet_cols))
+
+# Initialize the matrix to store eplet mismatch data
 eps <- data.frame(matrix(, nrow=epletvalue , ncol=myvalue))
 colnames(eps) <- id_list
 eps <- cbind(eplet_cols, eps)
@@ -238,7 +242,7 @@ for (subject in id_list){
   }
 }
 
-
+# Transpose and clean up the matrix
 master_eps <- as.data.frame(t(master_eps))
 master_eps[,1] <- row.names(master_eps)
 master_eps <- master_eps[ -1, ]
@@ -246,6 +250,7 @@ master_eps <- master_eps[ -1, ]
 master_eps[is.na(master_eps)] <- 0
 master_eps$PX_ID <- as.numeric(master_eps$PX_ID)
 
+# Save the output matrix
 E_filename <- paste0("./hlaR_March23/Imp_",IMP_ID,"_hlaR_eplet_only_matrix",Format_ID ,".csv")
 
 #print(R_filename)
