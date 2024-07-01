@@ -48,17 +48,20 @@ if (!require("readr"))
 if (!require("hlaR"))
   install.packages("hlaR")
 
+# Capture command line arguments
 command_args <- commandArgs(trailingOnly = TRUE)
 IMP_ID<-paste0(split <- command_args[1])
 Format_ID<-paste0(split <- command_args[2])
 
+# Construct the file name
 filename <- paste0("./Imp_",IMP_ID,"_hlaRClassIIFormat_", Format_ID, ".csv")
 print(paste0("filename:",filename ))
 
+# Read the input file
 classII <- read.table(filename,sep = ',')
 
 
-
+# Initialize empty dataframes for storing results
 epiclassIIsingle <- data.frame(pair_id=numeric(), subject=numeric(), 
                               hla=character(),mm_eplets=character(),
                               mm_count=numeric())
@@ -67,40 +70,46 @@ epiclassIIoverall <- data.frame(pair_id=numeric(), subject=numeric(),
 epiclassIIrisk <- data.frame(pair_id=numeric(), DQ=numeric(), 
                              DR=numeric(), risk=character())
 
-
+# Get unique pair IDs
 pair_id_list <- as.list(classII$pair_id)
-pair_id_list <- unique (pair_id_list)
+pair_id_list <- unique(pair_id_list)
 
 count <- (nrow(classII)/2)
-count <-as.numeric(count)
+count <- as.numeric(count)
 print(paste0("N D|R pairs:", count))
 
+# Loop through each pair ID and process the data
   for (ID in pair_id_list){
     flag_ID <- paste0(ID)
     #print(ID)
     #made it an integer literal need to pull the L from end
+    # Convert ID to numeric
     ID <-as.numeric(ID)
     flag_ID <- paste0(ID)
     
-    
+    # Extract and process data for the current ID
     #extract and process one set of IDs at a time
     PID <- filter(classII, pair_id == ID)
-    PID<- as.data.frame(PID)
+    PID <- as.data.frame(PID)
     PID <-CalEpletMHCII(PID, ver= 3)
+
+    # Extract results from CalEpletMHCII function
     epirunSdf<-as.data.frame(PID[["single_detail"]])
     epirunOdf<-as.data.frame(PID[["overall_count"]])
     epirunRdf<-as.data.frame(PID[["dqdr_risk"]])
+
+    # Append results to the respective dataframes
     epiclassIIoverall <- rbind(epiclassIIoverall,epirunOdf)
     epiclassIIsingle <- rbind(epiclassIIsingle,epirunSdf)
     epiclassIIrisk <- rbind(epiclassIIrisk,epirunRdf)
 }
 
-  
+# Define output filenames
 OA_filename <- paste0("./hlaR_February_22_2023/Imp_", IMP_ID,"_hlaRepletsSumsclassIIA_",Format_ID,".csv")
 S_filename <- paste0("./hlaR_February_22_2023/Imp_", IMP_ID,"_hlaRepletsListclassIIA_",Format_ID ,".csv")
 R_filename <- paste0("./hlaR_February_22_2023/Imp_", IMP_ID,"_hlaRepletsDRDQRiskA_",Format_ID,".csv")
 
-
+# Write the results to CSV files
 write.table(epiclassIIsingle,file=paste0(S_filename), sep = ",", row.names = T)
 write.table(epiclassIIoverall,file=paste0(OA_filename), sep = ",", row.names = T)
 write.table(epiclassIIrisk,file=paste0(R_filename), sep = ",", row.names = T)
