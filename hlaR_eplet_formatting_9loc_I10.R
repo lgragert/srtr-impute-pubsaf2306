@@ -1,3 +1,4 @@
+# Load required packages, install if not already installed
 if(!require("dtplyr"))
   install.packages("dtplyr")
 if(!require("dplyr"))
@@ -29,14 +30,16 @@ if (!require("readr"))
 if (!require("hlaR"))
   install.packages("hlaR")
 
+# Capture command line argument
 command_args <- commandArgs(trailingOnly = TRUE)
-ARRAY_ID<-paste0(split <- command_args[1])
+ARRAY_ID<-paste0(split <- command_args[1]) # Get SLURM array ID
 print(paste0("SLURMARRAYID: ",ARRAY_ID))
 
+# Construct the file name
 filename <- paste0("./SRTR_AA_MM_9loc_matrix_", ARRAY_ID, ".txt")
 print(paste0("filename:",filename ))
 
-
+# Define constants for splitting data into chunks
 #NEED to set values to specific row counts!
 # myeach = number of rows you want in a table, must be even to include both D|R in analysis
 # my rep and myseq = number of data frames formed and must be same value
@@ -46,11 +49,12 @@ myeach = paste0(24756)
 myrep = paste0(1:14)
 myseq = paste0(1:14)
 
+# Read the input file
 #Set up Matrix to correct format for analysis by functions
-SRTR <- read.delim(filename, sep = '\t',header = T)
-
+SRTR <- read.delim(filename, sep = '\t', header = T)
 print(colnames(SRTR))
 
+# Select and rename columns for recipient and donor data
 #Select Imputed Genotype of D|R and format for hlaR functions
 #Columns selected in order for hlaR classII renaming
 recip <- SRTR[, c("PX_ID","RECIP_DRB345_1","RECIP_DRB345_2","RECIP_DRB1_1","RECIP_DRB1_2",
@@ -69,46 +73,43 @@ names <- c("pair_id","DRw1","DRw2","DRB1","DRB2",
 colnames(recip)<-names
 colnames(DONOR)<-names
 
-
+# Add subject type
 DONOR$subject_type <- "donor"
-
 recip$subject_type <- "recipient"
 
-
+# Combine donor and recipient data
 SRTR <- rbind(DONOR,recip)
 
+# Reorder columns for hlaR processing
 #column order for hlaR processing
 col.order <- c("pair_id","subject_type","DRB1","DRB2","DRw1","DRw2","DQB1","DQB2",
                "DQA1","DQA2","DPB1","DPB2","DPA1","DPA2")
 
 SRTR <- SRTR[ , col.order]
-
-
 SRTR <- SRTR %>% arrange(pair_id)
 
-classII <-SRTR %>%  dplyr::select("pair_id","subject_type",starts_with("D"))
-
+# Select columns for classII processing
+classII <- SRTR %>% dplyr::select("pair_id","subject_type",starts_with("D"))
 classII <- classII %>% arrange(pair_id)
 #write.table(classII,file="./hlaRepletFormatCII.csv", sep = ",", row.names = T)
 
-
+# Replace "DRBX*NNNN" with NA and then with empty string
 classII <- classII %>% dplyr::na_if("DRBX*NNNN")
 classII[is.na(classII)] <- "" 
 
-
-#classI <-SRTR %>%  dplyr::select("pair_id","subject_type",starts_with("a"),
+# Select columns for classI processing
+#classI <- SRTR %>% dplyr::select("pair_id","subject_type",starts_with("a"),
                                  #starts_with("b"),starts_with("c"))
-
 #classI <- classI %>% arrange(pair_id)
 #write.table(classI,file="./hlaRepletFormatCI.csv", sep = ",", row.names = T)
 
+# Split data into chunks and save each chunk as a separate CSV file
 ls <- setNames(split(classII, rep(myrep, each = myeach)), paste("hlaRClassIIFormat", seq(myseq), sep = "_"))
 
 
 #how to extract and save sublists with specific names as dataframes from a list
 for (nameframe in names(ls)){
   print(nameframe)
-  formatted<-as.data.frame(ls[[nameframe]])
+  formatted <- as.data.frame(ls[[nameframe]])
   write.table(formatted,file=paste0("./Imp_",ARRAY_ID,"_",nameframe,".csv"), sep = ",", row.names = T)
 }
-
