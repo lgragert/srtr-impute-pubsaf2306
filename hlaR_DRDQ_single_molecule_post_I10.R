@@ -68,6 +68,7 @@ command_args <- commandArgs(trailingOnly = TRUE)
 IMP_ID<-paste0(split <- command_args[1])
 Format_ID<-paste0(split <- command_args[2])
 
+# Read the input file
 filename <- paste0("./hlaR_February_22_2023/Imp_",IMP_ID , "_hlaRepletsDRDQRiskA_", Format_ID, ".csv")
 print(paste0("filename:",filename ))
 
@@ -130,7 +131,8 @@ for (i in 1:nrow(molecule)){
     }
   }
   if(molecule$DR[i]>=7){
-    molecule$Wiebe_High[i] <- 1  }
+    molecule$Wiebe_High[i] <- 1
+  }
 }
 
 
@@ -147,13 +149,14 @@ for (i in 1:nrow(molecule)){
     }
 }
 
-
-WhlaR <- left_join(molecule,hlaRisk,by= "pair_id")
+# Merge hlaRisk with molecule data
+WhlaR <- left_join(molecule,hlaRisk,by = "pair_id")
 WhlaR <- unique(WhlaR)
 colnames(WhlaR)[which(names(WhlaR) == "pair_id")] <- "PX_ID"
 colnames(WhlaR)[which(names(WhlaR) == "risk")] <- "hlaR_risk"
 summary(WhlaR)
 
+# Write the output file
 E_filename <- paste0("./hlaR_February_22_2023/hlaR_Weibe_regression_input_",IMP_ID, ".csv") 
 write.table(WhlaR,file=paste0(E_filename), sep = ",", row.names = F)
 
@@ -162,12 +165,14 @@ write.table(WhlaR,file=paste0(E_filename), sep = ",", row.names = F)
 #SRTR <- read.table("./FIBERS_RISK_AgMM.csv", sep = ',',header = T)
 #summary(SRTR)
 
-
+# Read SRTR file
 #using this file as the pipeline was developed out of the order it is documented to flow
 SRTR <- read.table("./KM_hlaR_Wiebe_FIBERS_input_1.txt", sep = ',',header = T)
 
-
+# Merge SRTR with WhlaR data
 WhlaR <- left_join(SRTR, WhlaR)
 summary(WhlaR)
+
+# Write the final output file
 E_filename <- paste0("./hlaR_February_22_2023/KM_hlaR_Wiebe_FIBERS_",IMP_ID, ".txt") 
 write.table(SRTR1,file=paste0(E_filename), sep = "\t", row.names = F)
