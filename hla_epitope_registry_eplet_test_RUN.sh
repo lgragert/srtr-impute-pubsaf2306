@@ -2,7 +2,7 @@
 #SBATCH --job-name=hla_epitope_registry_eplet_test                                        ### Job Name
 #SBATCH --output=/lustre/project/lgragert/jk/logs/hla_epitope_registry_eplet_test.out     ### File in which to store job output (based on array task)
 #SBATCH --error=/lustre/project/lgragert/jk/logs/hla_epitope_registry_eplet_test.err      ### File in which to store job error messages (based on array task)
-#SBATCH --partition=defq                                                                  ### Partition (default is 'defq')
+#SBATCH --partition=centos7                                                               ### Partition (default is 'defq')
 #SBATCH --qos=long                                                                        ### Quality of Service (like a queue in PBS)
 #SBATCH --mem=16000                                                                       ### Memory to request
 #SBATCH --time=0-48:00:00                                                                 ### Wall clock time limit in Days-HH:MM:SS
