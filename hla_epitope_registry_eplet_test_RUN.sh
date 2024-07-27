@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=hla_epitope_registry_eplet_test                                        ### Job Name
-#SBATCH --output=/lustre/project/lgragert/jk/logs/hla_epitope_registry_eplet_test.out     ### File in which to store job output (based on array task)
-#SBATCH --error=/lustre/project/lgragert/jk/logs/hla_epitope_registry_eplet_test.err      ### File in which to store job error messages (based on array task)
+#SBATCH --output=/lustre/project/lgragert/jk/logs/hla_epitope_registry_eplet_test_%j.out  ### File in which to store job output (based on array task)
+#SBATCH --error=/lustre/project/lgragert/jk/logs/hla_epitope_registry_eplet_test_%j.err   ### File in which to store job error messages (based on array task)
 #SBATCH --partition=centos7                                                               ### Partition required for Python 3.11 (default is 'defq')
 #SBATCH --qos=long                                                                        ### Quality of Service (like a queue in PBS)
 #SBATCH --mem=256000                                                                      ### Memory required because of the DataFrame
