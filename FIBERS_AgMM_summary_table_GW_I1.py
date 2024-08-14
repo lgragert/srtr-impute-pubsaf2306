@@ -38,22 +38,26 @@ print ("Overall Count: " + str(kidney_tx_pair_count) + "\n")
 
 print ("SRTR Deceased Kidney Donors")
 print ("Imputation Replicate 1")
-print ("FIBERS - AAMM Positions in Bin: DRB1_13, DRB1_26, DQB1_30, DQB1_55")
+print ("FIBERS - AAMM Positions in Bin: MM_DRB1_11,MM_DRB1_26,MM_DRB1_37,MM_DQB1_53,MM_DRB1_77,MM_DQB1_89")
 
-SRTR_Low_Risk = SRTR[(SRTR['MM_DRB1_13'] == 0) &
+SRTR_Low_Risk = SRTR[(SRTR['MM_DRB1_11'] == 0) &
                      (SRTR['MM_DRB1_26'] == 0) &
-                     (SRTR['MM_DQB1_30'] == 0) &
-                     (SRTR['MM_DQB1_55'] == 0)]
+                     (SRTR['MM_DRB1_37'] == 0) &
+                     (SRTR['MM_DRB1_77'] == 0) &
+                     (SRTR['MM_DQB1_53'] == 0) &
+                     (SRTR['MM_DQB1_89'] == 0)]
 
 FIBERS_Low_Risk_count = len(SRTR_Low_Risk)
 
 print ("FIBERS Low Risk Count: " + str(FIBERS_Low_Risk_count))
 
 
-SRTR_High_Risk = SRTR[(SRTR['MM_DRB1_13'] >= 1) |
+SRTR_High_Risk = SRTR[(SRTR['MM_DRB1_11'] >= 1) |
                       (SRTR['MM_DRB1_26'] >= 1) |
-                      (SRTR['MM_DQB1_30'] >= 1) |
-                      (SRTR['MM_DQB1_55'] >= 1)]
+                      (SRTR['MM_DRB1_37'] >= 1) |
+                      (SRTR['MM_DRB1_77'] >= 1) |
+                      (SRTR['MM_DQB1_53'] >= 1) |
+                      (SRTR['MM_DQB1_89'] >= 1) ]
 
 FIBERS_High_Risk_count = len(SRTR_High_Risk)
 

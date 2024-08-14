@@ -7,7 +7,7 @@ import sys
 risk_group = sys.argv[1] # OVERALL, FIBERS_LOW, FIBERS_HIGH
 
 # SRTR imputation replicate 1
-SRTR_imputation_replicate1_filename = "./SRTR_AA_MM_matrix_grffail_replicates_2022-04-03/SRTR_AA_MM_matrix_grffail_1.txt" 
+SRTR_imputation_replicate1_filename = "./SRTR_AA_MM_matrix_grffail_replicates_2022-04-03/SRTR_AA_MM_matrix_grffail_9.txt" 
 SRTR = pd.read_csv(SRTR_imputation_replicate1_filename,sep='\t')
 
 # Alternative imputation realization 9
@@ -37,7 +37,7 @@ print ("Overall Count: " + str(kidney_tx_pair_count) + "\n")
 # FIBERS Risk Categories
 
 print ("SRTR Deceased Kidney Donors")
-print ("Imputation Replicate 1")
+print ("Imputation Replicate 9")
 print ("FIBERS - AAMM Positions in Bin: DRB1_13, DRB1_26, DQB1_30, DQB1_55")
 
 SRTR_Low_Risk = SRTR[(SRTR['MM_DRB1_13'] == 0) &
