@@ -12,4 +12,4 @@
 #SBATCH --mail-user=apaynter@tulane.edu
 
 module load anaconda3/2023.07
-python3 AAMM_frequency.py 
+python3 aamm_average_stdev_reps.py
