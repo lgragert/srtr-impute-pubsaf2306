@@ -1,0 +1,18 @@
+{
+  "FIBERS_BINS": {
+    "Bin_1": ["DRB1_11", "DRB1_26", "DRB1_37", "DRB1_77", "DQB1_53", "DQB1_89"],
+    "Bin_2": ["DRB1_12", "DQB1_55", "DQB1_71", "DQB1_77"],
+    "Bin_3": ["DRB1_13", "DQB1_26", "DRB1_77", "DQB1_30"],
+    "Bin_4": ["A_17", "DRB1_12", "DRB1_14", "DQB1_55", "DQB1_74"],
+    "Bin_5": ["DRB1_13", "DRB1_26", "DQB1_30", "DQB1_55", "DQB1_89"],
+    "Bin_6": ["DQB1_30", "DQB1_55", "DRB1_13", "DRB1_26"],
+    "Bin_7": ["DQB1_30", "DQB1_55", "DRB1_10", "DRB1_13", "DRB1_32", "DRB1_73"],
+    "Bin_8": ["DQB1_30", "DQB1_55", "DQB1_74", "DRB1_13", "DRB1_33"],
+    "Bin_9": ["DQB1_30", "DQB1_55", "DRB1_13", "DRB1_26"],
+    "Bin_10": ["DQB1_55", "DRB1_13", "DRB1_26"]
+  },
+  "AA_of_Interest": {
+    "DRB": ["DRB1_71", "DRB1_74", "DRB1_86", "DRB1_60", "DRB1_73"],
+    "DQ": []
+  }
+}
