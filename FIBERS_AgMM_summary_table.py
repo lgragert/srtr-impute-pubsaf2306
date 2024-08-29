@@ -134,8 +134,8 @@ for pop in pops:
     for replicate in impute_realization:
         print("Working on replicate: ", replicate)
         # SRTR imputation replicate
-        SRTR_imputation_replicate_filename = "SRTR_AA_MM_matrix_grffail_" + str(replicate) + ".txt"
-        SRTR = pd.read_csv(SRTR_imputation_replicate_filename, sep='\t')
+        SRTR_imputation_replicate_filename = "SRTR_AA_MM_9loc_matrix_" + str(replicate) + ".txt.gz"
+        SRTR = pd.read_csv(SRTR_imputation_replicate_filename, sep='\t', compression='gzip')
 
         # subset antigen MM and amino acid MM columns from data frame
 
