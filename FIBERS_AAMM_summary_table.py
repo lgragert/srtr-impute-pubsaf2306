@@ -1,9 +1,37 @@
 import pandas as pd
-from openpyxl.styles import Alignment, Font
+from openpyxl.styles import Alignment, Font, NamedStyle
 from openpyxl import load_workbook
 from collections import defaultdict
+import json
 
 # Script to generate summary stats for amino acid MM in replicate 1
+
+
+# Get FIBERS High and Low risk groups for each bin
+def high_low_bins(SRTR, aamm_config, bin_num):
+    # Initialize low risk condition
+    low_risk = (SRTR[("MM_" + aamm_config['FIBERS_Bins'][bin_num][0]) == 0])
+    for aamm in aamm_config['FIBERS_Bins'][bin_num][1:]:
+        low_risk &= (SRTR[("MM_" + aamm)] == 0)
+    SRTR_Low_Risk = SRTR[low_risk]
+
+    # Initialize high risk condition
+    high_risk = (SRTR[("MM_" + aamm_config['FIBERS_Bins'][bin_num][0]) >= 1])
+    for aamm in aamm_config[1:]:
+        high_risk |= (SRTR[("MM_" + aamm)] >= 1)
+
+    SRTR_High_Risk = SRTR[high_risk]
+    return SRTR_Low_Risk, SRTR_High_Risk
+
+
+# Format counts to have a 'count (percentage %)' for each excel cell
+def format_counts(ini_count, total_sum, overall, dict_key=None):
+    if overall is True:
+        ag_perc = str(ini_count) + " (" + str(format(100 * ini_count / total_sum, '.2f')) + "%)"
+    else:
+        ag_perc = str(ini_count) + " (" + str(format(100 * ini_count / int(total_sum.loc[dict_key][0]), '.2f')) + "%)"
+    return ag_perc
+
 
 # Overall Antigen Mismatch Counts Function
 def antigen_count(low_high_bin, total_count, high_or_low, overall):
@@ -60,90 +88,36 @@ def antigen_count(low_high_bin, total_count, high_or_low, overall):
     antigen_DR_2MM_DQ_NA_count = len(low_high_bin[(low_high_bin['REC_DR_MM_EQUIV_CUR'] == 2) &
                                                   (low_high_bin['REC_DQ_MM_EQUIV_CUR'] == 99)])
     # Make the rows depending on if overall count or not
-    if overall == True:
-        antigen_DR_NA_perc = str(antigen_DR_NA_count) + " (" + str(format(100 * antigen_DR_NA_count / total_count, '.2f')) + "%)"
-        antigen_DQ_NA_perc = str(antigen_DQ_NA_count) + " (" + str(format(100 * antigen_DQ_NA_count / total_count, ".2f")) + "%)"
-        antigen_ABDR_0MM_perc = str(antigen_ABDR_0MM_count) + " (" + str(format(100 * antigen_ABDR_0MM_count / total_count, '.2f')) + "%)"
-        antigen_DR_0MM_perc = str(antigen_DR_0MM_count) + " (" + str(format(100 * antigen_DR_0MM_count / total_count, '.2f')) + "%)"
-        antigen_DQ_0MM_perc = str(antigen_DQ_0MM_count) + " (" + str(format(100 * antigen_DQ_0MM_count / total_count, '.2f')) + "%)"
-        antigen_DR_1MM_perc = str(antigen_DR_1MM_count) + " (" + str(format(100 * antigen_DR_1MM_count / total_count, '.2f')) + "%)"
-        antigen_DQ_1MM_perc = str(antigen_DQ_1MM_count) + " (" + str(format(100 * antigen_DQ_1MM_count / total_count, '.2f')) + "%)"
-        antigen_DR_2MM_perc = str(antigen_DR_2MM_count) + " (" + str(format(100 * antigen_DR_2MM_count / total_count, '.2f')) + "%)"
-        antigen_DQ_2MM_perc = str(antigen_DQ_2MM_count) + " (" + str(format(100 * antigen_DQ_2MM_count / total_count, '.2f')) + "%)"
-        antigen_DR_0MM_DQ_0MM_perc = str(antigen_DR_0MM_DQ_0MM_count) + " (" + str(format(100 * antigen_DR_0MM_DQ_0MM_count / total_count, '.2f')) + "%)"
-        antigen_DR_0MM_DQ_1MM_perc = str(antigen_DR_0MM_DQ_1MM_count) + " (" + str(format(100 * antigen_DR_0MM_DQ_1MM_count / total_count, '.2f')) + "%)"
-        antigen_DR_1MM_DQ_0MM_perc = str(antigen_DR_1MM_DQ_0MM_count) + " (" + str(format(100 * antigen_DR_1MM_DQ_0MM_count / total_count, '.2f')) + "%)"
-        antigen_DR_1MM_DQ_1MM_perc = str(antigen_DR_1MM_DQ_1MM_count) + " (" + str(format(100 * antigen_DR_1MM_DQ_1MM_count / total_count, '.2f')) + "%)"
-        antigen_DR_0MM_DQ_2MM_perc = str(antigen_DR_0MM_DQ_2MM_count) + " (" + str(format(100 * antigen_DR_0MM_DQ_2MM_count / total_count, '.2f')) + "%)"
-        antigen_DR_2MM_DQ_0MM_perc = str(antigen_DR_2MM_DQ_0MM_count) + " (" + str(format(100 * antigen_DR_2MM_DQ_0MM_count / total_count, '.2f')) + "%)"
-        antigen_DR_1MM_DQ_2MM_perc = str(antigen_DR_1MM_DQ_2MM_count) + " (" + str(format(100 * antigen_DR_1MM_DQ_2MM_count / total_count, '.2f')) + "%)"
-        antigen_DR_2MM_DQ_1MM_perc = str(antigen_DR_2MM_DQ_1MM_count) + " (" + str(format(100 * antigen_DR_2MM_DQ_1MM_count / total_count, '.2f')) + "%)"
-        antigen_DR_2MM_DQ_2MM_perc = str(antigen_DR_2MM_DQ_2MM_count) + " (" + str(format(100 * antigen_DR_2MM_DQ_2MM_count / total_count, '.2f')) + "%)"
-        antigen_DR_0MM_DQ_NA_perc = str(antigen_DR_0MM_DQ_NA_count) + " (" + str(format(100 * antigen_DR_0MM_DQ_NA_count / total_count, '.2f')) + "%)"
-        antigen_DR_1MM_DQ_NA_perc = str(antigen_DR_1MM_DQ_NA_count) + " (" + str(format(100 * antigen_DR_1MM_DQ_NA_count / total_count, '.2f')) + "%)"
-        antigen_DR_2MM_DQ_NA_perc = str(antigen_DR_2MM_DQ_NA_count) + " (" + str(format(100 * antigen_DR_2MM_DQ_NA_count / total_count, '.2f')) + "%)"
-    else:
-        total_count[0].replace(to_replace="0 ", value="1", inplace=True)  # Cannot divide by zero, so replace with one
-        antigen_DR_NA_perc = str(antigen_DR_NA_count) + " (" + str(format(100 * antigen_DR_NA_count / int(total_count.loc['Missing-DR AgMM Count'][0]), '.2f')) + "%)"
-        antigen_DQ_NA_perc = str(antigen_DQ_NA_count) + " (" + str(format(100 * antigen_DQ_NA_count / int(total_count.loc['Missing-DQ AgMM Count'][0]), ".2f")) + "%)"
-        antigen_ABDR_0MM_perc = str(antigen_ABDR_0MM_count) + " (" + str(format(100 * antigen_ABDR_0MM_count / int(total_count.loc['0-ABDR AgMM Count'][0]), '.2f')) + "%)"
-        antigen_DR_0MM_perc = str(antigen_DR_0MM_count) + " (" + str(format(100 * antigen_DR_0MM_count / int(total_count.loc['0-DR AgMM Count'][0]), '.2f')) + "%)"
-        antigen_DQ_0MM_perc = str(antigen_DQ_0MM_count) + " (" + str(format(100 * antigen_DQ_0MM_count / int(total_count.loc['0-DQ AgMM Count'][0]), '.2f')) + "%)"
-        antigen_DR_1MM_perc = str(antigen_DR_1MM_count) + " (" + str(format(100 * antigen_DR_1MM_count / int(total_count.loc['1-DR AgMM Count'][0]), '.2f')) + "%)"
-        antigen_DQ_1MM_perc = str(antigen_DQ_1MM_count) + " (" + str(format(100 * antigen_DQ_1MM_count / int(total_count.loc['1-DQ AgMM Count'][0]), '.2f')) + "%)"
-        antigen_DR_2MM_perc = str(antigen_DR_2MM_count) + " (" + str(format(100 * antigen_DR_2MM_count / int(total_count.loc['2-DR AgMM Count'][0]), '.2f')) + "%)"
-        antigen_DQ_2MM_perc = str(antigen_DQ_2MM_count) + " (" + str(format(100 * antigen_DQ_2MM_count / int(total_count.loc['2-DQ AgMM Count'][0]), '.2f')) + "%)"
-        antigen_DR_0MM_DQ_0MM_perc = str(antigen_DR_0MM_DQ_0MM_count) + " (" + str(format(100 * antigen_DR_0MM_DQ_0MM_count / int(total_count.loc['0-DR and 0-DQ AgMM Count'][0]), '.2f')) + "%)"
-        antigen_DR_0MM_DQ_1MM_perc = str(antigen_DR_0MM_DQ_1MM_count) + " (" + str(format(100 * antigen_DR_0MM_DQ_1MM_count / int(total_count.loc['0-DR and 1-DQ AgMM Count'][0]), '.2f')) + "%)"
-        antigen_DR_1MM_DQ_0MM_perc = str(antigen_DR_1MM_DQ_0MM_count) + " (" + str(format(100 * antigen_DR_1MM_DQ_0MM_count / int(total_count.loc['1-DR and 0-DQ AgMM Count'][0]), '.2f')) + "%)"
-        antigen_DR_1MM_DQ_1MM_perc = str(antigen_DR_1MM_DQ_1MM_count) + " (" + str(format(100 * antigen_DR_1MM_DQ_1MM_count / int(total_count.loc['1-DR and 1-DQ AgMM Count'][0]), '.2f')) + "%)"
-        antigen_DR_0MM_DQ_2MM_perc = str(antigen_DR_0MM_DQ_2MM_count) + " (" + str(format(100 * antigen_DR_0MM_DQ_2MM_count / int(total_count.loc['0-DR and 2-DQ AgMM Count'][0]), '.2f')) + "%)"
-        antigen_DR_2MM_DQ_0MM_perc = str(antigen_DR_2MM_DQ_0MM_count) + " (" + str(format(100 * antigen_DR_2MM_DQ_0MM_count / int(total_count.loc['2-DR and 0-DQ AgMM Count'][0]), '.2f')) + "%)"
-        antigen_DR_1MM_DQ_2MM_perc = str(antigen_DR_1MM_DQ_2MM_count) + " (" + str(format(100 * antigen_DR_1MM_DQ_2MM_count / int(total_count.loc['1-DR and 2-DQ AgMM Count'][0]), '.2f')) + "%)"
-        antigen_DR_2MM_DQ_1MM_perc = str(antigen_DR_2MM_DQ_1MM_count) + " (" + str(format(100 * antigen_DR_2MM_DQ_1MM_count / int(total_count.loc['2-DR and 1-DQ AgMM Count'][0]), '.2f')) + "%)"
-        antigen_DR_2MM_DQ_2MM_perc = str(antigen_DR_2MM_DQ_2MM_count) + " (" + str(format(100 * antigen_DR_2MM_DQ_2MM_count / int(total_count.loc['2-DR and 2-DQ AgMM Count'][0]), '.2f')) + "%)"
-        antigen_DR_0MM_DQ_NA_perc = str(antigen_DR_0MM_DQ_NA_count) + " (" + str(format(100 * antigen_DR_0MM_DQ_NA_count / int(total_count.loc['0-DR and Missing-DQ AgMM Count'][0]), '.2f')) + "%)"
-        antigen_DR_1MM_DQ_NA_perc = str(antigen_DR_1MM_DQ_NA_count) + " (" + str(format(100 * antigen_DR_1MM_DQ_NA_count / int(total_count.loc['1-DR and Missing-DQ AgMM Count'][0]), '.2f')) + "%)"
-        antigen_DR_2MM_DQ_NA_perc = str(antigen_DR_2MM_DQ_NA_count) + " (" + str(format(100 * antigen_DR_2MM_DQ_NA_count / int(total_count.loc['2-DR and Missing-DQ AgMM Count'][0]), '.2f')) + "%)"
+    ag_count_dict = {"Missing-DR AgMM Count": antigen_DR_NA_count, "Missing-DQ AgMM Count": antigen_DQ_NA_count,
+                      "0-ABDR AgMM Count": antigen_ABDR_0MM_count, "0-DR AgMM Count": antigen_DR_0MM_count,
+                      "0-DQ AgMM Count": antigen_DQ_0MM_count, "1-DR AgMM Count": antigen_DR_1MM_count,
+                      "1-DQ AgMM Count": antigen_DQ_1MM_count, "2-DR AgMM Count": antigen_DR_2MM_count,
+                      "2-DQ AgMM Count": antigen_DQ_2MM_count, "0-DR and 0-DQ AgMM Count": antigen_DR_0MM_DQ_0MM_count,
+                      "0-DR and 1-DQ AgMM Count": antigen_DR_0MM_DQ_1MM_count,"1-DR and 0-DQ AgMM Count":
+                          antigen_DR_1MM_DQ_0MM_count, "1-DR and 1-DQ AgMM Count": antigen_DR_1MM_DQ_1MM_count,
+                      "0-DR and 2-DQ AgMM Count": antigen_DR_0MM_DQ_2MM_count, "2-DR and 0-DQ AgMM Count":
+                          antigen_DR_2MM_DQ_0MM_count, "1-DR and 2-DQ AgMM Count": antigen_DR_1MM_DQ_2MM_count,
+                      "2-DR and 1-DQ AgMM Count": antigen_DR_2MM_DQ_1MM_count,"2-DR and 2-DQ AgMM Count":
+                          antigen_DR_2MM_DQ_2MM_count, "0-DR and Missing-DQ AgMM Count": antigen_DR_0MM_DQ_NA_count,
+                      "1-DR and Missing-DQ AgMM Count": antigen_DR_1MM_DQ_NA_count,
+                      "2-DR and Missing-DQ AgMM Count": antigen_DR_2MM_DQ_NA_count}
+
+    ag_perc_dict = {}
+    for key, value in ag_count_dict.items():
+        ag_perc = format_counts(value, total_count, overall, key)
+        ag_perc_dict[key] = ag_perc
 
     if high_or_low == "high":
-        antigen_list = [" ", " ", "", antigen_DR_NA_perc, antigen_DQ_NA_perc, antigen_ABDR_0MM_perc, antigen_DR_0MM_perc,
-                        antigen_DQ_0MM_perc, antigen_DR_1MM_perc, antigen_DQ_1MM_perc, antigen_DR_2MM_perc,
-                        antigen_DQ_2MM_perc, antigen_DR_0MM_DQ_0MM_perc, antigen_DR_0MM_DQ_1MM_perc,
-                        antigen_DR_1MM_DQ_0MM_perc, antigen_DR_1MM_DQ_1MM_perc,
-                        antigen_DR_0MM_DQ_2MM_perc, antigen_DR_2MM_DQ_0MM_perc,
-                        antigen_DR_1MM_DQ_2MM_perc, antigen_DR_2MM_DQ_1MM_perc,
-                        antigen_DR_2MM_DQ_2MM_perc, antigen_DR_0MM_DQ_NA_perc,
-                        antigen_DR_1MM_DQ_NA_perc, antigen_DR_2MM_DQ_NA_perc]
         # "Leave blank"'s are due to formatting issues, but they will be fixed later in the process
-        antigen_key = ["Leave blank", "leave blank", "AA-MM within Ag-MM and FIBERS High Risk Combos",
-                       "Missing-DR AgMM Count", "Missing-DQ AgMM Count", "0-ABDR AgMM Count", "0-DR AgMM Count",
-                       "0-DQ AgMM Count", "1-DR AgMM Count", "1-DQ AgMM Count", "2-DR AgMM Count", "2-DQ AgMM Count",
-                       "0-DR and 0-DQ AgMM Count", "0-DR and 1-DQ AgMM Count", "1-DR and 0-DQ AgMM Count",
-                       "1-DR and 1-DQ AgMM Count", "0-DR and 2-DQ AgMM Count", "2-DR and 0-DQ AgMM Count",
-                       "1-DR and 2-DQ AgMM Count", "2-DR and 1-DQ AgMM Count", "2-DR and 2-DQ AgMM Count",
-                       "0-DR and Missing-DQ AgMM Count", "1-DR and Missing-DQ AgMM Count", "2-DR and Missing-DQ AgMM Count"]
+        # Join the leave blanks with the percentage dictionaries made previously
+        high_header_rows = {"Leave blank": " ", "leave blank": " ", "AA-MM within Ag-MM and FIBERS High Risk Combos": ""}
+        antigen_dict = {**high_header_rows, **ag_perc_dict}
+
     if high_or_low == "low":
-        antigen_list = ["", antigen_DR_NA_perc, antigen_DQ_NA_perc, antigen_ABDR_0MM_perc,
-                        antigen_DR_0MM_perc, antigen_DQ_0MM_perc, antigen_DR_1MM_perc,
-                        antigen_DQ_1MM_perc, antigen_DR_2MM_perc, antigen_DQ_2MM_perc,
-                        antigen_DR_0MM_DQ_0MM_perc, antigen_DR_0MM_DQ_1MM_perc,
-                        antigen_DR_1MM_DQ_0MM_perc, antigen_DR_1MM_DQ_1MM_perc,
-                        antigen_DR_0MM_DQ_2MM_perc, antigen_DR_2MM_DQ_0MM_perc,
-                        antigen_DR_1MM_DQ_2MM_perc, antigen_DR_2MM_DQ_1MM_perc,
-                        antigen_DR_2MM_DQ_2MM_perc, antigen_DR_0MM_DQ_NA_perc,
-                        antigen_DR_1MM_DQ_NA_perc, antigen_DR_2MM_DQ_NA_perc]
-        antigen_key = ["AA-MM within Ag-MM and FIBERS Low Risk Combos", "Missing-DR AgMM Count",
-                       "Missing-DQ AgMM Count", "0-ABDR AgMM Count", "0-DR AgMM Count", "0-DQ AgMM Count",
-                       "1-DR AgMM Count", "1-DQ AgMM Count", "2-DR AgMM Count", "2-DQ AgMM Count",
-                       "0-DR and 0-DQ AgMM Count", "0-DR and 1-DQ AgMM Count", "1-DR and 0-DQ AgMM Count",
-                       "1-DR and 1-DQ AgMM Count", "0-DR and 2-DQ AgMM Count", "2-DR and 0-DQ AgMM Count",
-                       "1-DR and 2-DQ AgMM Count", "2-DR and 1-DQ AgMM Count", "2-DR and 2-DQ AgMM Count",
-                       "0-DR and Missing-DQ AgMM Count", "1-DR and Missing-DQ AgMM Count", "2-DR and Missing-DQ AgMM Count"]
+        low_header_row = {"AA-MM within Ag-MM and FIBERS Low Risk Combos": ""}
+        antigen_dict = {**low_header_row, **ag_perc_dict}
 
-    antigen_dictionary = dict(zip(antigen_key, antigen_list))
-
-    return antigen_dictionary
+    return antigen_dict
 
 
 # Specific Amino Acids Count Function: DRB1_13 _26 and DQB1_30 _55
@@ -205,25 +179,41 @@ def specific_amino_acid(SRTR, high_list, low_list, high_overall, low_overall, am
     aa_ag_df.name = amino_acid  # Will Create a Nested Dictionary with Named DataFrames
 
     return aa_ag_df
-    
-# Reference table of AA-MM in each bin
-table_df = pd.DataFrame(data={"DRB1": ["11, 26, 37, 77", "12", "13, 26, 77", "12, 14", "13, 26", "13, 26", "10, 13, 32, 73", "13, 33", "13, 26", "13, 26"], 
-                              "DQB1": ["53, 89", "55, 71, 77", "30", "55, 74", "30, 55, 89", "30, 55", "30, 55", "30, 55, 74", "30, 55", "55"],
-                              "A": ["", "", "", "17", "", "", "", "", "", ""]}, index=range(1, 11))
 
-AAMM_tabs = ['DRB1_13', 'DRB1_26', 'DQB1_30', 'DQB1_55', 'DRB1_71', 'DRB1_74', 'DRB1_86', 'DRB1_60', 'DRB1_73']
+
+# Get AA in config file
+with open('amino_acids.json', 'r') as file:
+    config = json.load(file)
+
+# Reference table of AA-MM in each bin
+table_df = pd.DataFrame(config['FIBERS_BINS'].values(), index=config['FIBERS_BINS'])
+
+# Get AA of interest along with bin of AA that we found most interesting
+# Last run, bin 9 was most interesting
+aa_of_int = config['AA_of_Interest']
+bin_of_int = config['FIBERS_BINS']['Bin_9']
+AAMM_tabs = aa_of_int + bin_of_int
 
 # SRTR using only one replicate/realization
 replicate = 1
-SRTR_imputation_replicate_filename = "SRTR_AA_MM_matrix_grffail_" + str(replicate) + ".txt"
-SRTR_df = pd.read_csv(SRTR_imputation_replicate_filename, sep='\t')
+SRTR_imputation_replicate_filename = "SRTR_AA_MM_9loc_matrix_" + str(replicate) + ".txt.gz"
+SRTR_df = pd.read_csv(SRTR_imputation_replicate_filename, sep='\t', compression='gzip')
 
 # Subset amino acid MM and antigen MM columns from Dataframe
-SRTR_df = SRTR_df[["PX_ID", "CAN_RACE", "REC_A_MM_EQUIV_CUR", "REC_B_MM_EQUIV_CUR", "REC_DR_MM_EQUIV_CUR",
-                   "REC_DQ_MM_EQUIV_CUR", "MM_DRB1_13", "MM_DRB1_26", "MM_DQB1_30", "MM_DQB1_55", "MM_DRB1_11",
-                   "MM_DRB1_37", "MM_DQB1_53", "MM_DRB1_77", "MM_DQB1_89", 'MM_DRB1_12', 'MM_DQB1_71', 'MM_DQB1_77',
-                   'MM_A_17', 'MM_DRB1_14', 'MM_DQB1_74', 'MM_DRB1_10', 'MM_DRB1_32', 'MM_DRB1_73', 'MM_DRB1_33',
-                   'MM_DRB1_71', 'MM_DRB1_74', 'MM_DRB1_86', 'MM_DRB1_60']]
+SRTR_ag = SRTR_df[["PX_ID", "CAN_RACE", "REC_A_MM_EQUIV_CUR", "REC_B_MM_EQUIV_CUR", "REC_DR_MM_EQUIV_CUR",
+                   "REC_DQ_MM_EQUIV_CUR"]]
+# The AAMM are all the ones found in the bins, so create a for loop to get list and get only unique AAMM
+aa_list = []
+for bin in config['FIBERS_BINS']:
+    specific_bin = config['FIBERS_BINS'][bin]
+    for aa in specific_bin:
+        if aa not in aa_list:
+            aa_list.append(aa)
+
+SRTR_aa = SRTR_df[aa_list]
+
+# Append AA with the Ag/population group info DF
+SRTR_df = pd.concat([SRTR_ag, SRTR_aa], axis=1)
 
 # Convert AgMM to integers and handle NAs due to missing DQ typing
 # 99 - Not tested per SRTR_df data dictionary
@@ -252,69 +242,13 @@ for pop in pops:
     overall_SRTR_count = len(SRTR)
     print("Overall Count:", overall_SRTR_count)
 
-    lowfreq_bin_1 = SRTR[(SRTR['MM_DRB1_11'] == 0) & (SRTR['MM_DRB1_26'] == 0) &
-                         (SRTR['MM_DRB1_37'] == 0) & (SRTR['MM_DRB1_77'] == 0) &
-                         (SRTR['MM_DQB1_53'] == 0) & (SRTR['MM_DQB1_89'] == 0)]
-    highfreq_bin_1 = SRTR[(SRTR['MM_DRB1_11'] >= 1) | (SRTR['MM_DRB1_26'] >= 1) |
-                          (SRTR['MM_DRB1_37'] >= 1) | (SRTR['MM_DRB1_77'] >= 1) |
-                          (SRTR['MM_DQB1_53'] >= 1) | (SRTR['MM_DQB1_89'] >= 1)]
-
-    lowfreq_bin_2 = SRTR[(SRTR['MM_DRB1_12'] == 0) & (SRTR['MM_DQB1_55'] == 0) &
-                         (SRTR['MM_DQB1_71'] == 0) & (SRTR['MM_DQB1_77'] == 0)]
-    highfreq_bin_2 = SRTR[(SRTR['MM_DRB1_12'] >= 1) | (SRTR['MM_DQB1_55'] >= 1) |
-                          (SRTR['MM_DQB1_71'] >= 1) | (SRTR['MM_DQB1_77'] >= 1)]
-
-    lowfreq_bin_3 = SRTR[(SRTR['MM_DRB1_13'] == 0) & (SRTR['MM_DRB1_26'] == 0) &
-                         (SRTR['MM_DRB1_77'] == 0) & (SRTR['MM_DQB1_30'] == 0)]
-    highfreq_bin_3 = SRTR[(SRTR['MM_DRB1_13'] >= 1) | (SRTR['MM_DRB1_26'] >= 1) |
-                          (SRTR['MM_DRB1_77'] >= 1) | (SRTR['MM_DQB1_30'] >= 1)]
-
-    lowfreq_bin_4 = SRTR[(SRTR['MM_A_17'] == 0) & (SRTR['MM_DRB1_12'] == 0) &
-                         (SRTR['MM_DRB1_14'] == 0) & (SRTR['MM_DQB1_55'] == 0) &
-                         (SRTR['MM_DQB1_74'] == 0)]
-    highfreq_bin_4 = SRTR[(SRTR['MM_A_17'] >= 1) | (SRTR['MM_DRB1_12'] >= 1) |
-                          (SRTR['MM_DRB1_14'] >= 1) | (SRTR['MM_DQB1_55'] >= 1) |
-                          (SRTR['MM_DQB1_74'] >= 1)]
-
-    lowfreq_bin_5 = SRTR[(SRTR['MM_DRB1_13'] == 0) & (SRTR['MM_DRB1_26'] == 0) &
-                         (SRTR['MM_DQB1_30'] == 0) & (SRTR['MM_DQB1_55'] == 0) &
-                         (SRTR['MM_DQB1_89'] == 0)]
-    highfreq_bin_5 = SRTR[(SRTR['MM_DRB1_13'] >= 1) | (SRTR['MM_DRB1_26'] >= 1) |
-                          (SRTR['MM_DQB1_30'] >= 1) | (SRTR['MM_DQB1_55'] >= 1) |
-                          (SRTR['MM_DQB1_89'] >= 1)]
-
-    lowfreq_bin_6 = SRTR[(SRTR['MM_DQB1_30'] == 0) & (SRTR['MM_DQB1_55'] == 0) &
-                         (SRTR['MM_DRB1_13'] == 0) & (SRTR['MM_DRB1_26'] == 0)]
-    highfreq_bin_6 = SRTR[(SRTR['MM_DQB1_30'] >= 1) | (SRTR['MM_DQB1_55'] >= 1) |
-                          (SRTR['MM_DRB1_13'] >= 1) | (SRTR['MM_DRB1_26'] >= 1)]
-
-    lowfreq_bin_7 = SRTR[(SRTR['MM_DQB1_30'] == 0) & (SRTR['MM_DQB1_55'] == 0) &
-                         (SRTR['MM_DRB1_10'] == 0) & (SRTR['MM_DRB1_13'] == 0) &
-                         (SRTR['MM_DRB1_32'] == 0) & (SRTR['MM_DRB1_73'] == 0)]
-    highfreq_bin_7 = SRTR[(SRTR['MM_DQB1_30'] >= 1) | (SRTR['MM_DQB1_55'] >= 1) |
-                          (SRTR['MM_DRB1_10'] >= 1) | (SRTR['MM_DRB1_13'] >= 1) |
-                          (SRTR['MM_DRB1_32'] >= 1) | (SRTR['MM_DRB1_73'] >= 1)]
-
-    lowfreq_bin_8 = SRTR[(SRTR['MM_DQB1_30'] == 0) & (SRTR['MM_DQB1_55'] == 0) &
-                         (SRTR['MM_DQB1_74'] == 0) & (SRTR['MM_DRB1_13'] == 0) &
-                         (SRTR['MM_DRB1_33'] == 0)]
-    highfreq_bin_8 = SRTR[(SRTR['MM_DQB1_30'] >= 1) | (SRTR['MM_DQB1_55'] >= 1) |
-                          (SRTR['MM_DQB1_74'] >= 1) | (SRTR['MM_DRB1_13'] >= 1) |
-                          (SRTR['MM_DRB1_33'] >= 1)]
-
-    lowfreq_bin_9 = SRTR[(SRTR['MM_DQB1_30'] == 0) & (SRTR['MM_DQB1_55'] == 0) &
-                         (SRTR['MM_DRB1_13'] == 0) & (SRTR['MM_DRB1_26'] == 0)]
-    highfreq_bin_9 = SRTR[(SRTR['MM_DQB1_30'] >= 1) | (SRTR['MM_DQB1_55'] >= 1) |
-                          (SRTR['MM_DRB1_13'] >= 1) | (SRTR['MM_DRB1_26'] >= 1)]
-
-    lowfreq_bin_10 = SRTR[(SRTR['MM_DQB1_55'] == 0) & (SRTR['MM_DRB1_13'] == 0) &
-                          (SRTR['MM_DRB1_26'] == 0)]
-    highfreq_bin_10 = SRTR[(SRTR['MM_DQB1_55'] >= 1) | (SRTR['MM_DRB1_13'] >= 1) |
-                           (SRTR['MM_DRB1_26'] >= 1)]
-
-    high_bins = [highfreq_bin_1, highfreq_bin_2, highfreq_bin_3, highfreq_bin_4, highfreq_bin_5, highfreq_bin_6, highfreq_bin_7, highfreq_bin_8, highfreq_bin_9, highfreq_bin_10]
-
-    low_bins = [lowfreq_bin_1, lowfreq_bin_2, lowfreq_bin_3, lowfreq_bin_4, lowfreq_bin_5, lowfreq_bin_6, lowfreq_bin_7, lowfreq_bin_8, lowfreq_bin_9, lowfreq_bin_10]
+    # Get high and low risk counts for each bin discovered by FIBERS
+    low_bins = []
+    high_bins = []
+    for bin in config['FIBERS_BINS']:
+        low_freq, high_freq = high_low_bins(SRTR, config, bin)
+        low_bins.append(low_freq)
+        high_bins.append(high_freq)
 
     # For OVERALL Excel Sheet
     for idx, high in enumerate(high_bins):
@@ -432,8 +366,3 @@ for pop in pops:
             aa_ws.font = Font(bold=True)
 
     wb.save(filename="FIBERS_AAMM_" + pop + "_summary_table.xlsx")
-
-
-
-
-
