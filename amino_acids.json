@@ -11,8 +11,5 @@
     "Bin_9": ["DQB1_30", "DQB1_55", "DRB1_13", "DRB1_26"],
     "Bin_10": ["DQB1_55", "DRB1_13", "DRB1_26"]
   },
-  "AA_of_Interest": {
-    "DRB": ["DRB1_71", "DRB1_74", "DRB1_86", "DRB1_60", "DRB1_73"],
-    "DQ": []
-  }
+  "AA_of_Interest": ["DRB1_71", "DRB1_74", "DRB1_86", "DRB1_60", "DRB1_73"]
 }
