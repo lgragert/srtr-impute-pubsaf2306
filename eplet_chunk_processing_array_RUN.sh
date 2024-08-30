@@ -6,7 +6,7 @@
 #SBATCH --partition=centos7                                              ### Partition required for Python 3.11 (default is 'defq')
 #SBATCH --qos=normal                                                     ### Quality of Service (like a queue in PBS)
 #SBATCH --time=0-24:00:00                                                ### Wall clock time limit in Days-HH:MM:SS
-
+#SBATCH --mem=256000                                                     ### Memory required because of the DataFrame
 
 
 
