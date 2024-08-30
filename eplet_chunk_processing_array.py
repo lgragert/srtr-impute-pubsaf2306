@@ -33,7 +33,7 @@ output_file_path_PROC_loc_labels = f'./SRTR_output_processed_{ARRAY_ID}/hla_eple
 ####################
 
 # Open the tar.gz file
-with tarfile.open('SRTR_output_API_{ARRAY_ID}.tar.gz', 'r:gz') as tar:
+with tarfile.open(input_file_path, 'r:gz') as tar:
 
     # Only pull/filter out .csv files and
     # Sort the file names numerically based on the chunk number
