@@ -32,7 +32,8 @@ def extract_and_sort_eplets(column):
         except:
             pass
     # Sort eplets numerically, considering any preceding letters
-    eplets = sorted(eplets, key=lambda x: int(re.findall(r'\d+', x)[0]))
+    valid_eplets = [eplet for eplet in eplets if re.findall(r'\d+', eplet)]
+    eplets = sorted(valid_eplets, key=lambda x: int(re.findall(r'\d+', x)[0]))
     return eplets
 
 # Extract and sort eplets for each locus
