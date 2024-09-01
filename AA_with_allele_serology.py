@@ -2,23 +2,43 @@ import pandas as pd
 from openpyxl.styles import PatternFill
 from openpyxl import load_workbook
 import hlagenie
+genie = hlagenie.init("3510", imputed=True)
 
 # Go from serologic group to allele to amino acid pairings
 
-# Get amino acid position with hlagenie: DRB1(16, 28, 30, 32, 37, 47, 57, 60, 67, 70, 71, 74, 85, 86)
-#                                        DQB1 (9, 13, 23, 26, 30, 37, 38, 57, 66, 67, 70, 86, and 87)
+
+# Get amino acid position with hlagenie
 def aminoacid(ag_allele, which_allele):
-    if which_allele == "DRB1":
-        AA_list = [16, 28, 30, 32, 37, 47, 57, 60, 67, 70, 71, 74, 85, 86]
-    if which_allele == "DQB1":
-        AA_list = [9, 13, 23, 26, 30, 37, 38, 57, 66, 67, 70, 86, 87]
+
+    # Get length of protein sequence
+    if which_allele == 'A':
+        AA_list = list(range(1,342))
+    elif which_allele == 'C':
+        AA_list = list(range(1,343))
+    elif which_allele == 'B':
+        AA_list = list(range(1,339))
+    elif which_allele == 'DRB1' or which_allele == 'DRB345':
+        AA_list = list(range(1,238))
+    elif which_allele == 'DQA1':
+        AA_list = list(range(1, 233))
+    elif which_allele == 'DQB1' or which_allele == 'DPA1' or which_allele == 'DPB1':
+        AA_list = list(range(1, 230))
 
     for AA in AA_list:
-        D_B1_AA = []
+        locus_AA = []
         for row in range(len(ag_allele)):
             allele = ag_allele['HLA_Allele'][row]
-            D_B1_AA.append(genie.getAA(allele, AA))
-        ag_allele[which_allele + "_" + str(AA)] = D_B1_AA
+            # Ask if these are ok substitutions
+            if allele == 'C*06:100':
+                allele = 'C*06:10'
+            if allele == 'B*15:245Q':
+                allele = 'B*15:220'
+            if allele == 'DQA1*03:07':
+                allele = 'DQA1*03:06'
+            if allele == 'DPB1*1038:01':
+                allele = 'DPB1*01:01'
+            locus_AA.append(genie.getAA(allele, AA))
+        ag_allele[which_allele + "_" + str(AA)] = locus_AA
     return ag_allele
 
 
@@ -57,42 +77,50 @@ def blank_lines_insert(allele_aa, optn_ag_list):
 # First start with list of allele serology with antigen type
 ag_to_alleles = pd.read_csv('OPTN_antigens_to_alleles_CPRA.txt', sep='\t')
 
-DRB1_ag_alleles = ag_to_alleles[(ag_to_alleles['IMGT/HLA alleles'].str.contains('DRB1'))]
-DR_optn_ag = DRB1_ag_alleles['OPTN_Antigen']
-DR_optn_ag_list = DR_optn_ag.values.tolist()
+loci = ['A', 'C', 'B', 'DRB', 'DQA1', 'DQB1', 'DPA1', 'DPB1']
 
-DRB1_alleles = get_allele_format(DR_optn_ag, DRB1_ag_alleles)
+# Do all loci with their AAs, each sheet is one locus
+for locus in loci:
 
-DQB1_ag_alleles = ag_to_alleles[(ag_to_alleles['IMGT/HLA alleles'].str.contains('DQB1'))]
-DQ_optn_ag = DQB1_ag_alleles['OPTN_Antigen']
-DQ_optn_ag_list = DQ_optn_ag.values.tolist()
+    # Want to separate out DRB into DRB1 and DRB345
+    if locus == 'DRB':
+        DRB1_ag_alleles = ag_to_alleles[(ag_to_alleles['IMGT/HLA alleles'].str.startswith('DRB1'))]
+        DRB345_ag_alleles = ag_to_alleles[(ag_to_alleles['IMGT/HLA alleles'].str.startswith('DRB3')) |
+                                          (ag_to_alleles['IMGT/HLA alleles'].str.startswith('DRB4')) |
+                                          (ag_to_alleles['IMGT/HLA alleles'].str.startswith('DRB5'))]
 
-DQB1_alleles = get_allele_format(DQ_optn_ag, DQB1_ag_alleles)
+        DRB1_optn_ag = DRB1_ag_alleles['OPTN_Antigen']
+        DRB1_optn_ag_ls = DRB1_optn_ag.values.tolist()
+        alleles = get_allele_format(DRB1_optn_ag, DRB1_ag_alleles)
+        DRB1_aa = aminoacid(alleles, 'DRB1')
 
+        DRB345_optn_ag = DRB345_ag_alleles['OPTN_Antigen']
+        DRB345_optn_ag_ls = DRB345_optn_ag.values.tolist()
+        alleles = get_allele_format(DRB345_optn_ag, DRB345_ag_alleles)
+        DRB345_aa = aminoacid(alleles, 'DRB345')
 
-# Use HLAGenie to get specific amino acids at certain positions
-genie = hlagenie.init("3510", imputed=True)
+        # Putting blank lines inbetween each serologic group
+        DRB1_aa = blank_lines_insert(DRB1_aa, DRB1_optn_ag_ls)
+        DRB345_aa = blank_lines_insert(DRB345_aa, DRB345_optn_ag_ls)
+        with pd.ExcelWriter("AA_polymorphism_with_allele.xlsx", mode="a", engine="openpyxl",
+                            if_sheet_exists="replace") as writer:
+            DRB1_aa.to_excel(writer, index=False, sheet_name='DRB1 Alleles & AA')
+            DRB345_aa.to_excel(writer, index=False, sheet_name='DRB345 Alleles & AA')
+    else:
+        ag_alleles = ag_to_alleles[(ag_to_alleles['IMGT/HLA alleles'].str.startswith(locus))]
+        locus_optn_ag = ag_alleles['OPTN_Antigen']
+        locus_optn_ag_ls = locus_optn_ag.values.tolist()
 
-allele_aa_DRB1 = aminoacid(DRB1_alleles, "DRB1")
-allele_aa_DQB1 = aminoacid(DQB1_alleles, "DQB1")
-print(allele_aa_DRB1)
-print(allele_aa_DQB1)
+        alleles = get_allele_format(locus_optn_ag, ag_alleles)
 
+        # Use HLAGenie to get the AA positions
+        allele_aa = aminoacid(alleles, locus)
 
-# Putting blank lines inbetween each serologic group
-allele_aa_DRB1 = blank_lines_insert(allele_aa_DRB1, DR_optn_ag_list)
-allele_aa_DQB1 = blank_lines_insert(allele_aa_DQB1, DQ_optn_ag_list)
-color = "spring"
+        # Putting blank lines inbetween each serologic group
+        allele_aa = blank_lines_insert(allele_aa, locus_optn_ag_ls)
 
-with pd.ExcelWriter("AA_polymorphism_with_allele_" + color + ".xlsx") as writer:
-    allele_aa_DRB1.to_excel(writer, index=False, sheet_name='DRB1 Alleles & AA')
-    allele_aa_DQB1.to_excel(writer, index=False, sheet_name='DQB1 Alleles & AA')
-# color coding for the 20 amino acids by characteristics
-# Polar = yellow [S, T, N, Q, C],           index colors: [26, 34, 43, 47, 51]
-# + Charged = green [K, R, H],              index colors: [50, 42, 57]
-# - Charged = purple [D, E],                index colors: [46, 24]
-# Aromatic = pink [F, Y, W],                index colors: [45, 29, 33]
-# Aliphatic = blue [G, A, V, M, I, L, P],   index colors: [27, 44, 40, 35, 41, 15, 49]
+        with pd.ExcelWriter("AA_polymorphism_with_allele.xlsx", mode="a", engine="openpyxl", if_sheet_exists="replace") as writer:
+            allele_aa.to_excel(writer, index=False, sheet_name=locus + ' Alleles & AA')
 
 
 # Use to get amino acid color for each worksheet
@@ -111,26 +139,17 @@ def amino_acid_color(worksheet):
     return worksheet
 
 
-wb = load_workbook("AA_polymorphism_with_allele_" + color + ".xlsx")
-ws_DR = wb['DRB1 Alleles & AA']
-ws_DQ = wb['DQB1 Alleles & AA']
+wb = load_workbook("AA_polymorphism_with_allele.xlsx")
+loci = ['A', 'C', 'B', 'DRB1', 'DRB345', 'DQA1', 'DQB1', 'DPA1', 'DPB1']
+for locus in loci:
+    ws_locus = wb[locus + " Alleles & AA"]
 
+    # Spring color scheme
+    AA_colors = {"A": "ffababab", "C": "ff0893fe", "D": "fffc5977", "E": "ffff9c83", "F": "ff02f8b7", "G": "fff66c17",
+                 "H": "ffd2b907", "I": "ff47beff", "K": "ffffc56d", "L": "ff358b8f", "M": "ff4b9e93", "N": "ffeb684b",
+                 "P": "fffd75cf", "Q": "ffdeb16f", "R": "ffb38b2b", "S": "ffbb8187", "T": "ffd3add1", "V": "ff519db9",
+                 "W": "ff00d619", "Y": "ff38a549"}
 
-# # Each AA color to fill in - with clustalx color scheme, these are the aRGB codes (different from colors in lines 70-75)
-# AA_colors = {"S": "FF19CC19", "T": "FF19CC19", "N": "FF19CC19", "Q": "FF19CC19", "C": "FFE57F7F", "K": "FFE53319",
-#              "R": "FFE53319", "H": "FF19B2B2", "D": "FFCC4CCC", "E": "FFCC4CCC", "F": "FF197FE5", "Y": "FF19B2B2",
-#              "W": "FF197FE5", "G": "FFE5994C", "A": "FF197FE5", "V": "FF197FE5", "M": "FF197FE5", "I": "FF197FE5",
-#              "L": "FF197FE5", "P": "FFCCCC00"}
+    ws_locus = amino_acid_color(ws_locus)
 
-# # # Spring color scheme
-AA_colors = {"A": "ffababab", "C": "ff0893fe", "D": "fffc5977", "E": "ffff9c83", "F": "ff02f8b7", "G": "fff66c17",
-             "H": "ffd2b907", "I": "ff47beff", "K": "ffffc56d", "L": "ff358b8f", "M": "ff4b9e93", "N": "ffeb684b",
-             "P": "fffd75cf", "Q": "ffdeb16f", "R": "ffb38b2b", "S": "ffbb8187", "T": "ffd3add1", "V": "ff519db9",
-             "W": "ff00d619", "Y": "ff38a549"}
-
-
-ws_DR = amino_acid_color(ws_DR)
-ws_DQ = amino_acid_color(ws_DQ)
-
-wb.save(filename="AA_polymorphism_with_allele_" + color + ".xlsx")
-
+wb.save(filename="AA_polymorphism_with_allele.xlsx")
