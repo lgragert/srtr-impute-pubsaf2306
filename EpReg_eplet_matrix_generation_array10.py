@@ -71,7 +71,7 @@ eplet_locus = add_eplet_columns(eplet_locus, 'DQ_explanation_DQB1_details', uniq
 
 # Drop columns
 columns_to_drop = ['ALL_details', 'ALL_explanation',
-                   'ABC_quantity', 'ABC_details', 'ABC_explanation',
+                   'ABC_quantity', 'ABC_details', 
                    'ABC_explanation_A_details', 'ABC_explanation_A_explanation',
                    'ABC_explanation_B_details', 'ABC_explanation_B_explanation',
                    'ABC_explanation_C_details', 'ABC_explanation_C_explanation',
@@ -83,7 +83,7 @@ columns_to_drop = ['ALL_details', 'ALL_explanation',
                    'DQ_explanation_DQB1_details', 'DQ_explanation_DQB1_explanation',
                    'DP_quantity', 'DP_details', 'DP_explanation',
                    'MICA_quantity', 'MICA_details', 'MICA_explanation']
-eplet_matrix = eplet_locus.drop(columns=columns_to_drop)
+eplet_matrix = eplet_locus.drop(columns=columns_to_drop, errors='ignore')
 
 # Rename remaining columns
 new_column_names = {
