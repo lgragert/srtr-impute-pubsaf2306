@@ -82,7 +82,7 @@ def antigen_count(SRTR, replicate, total_count):
                     "0-DR and Missing-DQ AgMM Count": antigen_DR_0MM_DQ_NA_perc, "1-DR and Missing-DQ AgMM Count": antigen_DR_1MM_DQ_NA_perc,
                     "2-DR and Missing-DQ AgMM Count": antigen_DR_2MM_DQ_NA_perc}
 
-    antigen_dataframe = pd.DataFrame(antigen_dict.values, index=list(antigen_dict.keys()), columns=[replicate])
+    antigen_dataframe = pd.DataFrame(list(antigen_dict.values()), index=list(antigen_dict.keys()), columns=[replicate])
 
     return antigen_dataframe
 
