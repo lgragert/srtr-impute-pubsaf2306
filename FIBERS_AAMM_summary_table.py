@@ -10,14 +10,14 @@ import json
 # Get FIBERS High and Low risk groups for each bin
 def high_low_bins(SRTR, aamm_config, bin_num):
     # Initialize low risk condition
-    low_risk = (SRTR[("MM_" + aamm_config['FIBERS_Bins'][bin_num][0]) == 0])
-    for aamm in aamm_config['FIBERS_Bins'][bin_num][1:]:
+    low_risk = (SRTR[("MM_" + aamm_config['FIBERS_BINS'][bin_num][0])] == 0)
+    for aamm in aamm_config['FIBERS_BINS'][bin_num][1:]:
         low_risk &= (SRTR[("MM_" + aamm)] == 0)
     SRTR_Low_Risk = SRTR[low_risk]
 
     # Initialize high risk condition
-    high_risk = (SRTR[("MM_" + aamm_config['FIBERS_Bins'][bin_num][0]) >= 1])
-    for aamm in aamm_config[1:]:
+    high_risk = (SRTR[("MM_" + aamm_config['FIBERS_BINS'][bin_num][0])] >= 1)
+    for aamm in aamm_config['FIBERS_BINS'][bin_num][1:]:
         high_risk |= (SRTR[("MM_" + aamm)] >= 1)
 
     SRTR_High_Risk = SRTR[high_risk]
@@ -29,6 +29,7 @@ def format_counts(ini_count, total_sum, overall, dict_key=None):
     if overall is True:
         ag_perc = str(ini_count) + " (" + str(format(100 * ini_count / total_sum, '.2f')) + "%)"
     else:
+        total_sum[0].replace(to_replace="0 ", value="1", inplace=True) # We cannot divide by 0, so this little trick helps with it
         ag_perc = str(ini_count) + " (" + str(format(100 * ini_count / int(total_sum.loc[dict_key][0]), '.2f')) + "%)"
     return ag_perc
 
@@ -203,13 +204,18 @@ SRTR_df = pd.read_csv(SRTR_imputation_replicate_filename, sep='\t', compression=
 SRTR_ag = SRTR_df[["PX_ID", "CAN_RACE", "REC_A_MM_EQUIV_CUR", "REC_B_MM_EQUIV_CUR", "REC_DR_MM_EQUIV_CUR",
                    "REC_DQ_MM_EQUIV_CUR"]]
 # The AAMM are all the ones found in the bins, so create a for loop to get list and get only unique AAMM
-aa_list = []
 for bin in config['FIBERS_BINS']:
     specific_bin = config['FIBERS_BINS'][bin]
+    # Also want all the AA of interest too, so add to the list
+    aa_of_int = config['AA_of_Interest']
     for aa in specific_bin:
         if aa not in aa_list:
             aa_list.append(aa)
+    for aa in aa_of_int:
+        if aa not in aa_list:
+            aa_list.append(aa)
 
+aa_list_header = ["MM_" + AAMM for AAMM in aa_list]
 SRTR_aa = SRTR_df[aa_list]
 
 # Append AA with the Ag/population group info DF
