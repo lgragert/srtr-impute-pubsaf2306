@@ -190,6 +190,7 @@ with open('amino_acids.json', 'r') as file:
 table_df = pd.DataFrame(config['FIBERS_BINS'].values(), index=config['FIBERS_BINS'])
 
 # Get AA of interest along with bin of AA that we found most interesting
+# AAMM_tabs creates the tabs in the Excel Spreadsheet
 # Last run, bin 9 was most interesting
 aa_of_int = config['AA_of_Interest']
 bin_of_int = config['FIBERS_BINS']['Bin_9']
@@ -204,6 +205,8 @@ SRTR_df = pd.read_csv(SRTR_imputation_replicate_filename, sep='\t', compression=
 SRTR_ag = SRTR_df[["PX_ID", "CAN_RACE", "REC_A_MM_EQUIV_CUR", "REC_B_MM_EQUIV_CUR", "REC_DR_MM_EQUIV_CUR",
                    "REC_DQ_MM_EQUIV_CUR"]]
 # The AAMM are all the ones found in the bins, so create a for loop to get list and get only unique AAMM
+# Want to subset SRTR to only the AAMM found in all the bins and AA of interests
+aa_list = []
 for bin in config['FIBERS_BINS']:
     specific_bin = config['FIBERS_BINS'][bin]
     # Also want all the AA of interest too, so add to the list
