@@ -4,6 +4,7 @@ import numpy
 import re
 import requests
 # import pyard
+import sys
 
 # initialize pyARD and roll up typing to 'g' group for imputation
 # XX codes are always in latest IMGT/HLA allele list
@@ -13,6 +14,17 @@ import requests
 XX_hash = {}
 dna2ser = {}
 seroGL = {}
+
+sysarg_donor = sys.argv[1]
+sysarg_tx_ty = sys.argv[2]
+print("DON Type:", sysarg_donor)
+print("TX Type:", sysarg_tx_ty)
+
+donor_type = str(sysarg_donor)  # deceased or living
+tx_type = str(sysarg_tx_ty)     # heart_lungs, heart, lungs, kidney_pancreas, kidney, pancreas, liver, intestines
+
+# donor_type = "living"
+# tx_type = "kidney"
 
 def loc_gl (loc, typ1, typ2, dna1, dna2, XX_hash):
 
@@ -162,9 +174,15 @@ def loadSeroWMDAMap (seroGL):
 
 	return (0)
 
+unos_sero_filename = "OPTN_antigens_to_alleles_CPRA.txt"
+unos_sero_df = pandas.read_csv(unos_sero_filename, sep='\t')
+
 
 # get list of two-field alleles that include nulls from WMDA file
 wmda_filename  = "rel_dna_ser.txt"
+column_names = ['Who_Locus', 'Who_Allele_Name', 'Who_Unambiguous_Ag', 'Possible_Ag', 'Assumed_Ag', 'Expert_Assigned_Ag']
+wmda_df = pandas.read_csv(wmda_filename, sep=';', skiprows=6, header=None, names=column_names)
+
 wmda_file = open(wmda_filename, 'r')
 null_alleles_locus = {} # list of null alleles per locus
 for line in wmda_file:
@@ -215,7 +233,9 @@ for locus in null_alleles_locus:
 
 
 # load file generated from HLA merge
-tx_ki_hla_filename = "tx_ki_hla_9loc.csv"
+# tx_ki_hla_filename = "tx_ki_hla_9loc.csv"
+# tx_ki_hla_filename = "deceased_kidney_hla_9loc.csv"
+tx_ki_hla_filename = f"{donor_type}_{tx_type}_hla_9loc.csv"
 tx_ki_hla = pandas.read_csv(tx_ki_hla_filename, index_col=None, encoding='Latin-1', low_memory=False, dtype=str)
 
 # output SRTR pull/glid files
@@ -275,49 +295,53 @@ for row in tx_ki_hla.itertuples():
 	DON_DRB5_1 = str(getattr(row,'DON_DRB5_1'))
 	DON_DRB5_2 = str(getattr(row,'DON_DRB5_2'))
 
-	if (DON_A1 == "nan"):
+	# 97	97: Unknown
+	# 98	98: No second antigen detected
+	# 99	99: Not Tested
+
+	if ((DON_A1 == "nan") or (DON_A1 == "Null_allele") or (DON_A1 == "97") or (DON_A1 == "98") or (DON_A1 == "99")):
 		DON_A1 = ""
-	if (DON_A2 == "nan"):
+	if (DON_A2 == "nan") or (DON_A2 == "Null_allele") or (DON_A2 == "97") or (DON_A2 == "98") or (DON_A2 == "99"):
 		DON_A2 = ""
-	if (DON_C1 == "nan"):
+	if (DON_C1 == "nan") or (DON_C1 == "Null_allele") or (DON_C1 == "97") or (DON_C1 == "98") or (DON_C1 == "99") or (DON_C1 == "No Ag detected"):
 		DON_C1 = ""
-	if (DON_C2 == "nan"):
+	if (DON_C2 == "nan") or (DON_C2 == "Null_allele") or (DON_C2 == "97") or (DON_C2 == "98") or (DON_C2 == "99") or (DON_C2 == "No Ag detected"):
 		DON_C2 = ""
-	if (DON_B1 == "nan"):
+	if (DON_B1 == "nan") or (DON_B1 == "Null_allele") or (DON_B1 == "97") or (DON_B1 == "98") or (DON_B1 == "99"):
 		DON_B1 = ""
-	if (DON_B2 == "nan"):
+	if (DON_B2 == "nan") or (DON_B2 == "Null_allele") or (DON_B2 == "97") or (DON_B2 == "98") or (DON_B2 == "99"):
 		DON_B2 = ""
-	if (DON_DR1 == "nan"):
+	if (DON_DR1 == "nan") or (DON_DR1 == "Null_allele") or (DON_DR1 == "97") or (DON_DR1 == "98") or (DON_DR1 == "99"):
 		DON_DR1 = ""
-	if (DON_DR2 == "nan"):
+	if (DON_DR2 == "nan") or (DON_DR2 == "Null_allele") or (DON_DR2 == "97") or (DON_DR2 == "98") or (DON_DR2 == "99"):
 		DON_DR2 = ""
-	if (DON_DQA1 == "nan"):
+	if (DON_DQA1 == "nan") or (DON_DQA1 == "Null_allele") or (DON_DQA1 == "97") or (DON_DQA1 == "98") or (DON_DQA1 == "99"):
 		DON_DQA1 = ""
-	if (DON_DQA2 == "nan"):
+	if (DON_DQA2 == "nan") or (DON_DQA2 == "Null_allele") or (DON_DQA2 == "97") or (DON_DQA2 == "98") or (DON_DQA2 == "99"):
 		DON_DQA2 = ""
-	if (DON_DQ1 == "nan"):
+	if (DON_DQ1 == "nan") or (DON_DQ1 == "Null_allele") or (DON_DQ1 == "97") or (DON_DQ1 == "98") or (DON_DQ1 == "99"):
 		DON_DQ1 = ""
-	if (DON_DQ2 == "nan"):
+	if (DON_DQ2 == "nan") or (DON_DQ2 == "Null_allele") or (DON_DQ2 == "97") or (DON_DQ2 == "98") or (DON_DQ2 == "99"):
 		DON_DQ2 = ""
-	if (DON_DPA1 == "nan"):
+	if (DON_DPA1 == "nan") or (DON_DPA1 == "Null_allele") or (DON_DPA1 == "97") or (DON_DPA1 == "98") or (DON_DPA1 == "99"):
 		DON_DPA1 = ""
-	if (DON_DPA2 == "nan"):
+	if (DON_DPA2 == "nan") or (DON_DPA2 == "Null_allele") or (DON_DPA2 == "97") or (DON_DPA2 == "98") or (DON_DPA2 == "99"):
 		DON_DPA2 = ""
-	if (DON_DP1 == "nan"):
+	if (DON_DP1 == "nan") or (DON_DP1 == "Null_allele") or (DON_DP1 == "97") or (DON_DP1 == "98") or (DON_DP1 == "99"):
 		DON_DP1 = ""
-	if (DON_DP2 == "nan"):
+	if (DON_DP2 == "nan") or (DON_DP2 == "Null_allele") or (DON_DP2 == "97") or (DON_DP2 == "98") or (DON_DP2 == "99"):
 		DON_DP2 = ""
-	if (DON_DRB3_1 == "nan"):
+	if (DON_DRB3_1 == "nan") or (DON_DRB3_1 == "Null_allele"):
 		DON_DRB3_1 = ""
-	if (DON_DRB3_2 == "nan"):
+	if (DON_DRB3_2 == "nan") or (DON_DRB3_2 == "Null_allele"):
 		DON_DRB3_2 = ""
-	if (DON_DRB4_1 == "nan"):
+	if (DON_DRB4_1 == "nan") or (DON_DRB4_1 == "Null_allele"):
 		DON_DRB4_1 = ""
-	if (DON_DRB4_2 == "nan"):
+	if (DON_DRB4_2 == "nan") or (DON_DRB4_2 == "Null_allele"):
 		DON_DRB4_2 = ""
-	if (DON_DRB5_1 == "nan"):
+	if (DON_DRB5_1 == "nan") or (DON_DRB5_1 == "Null_allele"):
 		DON_DRB5_1 = ""
-	if (DON_DRB5_2 == "nan"):
+	if (DON_DRB5_2 == "nan") or (DON_DRB5_2 == "Null_allele"):
 		DON_DRB5_2 = ""
 
 
@@ -398,49 +422,49 @@ for row in tx_ki_hla.itertuples():
 	REC_DRB5_1 = str(getattr(row,'REC_DRB5_1'))
 	REC_DRB5_2 = str(getattr(row,'REC_DRB5_2'))
 
-	if (REC_A1 == "nan"):
+	if ((REC_A1 == "nan") or (REC_A1 == "Null_allele") or (REC_A1 == "97") or (REC_A1 == "98") or (REC_A1 == "99")):
 		REC_A1 = ""
-	if (REC_A2 == "nan"):
+	if (REC_A2 == "nan") or (REC_A2 == "Null_allele") or (REC_A2 == "97") or (REC_A2 == "98") or (REC_A2 == "99"):
 		REC_A2 = ""
-	if (REC_C1 == "nan"):
+	if (REC_C1 == "nan") or (REC_C1 == "Null_allele") or (REC_C1 == "97") or (REC_C1 == "98") or (REC_C1 == "99") or (REC_C1 == "No Ag detected"):
 		REC_C1 = ""
-	if (REC_C2 == "nan"):
+	if (REC_C2 == "nan") or (REC_C2 == "Null_allele") or (REC_C2 == "97") or (REC_C2 == "98") or (REC_C2 == "99") or (REC_C2 == "No Ag detected"):
 		REC_C2 = ""
-	if (REC_B1 == "nan"):
+	if (REC_B1 == "nan") or (REC_B1 == "Null_allele") or (REC_B1 == "97") or (REC_B1 == "98") or (REC_B1 == "99"):
 		REC_B1 = ""
-	if (REC_B2 == "nan"):
+	if (REC_B2 == "nan") or (REC_B2 == "Null_allele") or (REC_B2 == "97") or (REC_B2 == "98") or (REC_B2 == "99"):
 		REC_B2 = ""
-	if (REC_DR1 == "nan"):
+	if (REC_DR1 == "nan") or (REC_DR1 == "Null_allele") or (REC_DR1 == "97") or (REC_DR1 == "98") or (REC_DR1 == "99"):
 		REC_DR1 = ""
-	if (REC_DR2 == "nan"):
+	if (REC_DR2 == "nan") or (REC_DR2 == "Null_allele") or (REC_DR2 == "97") or (REC_DR2 == "98") or (REC_DR2 == "99"):
 		REC_DR2 = ""
-	if (REC_DQA1 == "nan"):
+	if (REC_DQA1 == "nan") or (REC_DQA1 == "Null_allele") or (REC_DQA1 == "97") or (REC_DQA1 == "98") or (REC_DQA1 == "99"):
 		REC_DQA1 = ""
-	if (REC_DQA2 == "nan"):
+	if (REC_DQA2 == "nan") or (REC_DQA2 == "Null_allele") or (REC_DQA2 == "97") or (REC_DQA2 == "98") or (REC_DQA2 == "99"):
 		REC_DQA2 = ""
-	if (REC_DQ1 == "nan"):
+	if (REC_DQ1 == "nan") or (REC_DQ1 == "Null_allele") or (REC_DQ1 == "97") or (REC_DQ1 == "98") or (REC_DQ1 == "99") or (len(REC_DQ1) == 2): # TODO - 2-digit typing not found in seroGL[DQ]
 		REC_DQ1 = ""
-	if (REC_DQ2 == "nan"):
+	if (REC_DQ2 == "nan") or (REC_DQ2 == "Null_allele") or (REC_DQ2 == "97") or (REC_DQ2 == "98") or (REC_DQ2 == "99") or (len(REC_DQ2) == 2): # TODO - 2-digit typing not found in seroGL[DQ]
 		REC_DQ2 = ""
-	if (REC_DPA1 == "nan"):
+	if (REC_DPA1 == "nan") or (REC_DPA1 == "Null_allele") or (REC_DPA1 == "97") or (REC_DPA1 == "98") or (REC_DPA1 == "99"):
 		REC_DPA1 = ""
-	if (REC_DPA2 == "nan"):
+	if (REC_DPA2 == "nan") or (REC_DPA2 == "Null_allele") or (REC_DPA2 == "97") or (REC_DPA2 == "98") or (REC_DPA2 == "99"):
 		REC_DPA2 = ""
-	if (REC_DP1 == "nan"):
+	if (REC_DP1 == "nan") or (REC_DP1 == "Null_allele") or (REC_DP1 == "97") or (REC_DP1 == "98") or (REC_DP1 == "99"):
 		REC_DP1 = ""
-	if (REC_DP2 == "nan"):
+	if (REC_DP2 == "nan") or (REC_DP2 == "Null_allele") or (REC_DP2 == "97") or (REC_DP2 == "98") or (REC_DP2 == "99"):
 		REC_DP2 = ""
-	if (REC_DRB3_1 == "nan"):
+	if (REC_DRB3_1 == "nan") or (REC_DRB3_1 == "Null_allele"):
 		REC_DRB3_1 = ""
-	if (REC_DRB3_2 == "nan"):
+	if (REC_DRB3_2 == "nan") or (REC_DRB3_2 == "Null_allele"):
 		REC_DRB3_2 = ""
-	if (REC_DRB4_1 == "nan"):
+	if (REC_DRB4_1 == "nan") or (REC_DRB4_1 == "Null_allele"):
 		REC_DRB4_1 = ""
-	if (REC_DRB4_2 == "nan"):
+	if (REC_DRB4_2 == "nan") or (REC_DRB4_2 == "Null_allele"):
 		REC_DRB4_2 = ""
-	if (REC_DRB5_1 == "nan"):
+	if (REC_DRB5_1 == "nan") or (REC_DRB5_1 == "Null_allele"):
 		REC_DRB5_1 = ""
-	if (REC_DRB5_2 == "nan"):
+	if (REC_DRB5_2 == "nan") or (REC_DRB5_2 == "Null_allele"):
 		REC_DRB5_2 = ""
 
 	REC_A1_DNA_TYPING_IND = "N"
@@ -594,6 +618,45 @@ for row in tx_ki_hla.itertuples():
 		REC_DRB345_1_DNA_TYPING_IND = "Y"
 	if (re.search(":",REC_DRB345_2)):
 		REC_DRB345_2_DNA_TYPING_IND = "Y"
+
+	# KeyError: 'C1'
+	# If DON or REC has C1 or C2 that is single-digit, then prepend "0" to the single digit
+	if (DON_C1 != ""):
+		if (len(DON_C1) == 1):
+			DON_C1 = "0" + DON_C1
+	if (DON_C2 != ""):
+		if (len(DON_C2) == 1):
+			DON_C2 = "0" + DON_C2
+	if (REC_C1 != ""):
+		if (len(REC_C1) == 1):
+			REC_C1 = "0" + REC_C1
+	if (REC_C2 != ""):
+		if (len(REC_C2) == 1):
+			REC_C2 = "0" + REC_C2
+
+	# KeyError: 'DRHLA-DR103'
+	# If DON or REC has DR1 or DR2 that is 'HLA-DR103', then change it to '103'
+	if (DON_DR1 != ""):
+		if (DON_DR1 == "HLA-DR103"):
+			DON_DR1 = "103"
+	if (DON_DR2 != ""):
+		if (DON_DR2 == "HLA-DR103"):
+			DON_DR2 = "103"
+	if (REC_DR1 != ""):
+		if (REC_DR1 == "HLA-DR103"):
+			REC_DR1 = "103"
+	if (REC_DR2 != ""):
+		if (REC_DR2 == "HLA-DR103"):
+			REC_DR2 = "103"
+	
+	# REC DQW 2-digit typing not found in seroGL[DQ]
+	# If REC_HISTO_TX_ID is found in ['1045249', '1058933', '1075858', '1078954', '1080256'], and if REC_DQ1 or REC_DQ2 is 2-digit typing, then change it to ""
+	REC_HISTO_TX_ID = str(getattr(row,'REC_HISTO_TX_ID'))
+	if REC_HISTO_TX_ID in ['1045249', '1058933', '1075858', '1078954', '1080256']:
+		if (len(REC_DQ1) == 2) or (len(REC_DQ2) == 2):
+			# Change REC_DQ1 and REC_DQ2 to ""
+			REC_DQ1 = ""
+			REC_DQ2 = ""
 
 	# print GLID file
 	# print PULL file
