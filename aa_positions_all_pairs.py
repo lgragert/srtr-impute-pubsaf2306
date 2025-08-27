@@ -5,9 +5,10 @@ import hlagenie
 genie = hlagenie.init('3510')
 
 # Read in SRTR matrix files 1-10
-for num in range(1,11):
+for num in range(1,2):
     srtr_filename = 'SRTR_AA_MM_9loc_matrix_' + str(num) + '.txt.gz'
     srtr_matrix = pd.read_csv(srtr_filename, sep='\t', header=0, compression='gzip')
+    print(f'Processing file: {srtr_filename}')
 
     # Only need columns where it shows the AAMM and the haplotypes
     mm_cols = srtr_matrix.columns[srtr_matrix.columns.str.startswith('MM_')].tolist()
@@ -36,6 +37,7 @@ for num in range(1,11):
         mm_pos = len(mm_cols)
 
         # Get the AAs from the MM columns
+        print(f'Getting AAs for {hla} in file {num}')
         for pos in range(1, mm_pos + 1):
             aa_col = 'AA_' + hla + '_' + str(pos)
 
@@ -45,16 +47,15 @@ for num in range(1,11):
             srtr_matrix1[aa_col + '_DONOR_1'] = srtr_matrix1[hla + '_DONOR_1'].apply(lambda x: genie.getAA(x, pos) if x != 'DRBX*NNNN' else '-')
             srtr_matrix1[aa_col + '_DONOR_2'] = srtr_matrix1[hla + '_DONOR_2'].apply(lambda x: genie.getAA(x, pos) if x != 'DRBX*NNNN' else '-')
 
-    # Clean up the DataFrame to only have the relevant columns
-    hla_cols = ['TX_ID', 'PX_ID', 'HAPPAIR_RECIP', 'HAPPAIR_DONOR']
-    aa_cols = srtr_matrix1.columns[srtr_matrix1.columns.str.startswith('AA_')].tolist()
-    mm_cols = srtr_matrix1.columns[srtr_matrix1.columns.str.startswith('MM_') & ~srtr_matrix1.columns.str.endswith('COUNT')].tolist()
-    select_cols = hla_cols + aa_cols + mm_cols
-    srtr_matrix2 = srtr_matrix1[select_cols]
+        # Clean up the DataFrame to only have the relevant columns
+        hla_cols = ['TX_ID', 'PX_ID', 'HAPPAIR_RECIP', 'HAPPAIR_DONOR']
+        aa_cols = srtr_matrix1.columns[srtr_matrix1.columns.str.startswith('AA_' + hla)].tolist()
+        mm_cols = srtr_matrix1.columns[srtr_matrix1.columns.str.startswith('MM_' + hla) & ~srtr_matrix1.columns.str.endswith('COUNT')].tolist()
+        select_cols = hla_cols + aa_cols + mm_cols
+        srtr_matrix2 = srtr_matrix1[select_cols]
 
-    # Put columns in the order that Malek wants, AA_RECIP1/2, AA_DONOR1/2, MM cols
-    ordered_cols = []
-    for hla in hla_loc:
+        # Put columns in the order that Malek wants, AA_RECIP1/2, AA_DONOR1/2, MM cols
+        ordered_cols = []
         mm_cols = srtr_matrix1.columns[
             srtr_matrix1.columns.str.startswith('MM_' + hla) & ~srtr_matrix1.columns.str.endswith('COUNT')].tolist()
         mm_pos = len(mm_cols)
@@ -67,11 +68,13 @@ for num in range(1,11):
             if mm_col in srtr_matrix2.columns:
                 ordered_cols.append(mm_col)
 
-    # Add patient columns at the start
-    patient_cols = ['TX_ID', 'PX_ID', 'HAPPAIR_RECIP', 'HAPPAIR_DONOR']
-    final_cols = patient_cols + ordered_cols
+        # Add patient columns at the start
+        patient_cols = ['TX_ID', 'PX_ID', 'HAPPAIR_RECIP', 'HAPPAIR_DONOR']
+        final_cols = patient_cols + ordered_cols
 
-    # Reindex DataFrame
-    srtr_matrix3 = srtr_matrix2[final_cols]
+        # Reindex DataFrame
+        srtr_matrix3 = srtr_matrix2[final_cols]
+        print(f'Writing file: SRTR_AA_MM_9loc_with_HLA_{hla}_AA_{str(num)}.csv.gz')
 
-    srtr_matrix3.to_cvs('SRTR_AA_MM_9loc_with_AA_' + str(num) + '.csv', index=False, header=True)
+        srtr_matrix3.to_csv(f'SRTR_matrix_{str(num)}_AA_HLA_{hla}.txt.gz', sep='\t', index=False, header=True, compression='gzip')
+        print(f'Wrote file: SRTR_matrix_{str(num)}_AA_HLA_{hla}.txt.gz')
